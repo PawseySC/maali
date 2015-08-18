@@ -25,6 +25,8 @@ fi
 ##############################################################################
 # these are global
 
+MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet/master"
+
 MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
 MAALI_LOG_DIR="$HOME/.maali/logs";
 MAALI_LAST="$HOME/.maali/last";
@@ -772,7 +774,7 @@ makedir "$MAALI_BUILD_DIR"
 makedir "$MAALI_LOG_DIR"
 
 # need to inherit some other file here to set compiler, etc
-MAALI_FOUND_CONFIG=0
+MAALI_FOUND_CYGENT=0
 
 # three search paths
 MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/maali_files $HOME/.maali/maali_files $MAALI_FILES $MAALI_DIR/maali_files ./"
@@ -786,22 +788,42 @@ for MAALI_FILES_PATH in $MAALI_FILES_DIR; do
 
   if [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg" ]; then
     echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg for tool configuration information"
-    MAALI_MAALI_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg"
-    . "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg"
-    MAALI_FOUND_CONFIG=1
+    MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg"
+    MAALI_FOUND_CYGENT=1
     break
   elif [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg" ]; then
     echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg for tool configuration information"
-    . "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg"
-    MAALI_MAALI_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.maali"
-    MAALI_FOUND_CONFIG=1
+    MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg"
+    MAALI_FOUND_CYGENT=1
     break
   fi
 done
 
-if [ $MAALI_FOUND_CONFIG -eq 0 ]; then
-    echo "Can't find config file for $MAALI_TOOL_NAME"
-    exit 1;
+if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
+  # try and download it from github
+
+  # make sure the drectory is there
+  if [ ! -d "$HOME/.maali/$MAALI_OS/cygnet_files" ]; then
+      makedir "$HOME/.maali/$MAALI_OS/cygnet_files"
+  if
+
+  wget -O "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.cyg"
+  MAALI_CYGNET_FILEPATH="$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg"
+  MAALI_FOUND_CYGENT=1
+
+  MAALI_CYGNET_FILESIZE=$(stat -c%s "$MAALI_CYGNET_FILEPATH")
+  if [ $MAALI_CYGNET_FILESIZE -eq 0 ]; then
+    echo "Can't find config file for $MAALI_TOOL_NAME and could not download from github"
+    exit 1
+  fi
+
+fi
+
+# source the cygnet file
+. $MAALI_CYGNET_FILEPATH
+if [ $? -ne 0 ]; then
+    echo "failed to source $MAALI_CYGNET_FILEPATH exiting"
+    exit 1
 fi
 
 # we are running a rebuild - so we override the compiler
@@ -1141,7 +1163,7 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
 <pre>
 EOF
 
-    cat $MAALI_MAALI_FILEPATH >> $MAALI_WIKI_SRC
+    cat $MAALI_CYGNET_FILEPATH >> $MAALI_WIKI_SRC
 
     cat <<EOF >>$MAALI_WIKI_SRC
 </pre>
