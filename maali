@@ -558,9 +558,6 @@ do
          v)
              MAALI_TOOL_VERSION=$OPTARG
              ;;
-         p)
-             MAALI_PYTHON_TOOL=1
-             ;;
          d)
              DEBUG=1
              ;;
