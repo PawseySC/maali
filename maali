@@ -2,100 +2,100 @@
 ##############################################################################
 # iVEC Build System
 #
-# $Id: ibs,v 1.162 2014/10/31 04:40:04 stapops Exp $
+# $Id: maali,v 1.162 2014/10/31 04:40:04 stapops Exp $
 ##############################################################################
 # needs to be set by the install script
-IBS_VERSION="1.7.2"
+MAALI_VERSION="1.7.2"
 
 ##############################################################################
 # these are global
 
-IBS_ROOT="/group/$IVEC_PROJECT/software"
-IBS_BUILD_DIR="$IBS_ROOT/build"
-IBS_MODULE_DIR="$IBS_ROOT/modulefiles"
-IBS_SRC="$IBS_ROOT/src"
-IBS_LOG_DIR="$HOME/.ibs/logs";
-IBS_LAST="$HOME/.ibs/last";
+MAALI_ROOT="/group/$IVEC_PROJECT/software"
+MAALI_BUILD_DIR="$MAALI_ROOT/build"
+MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
+MAALI_SRC="$MAALI_ROOT/src"
+MAALI_LOG_DIR="$HOME/.maali/logs";
+MAALI_LAST="$HOME/.maali/last";
 
 ##############################################################################
 
-function ibs_build {
+function maali_build {
   # this is the core function for creating software
 
   # allows late evaluation
-  IBS_TOOL_CONFIGURE_EVAL=`eval echo "$IBS_TOOL_CONFIGURE"`
+  MAALI_TOOL_CONFIGURE_EVAL=`eval echo "$MAALI_TOOL_CONFIGURE"`
 
-  cd "$IBS_TOOL_BUILD_DIR"
-  ibs_run "./configure --prefix=$IBS_INSTALL_DIR $IBS_TOOL_CONFIGURE_EVAL"
-  ibs_run "make"
-  ibs_run "make install"
+  cd "$MAALI_TOOL_BUILD_DIR"
+  maali_run "./configure --prefix=$MAALI_INSTALL_DIR $MAALI_TOOL_CONFIGURE_EVAL"
+  maali_run "make"
+  maali_run "make install"
 }
 
 ##############################################################################
 
-function ibs_cmake_build {
+function maali_cmake_build {
   # for tools that use cmake
 
   # allows late evaluation
-  IBS_TOOL_CONFIGURE_EVAL=`eval echo "$IBS_TOOL_CONFIGURE"`
+  MAALI_TOOL_CONFIGURE_EVAL=`eval echo "$MAALI_TOOL_CONFIGURE"`
 
-  cd "$IBS_TOOL_BUILD_DIR"
+  cd "$MAALI_TOOL_BUILD_DIR"
 
   # cmake likes to build in a director of it's own
-  mkdir "$IBS_TOOL_NAME-build"
-  cd "$IBS_TOOL_NAME-build"
+  mkdir "$MAALI_TOOL_NAME-build"
+  cd "$MAALI_TOOL_NAME-build"
 
-  ibs_run "cmake -DCMAKE_INSTALL_PREFIX=$IBS_INSTALL_DIR $IBS_TOOL_CONFIGURE $IBS_CMAKE_PATH"
+  maali_run "cmake -DCMAKE_INSTALL_PREFIX=$MAALI_INSTALL_DIR $MAALI_TOOL_CONFIGURE $MAALI_CMAKE_PATH"
   if [ $DEBUG ]; then
-    ibs_run "make VERBOSE=TRUE"
+    maali_run "make VERBOSE=TRUE"
   else
-    ibs_run "make"
+    maali_run "make"
   fi
-  ibs_run "make install"
+  maali_run "make install"
 }
 
 ##############################################################################
 
-function ibs_download {
+function maali_download {
 
   i=0;
-  for IBS_TMP_URL in $IBS_URL ; do
-     IBS_URL_ARRAY[$i]=$IBS_TMP_URL
+  for MAALI_TMP_URL in $MAALI_URL ; do
+     MAALI_URL_ARRAY[$i]=$MAALI_TMP_URL
     (( i++ ))
   done
 
   i=0;
-  for IBS_TMP_DST in $IBS_DST ; do
-     IBS_DST_ARRAY[$i]=$IBS_TMP_DST
+  for MAALI_TMP_DST in $MAALI_DST ; do
+     MAALI_DST_ARRAY[$i]=$MAALI_TMP_DST
     (( i++ ))
   done
 
-  if [[ $IBS_URL =~ .python.org ]] ; then
-    IBS_WGET_CMD="wget --no-check-certificate"
+  if [[ $MAALI_URL =~ .python.org ]] ; then
+    MAALI_WGET_CMD="wget --no-check-certificate"
   else
-    IBS_WGET_CMD="wget"
+    MAALI_WGET_CMD="wget"
   fi
 
-  size=${#IBS_URL_ARRAY[@]}
+  size=${#MAALI_URL_ARRAY[@]}
   for (( i=0; i<$size; i++ ))
   do
-    IBS_TMP_URL=${IBS_URL_ARRAY[$i]}
-    IBS_TMP_DST=${IBS_DST_ARRAY[$i]}
+    MAALI_TMP_URL=${MAALI_URL_ARRAY[$i]}
+    MAALI_TMP_DST=${MAALI_DST_ARRAY[$i]}
 
     if [ $DEBUG ]; then
-      ibs_wiki " .. need to download $IBS_TMP_URL to $IBS_TMP_DST"
+      maali_wiki " .. need to download $MAALI_TMP_URL to $MAALI_TMP_DST"
     fi
 
-    if [ ! -f "$IBS_TMP_DST" ]; then
+    if [ ! -f "$MAALI_TMP_DST" ]; then
         if [ $DEBUG ]; then
-          ibs_wiki " .. can't find $IBS_TMP_DST so will run '$IBS_WGET_CMD -O $IBS_TMP_DST -q $IBS_TMP_URL'"
+          maali_wiki " .. can't find $MAALI_TMP_DST so will run '$MAALI_WGET_CMD -O $MAALI_TMP_DST -q $MAALI_TMP_URL'"
         fi
-      cd $IBS_SRC
+      cd $MAALI_SRC
 
       if [ $DEBUG ]; then
-        $IBS_WGET_CMD -O $IBS_TMP_DST $IBS_TMP_URL
+        $MAALI_WGET_CMD -O $MAALI_TMP_DST $MAALI_TMP_URL
       else
-        $IBS_WGET_CMD -O $IBS_TMP_DST -q $IBS_TMP_URL
+        $MAALI_WGET_CMD -O $MAALI_TMP_DST -q $MAALI_TMP_URL
       fi
     fi
   done
@@ -103,22 +103,22 @@ function ibs_download {
 
 ##############################################################################
 
-function ibs_genpkgconfig {
-  makedir "$IBS_INSTALL_DIR/lib/pkgconfig"
-  for indx in `seq 0 ${#IBS_MODULE_PE_PKGCONFIG_NAME[*]}`
+function maali_genpkgconfig {
+  makedir "$MAALI_INSTALL_DIR/lib/pkgconfig"
+  for indx in `seq 0 ${#MAALI_MODULE_PE_PKGCONFIG_NAME[*]}`
   do
-    if [ ! -f "$IBS_INSTALL_DIR/lib/pkgconfig/${IBS_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc" ]; then
-      cat <<EOF > $IBS_INSTALL_DIR/lib/pkgconfig/${IBS_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc
-Name: $IBS_TOOL_NAME
-Description: $IBS_TOOL_NAME's library ${IBS_MODULE_PE_PKGCONFIG_NAME[$indx]}
-Version: $IBS_TOOL_VERSION
+    if [ ! -f "$MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc" ]; then
+      cat <<EOF > $MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc
+Name: $MAALI_TOOL_NAME
+Description: $MAALI_TOOL_NAME's library ${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}
+Version: $MAALI_TOOL_VERSION
 
-prefix=$IBS_INSTALL_DIR
+prefix=$MAALI_INSTALL_DIR
 includedir=\${prefix}/include
 libdir=\${prefix}/lib
 
-Cflags: -I\${includedir} `eval echo ${IBS_MODULE_PE_PKGCONFIG_CFLAGS[$indx]}`
-Libs: -L\${libdir} -l${IBS_MODULE_PE_PKGCONFIG_NAME[$indx]} `eval echo ${IBS_MODULE_PE_PKGCONFIG_LIBS[$indx]}`
+Cflags: -I\${includedir} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_CFLAGS[$indx]}`
+Lmaali: -L\${libdir} -l${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_LMAALI[$indx]}`
 EOF
     fi
   done
@@ -126,11 +126,11 @@ EOF
 
 ##############################################################################
 
-function ibs_load_module {
+function maali_load_module {
 
-  ibs_wiki "  .. loading $1"
-  IBS_MODULE_MISSING=`module display $1 2>&1 | grep 'Unable to locate a modulefile' | wc -l`
-  if [ $IBS_MODULE_MISSING -eq 1 ]; then
+  maali_wiki "  .. loading $1"
+  MAALI_MODULE_MISSING=`module display $1 2>&1 | grep 'Unable to locate a modulefile' | wc -l`
+  if [ $MAALI_MODULE_MISSING -eq 1 ]; then
     echo "  .. Unable to locate a modulefile $1"
     exit
   else
@@ -141,43 +141,43 @@ function ibs_load_module {
 
 ##############################################################################
 
-function ibs_module {
+function maali_module {
 
-  if [ $IBS_PYTHON_TOOL ]; then
-    IBS_APP_HOME="$IBS_ROOT/python/\$env(PYTHON_VERSION)/$IBS_TOOL_NAME/$IBS_TOOL_VERSION"
-    IBS_SYSTEM_DEFAULT_PYTHON=`module display python 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
-    IBS_APP_HOME_NAME="IBS_"$IBS_TOOL_NAME_UPPERCASE"_HOME"
-  elif [ $IBS_R_TOOL ]; then
-    IBS_APP_HOME="$IBS_ROOT/r/\$env(R_VERSION)/$IBS_TOOL_NAME/$IBS_TOOL_VERSION"
-    IBS_SYSTEM_DEFAULT_R=`module display r 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
-    IBS_APP_HOME_NAME="IBS_"$IBS_TOOL_NAME_UPPERCASE"_HOME"
+  if [ $MAALI_PYTHON_TOOL ]; then
+    MAALI_APP_HOME="$MAALI_ROOT/python/\$env(PYTHON_VERSION)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+    MAALI_SYSTEM_DEFAULT_PYTHON=`module display python 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
+    MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
+  elif [ $MAALI_R_TOOL ]; then
+    MAALI_APP_HOME="$MAALI_ROOT/r/\$env(R_VERSION)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+    MAALI_SYSTEM_DEFAULT_R=`module display r 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
+    MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   else
-    if [ $IBS_COMPILER_NUMBER -eq 1 ]; then
-      IBS_APP_HOME=$IBS_INSTALL_DIR
+    if [ $MAALI_COMPILER_NUMBER -eq 1 ]; then
+      MAALI_APP_HOME=$MAALI_INSTALL_DIR
     else
       if [[ $IVEC_OS =~ cle ]]; then
-        IBS_APP_HOME="$IBS_APPS_DIR/\$cray_compiler/\$cray_version/$IBS_TOOL_NAME/$IBS_TOOL_VERSION"
+        MAALI_APP_HOME="$MAALI_APPS_DIR/\$cray_compiler/\$cray_version/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
       else
-        IBS_APP_HOME="$IBS_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$IBS_TOOL_NAME/$IBS_TOOL_VERSION"
+        MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
       fi
     fi
-    IBS_APP_HOME_NAME="IBS_"$IBS_TOOL_NAME_UPPERCASE"_HOME"
+    MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   fi
 
   # used to make the module look pretty
-  IBS_MODULE_MAX_VARIABLE=${#IBS_APP_HOME_NAME}
+  MAALI_MODULE_MAX_VARIABLE=${#MAALI_APP_HOME_NAME}
 
-  cat <<EOF >$IBS_TOOL_MODULE
+  cat <<EOF >$MAALI_TOOL_MODULE
 #%Module######################################################################
 #
-# $IBS_TOOL_NAME modulefile
+# $MAALI_TOOL_NAME modulefile
 #
 proc ModulesHelp { } {
-  puts stderr "Sets up the paths you need to use $IBS_TOOL_NAME version $IBS_TOOL_VERSION"
+  puts stderr "Sets up the paths you need to use $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION"
 }
 set sys     [uname sysname]
-set version $IBS_TOOL_VERSION
-set tool    $IBS_TOOL_NAME
+set version $MAALI_TOOL_VERSION
+set tool    $MAALI_TOOL_NAME
 if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
   module unload \$tool
 }
@@ -185,270 +185,270 @@ if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
 EOF
 
   if [[ $IVEC_OS =~ cle ]]; then
-    cat <<EOF >> $IBS_TOOL_MODULE
+    cat <<EOF >> $MAALI_TOOL_MODULE
 set cray_compiler PrgEnv-[string tolower \$env(PE_ENV)]
 set cray_version  \$env(CRAYOS_VERSION)
 
 EOF
   fi
 
-  if [ $IBS_PYTHON_TOOL ]; then
-    cat <<EOF >> $IBS_TOOL_MODULE
+  if [ $MAALI_PYTHON_TOOL ]; then
+    cat <<EOF >> $MAALI_TOOL_MODULE
 
 if {! [is-loaded python] } {
   # this allows us support multiple python versions, but have a sensible default
-  module load python/$IBS_SYSTEM_DEFAULT_PYTHON
+  module load python/$MAALI_SYSTEM_DEFAULT_PYTHON
 }
 EOF
   fi
 
-  if [ $IBS_R_TOOL ]; then
-    cat <<EOF >> $IBS_TOOL_MODULE
+  if [ $MAALI_R_TOOL ]; then
+    cat <<EOF >> $MAALI_TOOL_MODULE
 
 if {! [is-loaded r] } {
   # this allows us support multiple R versions, but have a sensible default
-  module load r/$IBS_SYSTEM_DEFAULT_R
+  module load r/$MAALI_SYSTEM_DEFAULT_R
 }
 EOF
   fi
 
-  if [ "$IBS_MODULE_CONFLICT" != "" ]; then
-      (IFS=","; for IBS_PKG in $IBS_MODULE_CONFLICT
+  if [ "$MAALI_MODULE_CONFLICT" != "" ]; then
+      (IFS=","; for MAALI_PKG in $MAALI_MODULE_CONFLICT
       do
-          cat <<EOF >> $IBS_TOOL_MODULE
-conflict $IBS_PKG
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_PKG
 EOF
       done)
   fi
 
-  if [ "$IBS_MODULE_PREREQ" != "" ]; then
-      (IFS=","; for IBS_PKG in $IBS_MODULE_PREREQ
+  if [ "$MAALI_MODULE_PREREQ" != "" ]; then
+      (IFS=","; for MAALI_PKG in $MAALI_MODULE_PREREQ
       do
-          cat <<EOF >> $IBS_TOOL_MODULE
-prereq $IBS_PKG
+          cat <<EOF >> $MAALI_TOOL_MODULE
+prereq $MAALI_PKG
 EOF
       done)
   fi
 
-  if [ "$IBS_MODULE_WHATIS" != "" ]; then
-      cat <<EOF >> $IBS_TOOL_MODULE
-module-whatis "$IBS_MODULE_WHATIS"
+  if [ "$MAALI_MODULE_WHATIS" != "" ]; then
+      cat <<EOF >> $MAALI_TOOL_MODULE
+module-whatis "$MAALI_MODULE_WHATIS"
 EOF
   fi
 
-  for IBS_TOOL_PREREQ_MODULE in $IBS_TOOL_PREREQ; do
-    cat <<EOF >> $IBS_TOOL_MODULE
-module load $IBS_TOOL_PREREQ_MODULE
+  for MAALI_TOOL_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+    cat <<EOF >> $MAALI_TOOL_MODULE
+module load $MAALI_TOOL_PREREQ_MODULE
 EOF
   done
 
-  printf "%-12s %-${IBS_MODULE_MAX_VARIABLE}s %s\n" "setenv" $IBS_APP_HOME_NAME $IBS_APP_HOME >> $IBS_TOOL_MODULE
+  printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "setenv" $MAALI_APP_HOME_NAME $MAALI_APP_HOME >> $MAALI_TOOL_MODULE
 
-  # get all the varibales which start with IBS_MODULE_SET_
-  IBS_MODULE_VARIABLES_LIST=`compgen -v | grep IBS_MODULE_SET_`
+  # get all the varibales which start with MAALI_MODULE_SET_
+  MAALI_MODULE_VARIABLES_LIST=`compgen -v | grep MAALI_MODULE_SET_`
 
   # find the maximum variable width
-  for IBS_MODULE_VARIABLE in $IBS_MODULE_VARIABLES_LIST
+  for MAALI_MODULE_VARIABLE in $MAALI_MODULE_VARIABLES_LIST
   do
-    if [ "${!IBS_MODULE_VARIABLE}" != "" ]; then
-      IBS_MODULE_VARIABLE_WIDTH=$(expr ${#IBS_MODULE_VARIABLE} - 15)
-      if [ $IBS_MODULE_VARIABLE_WIDTH -gt $IBS_MODULE_MAX_VARIABLE ]; then
-        IBS_MODULE_MAX_VARIABLE=$IBS_MODULE_VARIABLE_WIDTH
+    if [ "${!MAALI_MODULE_VARIABLE}" != "" ]; then
+      MAALI_MODULE_VARIABLE_WIDTH=$(expr ${#MAALI_MODULE_VARIABLE} - 15)
+      if [ $MAALI_MODULE_VARIABLE_WIDTH -gt $MAALI_MODULE_MAX_VARIABLE ]; then
+        MAALI_MODULE_MAX_VARIABLE=$MAALI_MODULE_VARIABLE_WIDTH
       fi
     fi
   done
 
   # main loop for defining environment variables
-  for IBS_MODULE_VARIABLE in $IBS_MODULE_VARIABLES_LIST
+  for MAALI_MODULE_VARIABLE in $MAALI_MODULE_VARIABLES_LIST
   do
-    IBS_MODULE_VARIABLE_NAME=`echo $IBS_MODULE_VARIABLE | sed -e 's/IBS_MODULE_SET_//g'`
-    IBS_MODULE_VARIABLE_DIR=""
-    IBS_MODULE_VARIABLE_PREPREND="$IBS_APP_HOME/"
-    IBS_MODULE_VARIABLE_TCL="prepend-path"
+    MAALI_MODULE_VARIABLE_NAME=`echo $MAALI_MODULE_VARIABLE | sed -e 's/MAALI_MODULE_SET_//g'`
+    MAALI_MODULE_VARIABLE_DIR=""
+    MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
+    MAALI_MODULE_VARIABLE_TCL="prepend-path"
 
-    if [ "${!IBS_MODULE_VARIABLE}" != "" ]; then
-      case $IBS_MODULE_VARIABLE_NAME in
+    if [ "${!MAALI_MODULE_VARIABLE}" != "" ]; then
+      case $MAALI_MODULE_VARIABLE_NAME in
         PATH)
-          IBS_MODULE_VARIABLE_DIR="bin"
+          MAALI_MODULE_VARIABLE_DIR="bin"
           ;;
         PYTHONPATH)
-          IBS_MODULE_VARIABLE_DIR="\$env(IBS_PYTHON_LIBDIR)/python\$env(PYTHON_LIB_VERSION)/site-packages"
+          MAALI_MODULE_VARIABLE_DIR="\$env(MAALI_PYTHON_LIBDIR)/python\$env(PYTHON_LIB_VERSION)/site-packages"
           ;;
         PERLLIB)
           # TODO: get perl version from perl
-          IBS_MODULE_VARIABLE_DIR="lib/perl5/site_perl/5.10.1"
+          MAALI_MODULE_VARIABLE_DIR="lib/perl5/site_perl/5.10.1"
           ;;
-        R_LIBS)
+        R_LMAALI)
           ;;
         LD_LIBRARY_PATH | CRAY_LD_LIBRARY_PATH)
-          IBS_MODULE_VARIABLE_DIR="lib"
+          MAALI_MODULE_VARIABLE_DIR="lib"
           ;;
         CPATH | C_INCLUDE_PATH | CPLUS_INCLUDE_PATH | FPATH | FCPATH | INCLUDE_PATH)
-          IBS_MODULE_VARIABLE_DIR="include"
+          MAALI_MODULE_VARIABLE_DIR="include"
           ;;
         PKG_CONFIG_PATH)
-          IBS_MODULE_VARIABLE_DIR="lib/pkgconfig"
+          MAALI_MODULE_VARIABLE_DIR="lib/pkgconfig"
           ;;
         MANPATH)
-          IBS_MODULE_VARIABLE_DIR="share/man"
+          MAALI_MODULE_VARIABLE_DIR="share/man"
           ;;
         *)
           # the default is to setenv
-          IBS_MODULE_VARIABLE_TCL="setenv"
-          IBS_MODULE_VARIABLE_PREPREND=""
+          MAALI_MODULE_VARIABLE_TCL="setenv"
+          MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
         esac
 
-        if [ ${!IBS_MODULE_VARIABLE} == "1" ]; then
-          printf "%-12s %-${IBS_MODULE_MAX_VARIABLE}s %s\n" $IBS_MODULE_VARIABLE_TCL $IBS_MODULE_VARIABLE_NAME $IBS_MODULE_VARIABLE_PREPREND$IBS_MODULE_VARIABLE_DIR >> $IBS_TOOL_MODULE
-        elif [ ${!IBS_MODULE_VARIABLE} == "toplevel" ]; then
-          printf "%-12s %-${IBS_MODULE_MAX_VARIABLE}s %s\n" $IBS_MODULE_VARIABLE_TCL $IBS_MODULE_VARIABLE_NAME $IBS_MODULE_VARIABLE_PREPREND >> $IBS_TOOL_MODULE
+        if [ ${!MAALI_MODULE_VARIABLE} == "1" ]; then
+          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
+        elif [ ${!MAALI_MODULE_VARIABLE} == "toplevel" ]; then
+          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
         else
-          for IBS_MODULE_VARIABLE_VALUE in ${!IBS_MODULE_VARIABLE} ; do
-            IBS_MODULE_VARIABLE_EVAL=`eval echo "$IBS_MODULE_VARIABLE_VALUE"`
-            printf "%-12s %-${IBS_MODULE_MAX_VARIABLE}s %s\n" $IBS_MODULE_VARIABLE_TCL $IBS_MODULE_VARIABLE_NAME $IBS_MODULE_VARIABLE_PREPREND$IBS_MODULE_VARIABLE_EVAL >> $IBS_TOOL_MODULE
+          for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
+            MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
+            printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
           done
         fi
     fi
   done
 
-  if [ "${IBS_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
-    libs=`echo ${IBS_MODULE_PE_PKGCONFIG_NAME[*]} | sed -e 's/ \+$//' -e 's/ \+/:/g'`
-    cat <<EOF >> $IBS_TOOL_MODULE
-prepend-path PE_PKGCONFIG_LIBS    $libs
+  if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
+    lmaali=`echo ${MAALI_MODULE_PE_PKGCONFIG_NAME[*]} | sed -e 's/ \+$//' -e 's/ \+/:/g'`
+    cat <<EOF >> $MAALI_TOOL_MODULE
+prepend-path PE_PKGCONFIG_LMAALI    $lmaali
 EOF
   fi
 
-  if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
-    if [ "$IBS_MODULE_RESTRICT_GROUP" != "" ]; then
-      ibs_run "chmod 750 $IBS_TOOL_MODULE_DIR"
-      ibs_run "chgrp $IBS_MODULE_RESTRICT_GROUP $IBS_TOOL_MODULE_DIR"
-      ibs_run "chmod 640 $IBS_TOOL_MODULE_DIR/.version"
-      ibs_run "chgrp $IBS_MODULE_RESTRICT_GROUP $IBS_TOOL_MODULE_DIR/.version"
-      ibs_run "chmod 640 $IBS_TOOL_MODULE"
-      ibs_run "chgrp $IBS_MODULE_RESTRICT_GROUP $IBS_TOOL_MODULE"
+  if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+    if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
+      maali_run "chmod 750 $MAALI_TOOL_MODULE_DIR"
+      maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE_DIR"
+      maali_run "chmod 640 $MAALI_TOOL_MODULE_DIR/.version"
+      maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE_DIR/.version"
+      maali_run "chmod 640 $MAALI_TOOL_MODULE"
+      maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE"
 
-      if [ -f "$IBS_TOOL_MODULE~" ]; then
-        ibs_run "chmod 640 $IBS_TOOL_MODULE~"
-        ibs_run "chgrp $IBS_MODULE_RESTRICT_GROUP $IBS_TOOL_MODULE~"
+      if [ -f "$MAALI_TOOL_MODULE~" ]; then
+        maali_run "chmod 640 $MAALI_TOOL_MODULE~"
+        maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE~"
       fi
     fi
   fi
 
   if [ $DEBUG ]; then
-    if [ -f "$IBS_TOOL_MODULE~" ]; then
-      echo "differences between $IBS_TOOL_MODULE and $IBS_TOOL_MODULE~"
-      diff $IBS_TOOL_MODULE $IBS_TOOL_MODULE~
+    if [ -f "$MAALI_TOOL_MODULE~" ]; then
+      echo "differences between $MAALI_TOOL_MODULE and $MAALI_TOOL_MODULE~"
+      diff $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
     fi
   fi
 }
 
 ##############################################################################
 
-function ibs_python_build {
+function maali_python_build {
   # should work with most python packages
 
   # need to add the python library path to PYTHONPATH temporarily
-  IBS_OLD_PYTHONPATH=$PYTHONPATH
-  IBS_NEWPYTHONPATH="$IBS_INSTALL_DIR/$IBS_PYTHON_LIBDIR/python$PYTHON_LIB_VERSION/site-packages"
-  export PYTHONPATH="$IBS_NEWPYTHONPATH:$PYTHONPATH"
+  MAALI_OLD_PYTHONPATH=$PYTHONPATH
+  MAALI_NEWPYTHONPATH="$MAALI_INSTALL_DIR/$MAALI_PYTHON_LIBDIR/python$PYTHON_LIB_VERSION/site-packages"
+  export PYTHONPATH="$MAALI_NEWPYTHONPATH:$PYTHONPATH"
 
-  makedir "$IBS_NEWPYTHONPATH"
+  makedir "$MAALI_NEWPYTHONPATH"
 
-  cd "$IBS_TOOL_BUILD_DIR"
-  ibs_run "python setup.py build"
-  ibs_run "python setup.py install --prefix=$IBS_INSTALL_DIR"
+  cd "$MAALI_TOOL_BUILD_DIR"
+  maali_run "python setup.py build"
+  maali_run "python setup.py install --prefix=$MAALI_INSTALL_DIR"
 
-  export PYTHONPATH=$IBS_OLD_PYTHONPATH
+  export PYTHONPATH=$MAALI_OLD_PYTHONPATH
 }
 
 ##############################################################################
 
-function ibs_run {
+function maali_run {
   # primarly use for capturing stdout/stderr
 
   if [ $DEBUG ]; then
     echo "Running $@ in $PWD"
-    eval "$@" 2>&1 | tee -a $IBS_TOOL_LOG
+    eval "$@" 2>&1 | tee -a $MAALI_TOOL_LOG
 
     # only interested in the first command, not what tee returns
-    IBS_EXIT_STATUS=${PIPESTATUS[0]}
+    MAALI_EXIT_STATUS=${PIPESTATUS[0]}
   else
-    eval "$@" >>$IBS_TOOL_LOG 2>&1
+    eval "$@" >>$MAALI_TOOL_LOG 2>&1
 
     # use this below
-    IBS_EXIT_STATUS=$?
+    MAALI_EXIT_STATUS=$?
   fi
 
-  if [ $IBS_EXIT_STATUS -ne 0 ]; then
+  if [ $MAALI_EXIT_STATUS -ne 0 ]; then
     echo "failed to run $@, exiting"
-    exit $IBS_EXIT_STATUS
+    exit $MAALI_EXIT_STATUS
   fi
 }
 
 ##############################################################################
 
-function ibs_r_build {
+function maali_r_build {
 
-  export R_LIBS="$IBS_INSTALL_DIR:$R_LIBS"
-  ibs_run "R CMD INSTALL $IBS_DST"
+  export R_LMAALI="$MAALI_INSTALL_DIR:$R_LMAALI"
+  maali_run "R CMD INSTALL $MAALI_DST"
 
 }
 
 ##############################################################################
 
-function ibs_unpack {
-  cd $IBS_BUILD_DIR
+function maali_unpack {
+  cd $MAALI_BUILD_DIR
 
-  if [ ! -f "$IBS_DST" ]; then
-    echo "$IBS_DST does not exit"
+  if [ ! -f "$MAALI_DST" ]; then
+    echo "$MAALI_DST does not exit"
     exit 1
   fi
 
-  IBS_DST_FILESIZE=$(stat -c%s "$IBS_DST")
-  if [ $IBS_DST_FILESIZE -eq 0 ]; then
-    echo "$IBS_DST is 0 bytes big"
+  MAALI_DST_FILESIZE=$(stat -c%s "$MAALI_DST")
+  if [ $MAALI_DST_FILESIZE -eq 0 ]; then
+    echo "$MAALI_DST is 0 bytes big"
     exit 1
   fi
 
-  if [ $IBS_UNPACK_MKDIR ]; then
-    mkdir "$IBS_TOOL_NAME-$IBS_TOOL_VERSION"
-    cd "$IBS_TOOL_NAME-$IBS_TOOL_VERSION"
+  if [ $MAALI_UNPACK_MKDIR ]; then
+    mkdir "$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION"
+    cd "$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION"
   fi
 
-  IBS_TYPE=`file -b $IBS_DST | cut -d ',' -f 1`
+  MAALI_TYPE=`file -b $MAALI_DST | cut -d ',' -f 1`
 
-  if [ "$IBS_TYPE" = "bzip2 compressed data" ]; then
-    tar jxf $IBS_DST
-  elif [ "$IBS_TYPE" = "compress'd data 16 bits" ]; then
-    tar zxf $IBS_DST
-  elif [ "$IBS_TYPE" = "xz compressed data" -o "$IBS_TYPE" = "XZ compressed data" ]; then
-    tar Jxf $IBS_DST
-  elif [ "$IBS_TYPE" = "gzip compressed data" ]; then
-    tar zxf $IBS_DST
+  if [ "$MAALI_TYPE" = "bzip2 compressed data" ]; then
+    tar jxf $MAALI_DST
+  elif [ "$MAALI_TYPE" = "compress'd data 16 bits" ]; then
+    tar zxf $MAALI_DST
+  elif [ "$MAALI_TYPE" = "xz compressed data" -o "$MAALI_TYPE" = "XZ compressed data" ]; then
+    tar Jxf $MAALI_DST
+  elif [ "$MAALI_TYPE" = "gzip compressed data" ]; then
+    tar zxf $MAALI_DST
 
     if [ $? -ne 0 ]; then
-      gzip -dc $IBS_DST | tar zxf -
+      gzip -dc $MAALI_DST | tar zxf -
     fi
-  elif [ "$IBS_TYPE" = "POSIX tar archive (GNU)" ]; then
-    tar xf $IBS_DST
-  elif [ "$IBS_TYPE" = "Zip archive data" ]; then
-    unzip -qq $IBS_DST
+  elif [ "$MAALI_TYPE" = "POSIX tar archive (GNU)" ]; then
+    tar xf $MAALI_DST
+  elif [ "$MAALI_TYPE" = "Zip archive data" ]; then
+    unzip -qq $MAALI_DST
   else
-    echo "IBS $IBS_VERSION does not support decompressing $IBS_TYPE. Please e-mail help@ivec.org and lodge a feature request"
+    echo "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please e-mail help@ivec.org and lodge a feature request"
     exit 1
   fi
 }
 
 ##############################################################################
 
-function ibs_wiki {
+function maali_wiki {
   # echo to screen and add to wiki
   echo $1
 
-  if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
-    if [ ! $IBS_REMODULE ]; then
-      echo $1 >> $IBS_WIKI_SRC
+  if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+    if [ ! $MAALI_REMODULE ]; then
+      echo $1 >> $MAALI_WIKI_SRC
     fi
   fi
 }
@@ -456,9 +456,9 @@ function ibs_wiki {
 ##############################################################################
 
 function log {
-  echo "#####################################################################" >>$IBS_TOOL_LOG
-  echo "$1" >>$IBS_TOOL_LOG
-  echo "#####################################################################" >>$IBS_TOOL_LOG
+  echo "#####################################################################" >>$MAALI_TOOL_LOG
+  echo "$1" >>$MAALI_TOOL_LOG
+  echo "#####################################################################" >>$MAALI_TOOL_LOG
 }
 
 ##############################################################################
@@ -490,16 +490,16 @@ function removefile {
 usage()
 {
 cat << EOF
-usage: $0 -t toolname -v toolversion [-p] [-h] [-d] [-c ibs config file] [-m] [-l] [-r compiler/version] [-b]
+usage: $0 -t toolname -v toolversion [-p] [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b]
 
-ibs - iVEC Build System
+maali - iVEC Build System
 
 OPTIONS:
    -h      show this message
    -t      tool name
    -v      tool version
    -p      "tool" is a python library
-   -c      ibs configuration file
+   -c      maali configuration file
    -d      run in debug mode
    -m      just create the module file
    -l      use the options from the last run
@@ -511,34 +511,34 @@ EOF
 ##############################################################################
 # from http://rsalveti.wordpress.com/2007/04/03/bash-parsing-arguments-with-getopts/
 
-IBS_TOOL_NAME=
-IBS_TOOL_VERSION=
-IBS_PYTHON_VERSION=
+MAALI_TOOL_NAME=
+MAALI_TOOL_VERSION=
+MAALI_PYTHON_VERSION=
 DEBUG=
-IBS_CONFIG=
-IBS_REBUILD=
-IBS_REBUILD_COMPILER=
-IBS_REMODULE=
-IBS_BUILDONLY=
-IBS_SYSTEM_BUILD=NO
-IBS_CMAKE_PATH=".."
+MAALI_CONFIG=
+MAALI_REBUILD=
+MAALI_REBUILD_COMPILER=
+MAALI_REMODULE=
+MAALI_BUILDONLY=
+MAALI_SYSTEM_BUILD=NO
+MAALI_CMAKE_PATH=".."
 
 # for auto-building module files
-IBS_MODULE_SET_PATH=
-IBS_MODULE_SET_LD_LIBRARY_PATH=
-IBS_MODULE_SET_CPATH=
-IBS_MODULE_SET_FPATH=
-IBS_MODULE_SET_FCPATH=
-IBS_MODULE_SET_INCLUDE_PATH=
-IBS_MODULE_SET_PKG_CONFIG_PATH=
-IBS_MODULE_SET_MANPATH=
-IBS_MODULE_SET_PERLLIB=
+MAALI_MODULE_SET_PATH=
+MAALI_MODULE_SET_LD_LIBRARY_PATH=
+MAALI_MODULE_SET_CPATH=
+MAALI_MODULE_SET_FPATH=
+MAALI_MODULE_SET_FCPATH=
+MAALI_MODULE_SET_INCLUDE_PATH=
+MAALI_MODULE_SET_PKG_CONFIG_PATH=
+MAALI_MODULE_SET_MANPATH=
+MAALI_MODULE_SET_PERLLIB=
 
 # for auto-building module files for Cray
-IBS_MODULE_SET_CRAY_LD_LIBRARY_PATH=
-IBS_MODULE_PE_PKGCONFIG_NAME=
-IBS_MODULE_PE_PKGCONFIG_CFLAGS=
-IBS_MODULE_PE_PKGCONFIG_LIBS=
+MAALI_MODULE_SET_CRAY_LD_LIBRARY_PATH=
+MAALI_MODULE_PE_PKGCONFIG_NAME=
+MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
+MAALI_MODULE_PE_PKGCONFIG_LMAALI=
 
 while getopts "ht:v:pdc:mlr:b" OPTION
 do
@@ -548,34 +548,34 @@ do
              exit 1
              ;;
          l)
-             if [ -f "$IBS_LAST" ]; then
-               . "$IBS_LAST"
+             if [ -f "$MAALI_LAST" ]; then
+               . "$MAALI_LAST"
              fi
              ;;
          t)
-             IBS_TOOL_NAME=$OPTARG
+             MAALI_TOOL_NAME=$OPTARG
              ;;
          v)
-             IBS_TOOL_VERSION=$OPTARG
+             MAALI_TOOL_VERSION=$OPTARG
              ;;
          p)
-             IBS_PYTHON_TOOL=1
+             MAALI_PYTHON_TOOL=1
              ;;
          d)
              DEBUG=1
              ;;
          c)
-             IBS_CONFIG=$OPTARG
+             MAALI_CONFIG=$OPTARG
              ;;
          m)
-             IBS_REMODULE=1
+             MAALI_REMODULE=1
              ;;
          b)
-             IBS_BUILDONLY=1
+             MAALI_BUILDONLY=1
              ;;
          r)
-             IBS_REBUILD_COMPILER=$OPTARG
-             IBS_REBUILD=1
+             MAALI_REBUILD_COMPILER=$OPTARG
+             MAALI_REBUILD=1
              ;;
          ?)
              usage
@@ -603,579 +603,579 @@ if [ -f "/etc/SuSE-release" ]; then
 fi
 
 # this is to deal with the module purge on fornax
-IBS_LOADEDMODULES=`echo $LOADEDMODULES | sed -e 's/:/ /g' | tac -s' '`
+MAALI_LOADEDMODULES=`echo $LOADEDMODULES | sed -e 's/:/ /g' | tac -s' '`
 
-for IBS_MODULE in $IBS_LOADEDMODULES
+for MAALI_MODULE in $MAALI_LOADEDMODULES
 do
     # module without the version
-    IBS_MODULE_NAME=`echo $IBS_MODULE | cut -d '/' -f 1`
+    MAALI_MODULE_NAME=`echo $MAALI_MODULE | cut -d '/' -f 1`
 
-    if [ "$IBS_MODULE_NAME" == "ibs" ]; then
-      IBS_IS_LOADED=1
+    if [ "$MAALI_MODULE_NAME" == "maali" ]; then
+      MAALI_IS_LOADED=1
     fi
 done
 
-if [ -z $IBS_IS_LOADED ]; then
-  if [ "$IBS_VERSION" != "trunk" ]; then
-    module load ibs/$IBS_VERSION
+if [ -z $MAALI_IS_LOADED ]; then
+  if [ "$MAALI_VERSION" != "tip" ]; then
+    module load maali/$MAALI_VERSION
   fi
 fi
 
-if [ -z $IBS_SYSTEM ]; then
-  echo "IBS_SYSTEM is undefined, exiting ..."
+if [ -z $MAALI_SYSTEM ]; then
+  echo "MAALI_SYSTEM is undefined, exiting ..."
   exit 1
 fi
 
-if [[ -z $IBS_TOOL_NAME ]] || [[ -z $IBS_TOOL_VERSION ]]; then
+if [[ -z $MAALI_TOOL_NAME ]] || [[ -z $MAALI_TOOL_VERSION ]]; then
      usage
      exit 1
 fi
 
 # helpful for building URL
-IBS_TOOL_MAJOR_VERSION=`echo "$IBS_TOOL_VERSION" | cut -d '.' -f 1`
-IBS_TOOL_MAJOR_MINOR_VERSION=`echo "$IBS_TOOL_VERSION" | cut -d '.' -f 1,2`
+MAALI_TOOL_MAJOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1`
+MAALI_TOOL_MAJOR_MINOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1,2`
 
-# for use for make -j $IBS_CORES
+# for use for make -j $MAALI_CORES
 if [ -z $PBS_NODEFILE ]; then
   # not running in PBS Pro
-  IBS_CORES=1
+  MAALI_CORES=1
 else
   # make sure you set mpiprocs
-  IBS_CORES=`wc -l $PBS_NODEFILE | cut -d ' ' -f 1`
+  MAALI_CORES=`wc -l $PBS_NODEFILE | cut -d ' ' -f 1`
 fi
 
-IBS_CMDLINE=$*
+MAALI_CMDLINE=$*
 
 # lowercase the name, but keep the original
-IBS_TOOL_NAME_ORIG=$IBS_TOOL_NAME
-IBS_TOOL_NAME=$(echo "$IBS_TOOL_NAME" | tr '[:upper:]' '[:lower:]')
-IBS_TOOL_NAME_UPPERCASE=$(echo "$IBS_TOOL_NAME" | tr '[:lower:]' '[:upper:]' | sed -e 's/-//g' | sed -e 's/+/PLUS/g' )
+MAALI_TOOL_NAME_ORIG=$MAALI_TOOL_NAME
+MAALI_TOOL_NAME=$(echo "$MAALI_TOOL_NAME" | tr '[:upper:]' '[:lower:]')
+MAALI_TOOL_NAME_UPPERCASE=$(echo "$MAALI_TOOL_NAME" | tr '[:lower:]' '[:upper:]' | sed -e 's/-//g' | sed -e 's/+/PLUS/g' )
 
 # chicken and egg
-IBS_PYTHON_FIRSTLETTER=`echo "$IBS_TOOL_NAME_ORIG" | cut -b 1`
+MAALI_PYTHON_FIRSTLETTER=`echo "$MAALI_TOOL_NAME_ORIG" | cut -b 1`
 
-if [ "$IBS_CONFIG" != "" ]; then
+if [ "$MAALI_CONFIG" != "" ]; then
   # allow us to override the config
-  if [ -f "$HOME/.ibs/$IBS_CONFIG.config" ]; then
-     . "$HOME/.ibs/$IBS_CONFIG.config"
+  if [ -f "$HOME/.maali/$MAALI_CONFIG.config" ]; then
+     . "$HOME/.maali/$MAALI_CONFIG.config"
 
 
      # use the name of our config file to create a different log file
-     IBS_LOG_PREFIX="$IBS_CONFIG-"
+     MAALI_LOG_PREFIX="$MAALI_CONFIG-"
   else
-    echo "Could not open $HOME/.ibs/$IBS_CONFIG.config!";
+    echo "Could not open $HOME/.maali/$MAALI_CONFIG.config!";
     exit 1;
   fi
 fi
 
-# system builds require IBS_USER_MAP and IBS_BUILDER_UID to be defined
-if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
-  if [ -z $IBS_BUILDER_UID ]; then
-    echo "Please set IBS_BUILDER_UID your uid so we can track who is building software on $IBS_SYSTEM"
+# system builds require MAALI_USER_MAP and MAALI_BUILDER_UID to be defined
+if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+  if [ -z $MAALI_BUILDER_UID ]; then
+    echo "Please set MAALI_BUILDER_UID your uid so we can track who is building software on $MAALI_SYSTEM"
     exit 1
   fi
 
-  if [ -z $IBS_OS ]; then
-    echo "IBS 1.5 and higher require IBS_OS to be set"
+  if [ -z $MAALI_OS ]; then
+    echo "MAALI 1.5 and higher require MAALI_OS to be set"
     exit 1
   fi
 
-  IBS_LOG_DIR="$HOME/.ibs/$IBS_OS/logs"
-  makedir "$IBS_LOG_DIR"
-  makedir "$HOME/.ibs/$IBS_OS/wiki"
+  MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
+  makedir "$MAALI_LOG_DIR"
+  makedir "$HOME/.maali/$MAALI_OS/wiki"
 
-  if [ -z $IBS_USER_MAP ]; then
-    echo "IBS_USER_MAP is undefined, exiting ..."
+  if [ -z $MAALI_USER_MAP ]; then
+    echo "MAALI_USER_MAP is undefined, exiting ..."
     exit 1
   fi
 
   echo "Running System build - checking user map file"
 
-  . "$IBS_USER_MAP"  
+  . "$MAALI_USER_MAP"  
 
-  if [[ -z $IBS_BUILDER_BUILD_CN ]] || [[ -z $IBS_BUILDER_BUILD_MAIL ]]; then
-    echo "$IBS_BUILDER_UID is not in the user map file"
+  if [[ -z $MAALI_BUILDER_BUILD_CN ]] || [[ -z $MAALI_BUILDER_BUILD_MAIL ]]; then
+    echo "$MAALI_BUILDER_UID is not in the user map file"
     exit 1
   fi
 fi
 
-# need to set IBS_DEFAULT_GCC_COMPILERS and IBS_DEFAULT_INTEL_COMPILERS
-if [ "$IBS_DEFAULT_COMPILERS" != "" ]; then
-  for IBS_DEFAULT_COMPILER in $IBS_DEFAULT_COMPILERS; do
-    IBS_DEFAULT_COMPILER_NAME=`echo "$IBS_DEFAULT_COMPILER" | cut -d '/' -f 1`
-    if [ "$IBS_DEFAULT_COMPILER_NAME" == "gcc" -o "$IBS_DEFAULT_COMPILER_NAME" == "PrgEnv-gnu" ]; then
-      if [ "$IBS_DEFAULT_GCC_COMPILERS" == "" ]; then
-        IBS_DEFAULT_GCC_COMPILERS="$IBS_DEFAULT_COMPILER"
+# need to set MAALI_DEFAULT_GCC_COMPILERS and MAALI_DEFAULT_INTEL_COMPILERS
+if [ "$MAALI_DEFAULT_COMPILERS" != "" ]; then
+  for MAALI_DEFAULT_COMPILER in $MAALI_DEFAULT_COMPILERS; do
+    MAALI_DEFAULT_COMPILER_NAME=`echo "$MAALI_DEFAULT_COMPILER" | cut -d '/' -f 1`
+    if [ "$MAALI_DEFAULT_COMPILER_NAME" == "gcc" -o "$MAALI_DEFAULT_COMPILER_NAME" == "PrgEnv-gnu" ]; then
+      if [ "$MAALI_DEFAULT_GCC_COMPILERS" == "" ]; then
+        MAALI_DEFAULT_GCC_COMPILERS="$MAALI_DEFAULT_COMPILER"
       else
-        IBS_DEFAULT_GCC_COMPILERS="$IBS_DEFAULT_GCC_COMPILERS $IBS_DEFAULT_COMPILER"
+        MAALI_DEFAULT_GCC_COMPILERS="$MAALI_DEFAULT_GCC_COMPILERS $MAALI_DEFAULT_COMPILER"
       fi
-    elif [ "$IBS_DEFAULT_COMPILER_NAME" == "intel" -o "$IBS_DEFAULT_COMPILER_NAME" == "PrgEnv-intel" ]; then
-      if [ "$IBS_DEFAULT_INTEL_COMPILERS" == "" ]; then
-        IBS_DEFAULT_INTEL_COMPILERS="$IBS_DEFAULT_COMPILER"
+    elif [ "$MAALI_DEFAULT_COMPILER_NAME" == "intel" -o "$MAALI_DEFAULT_COMPILER_NAME" == "PrgEnv-intel" ]; then
+      if [ "$MAALI_DEFAULT_INTEL_COMPILERS" == "" ]; then
+        MAALI_DEFAULT_INTEL_COMPILERS="$MAALI_DEFAULT_COMPILER"
       else
-        IBS_DEFAULT_INTEL_COMPILERS=" $IBS_DEFAULT_COMPILER"
+        MAALI_DEFAULT_INTEL_COMPILERS=" $MAALI_DEFAULT_COMPILER"
       fi
     fi
   done
 fi
 
 # we are running a rebuild
-if [ $IBS_REBUILD ]; then
-  IBS_REBUILD_COMPILER_LOG=`echo $IBS_REBUILD_COMPILER | sed -e 's!/!-!g'`
+if [ $MAALI_REBUILD ]; then
+  MAALI_REBUILD_COMPILER_LOG=`echo $MAALI_REBUILD_COMPILER | sed -e 's!/!-!g'`
 
-  IBS_LOG_PREFIX=$IBS_LOG_PREFIX"rebuild-"$IBS_REBUILD_COMPILER_LOG"-"
+  MAALI_LOG_PREFIX=$MAALI_LOG_PREFIX"rebuild-"$MAALI_REBUILD_COMPILER_LOG"-"
 fi
 
 # setup the module correctly environment 
 
 # unload currently loaded modules
-IBS_LOADEDMODULES=`echo $LOADEDMODULES | sed -e 's/:/ /g' | tac -s' '`
+MAALI_LOADEDMODULES=`echo $LOADEDMODULES | sed -e 's/:/ /g' | tac -s' '`
 
-for IBS_MODULE in $IBS_LOADEDMODULES
+for MAALI_MODULE in $MAALI_LOADEDMODULES
 do
     # module without the version
-    IBS_MODULE_NAME=`echo $IBS_MODULE | cut -d '/' -f 1`
+    MAALI_MODULE_NAME=`echo $MAALI_MODULE | cut -d '/' -f 1`
 
-    if [ "$IBS_MODULE_NAME" != "ibs" ]; then
-      module unload $IBS_MODULE
+    if [ "$MAALI_MODULE_NAME" != "maali" ]; then
+      module unload $MAALI_MODULE
     fi
 done
 
-if [ -z $IBS_TOOL_TYPE ]; then
-  IBS_TOOL_TYPE="apps"
+if [ -z $MAALI_TOOL_TYPE ]; then
+  MAALI_TOOL_TYPE="apps"
 fi
 
 # make sure we have a directory to download our source code
-makedir "$IBS_SRC"
+makedir "$MAALI_SRC"
 
 # make sure we have a directory to build our source code
-makedir "$IBS_BUILD_DIR"
+makedir "$MAALI_BUILD_DIR"
 
 # make sure we have a directory to log
-makedir "$IBS_LOG_DIR"
+makedir "$MAALI_LOG_DIR"
 
 # need to inherit some other file here to set compiler, etc
-IBS_FOUND_CONFIG=0
+MAALI_FOUND_CONFIG=0
 
 # three search paths
-IBS_FILES_DIR="$HOME/.ibs/$IBS_OS/ibs_files $HOME/.ibs/ibs_files $IBS_FILES $IBS_DIR/ibs_files"
-for IBS_FILES_PATH in $IBS_FILES_DIR; do
-  if [ -f "$IBS_FILES_PATH/$IBS_TOOL_NAME.$IBS_SYSTEM.ibs" ]; then
-    echo "Using $IBS_FILES_PATH/$IBS_TOOL_NAME.$IBS_SYSTEM.ibs for tool configuration information"
-    IBS_IBS_FILEPATH="$IBS_FILES_PATH/$IBS_TOOL_NAME.$IBS_SYSTEM.ibs"
-    . "$IBS_FILES_PATH/$IBS_TOOL_NAME.$IBS_SYSTEM.ibs"
-    IBS_FOUND_CONFIG=1
+MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/maali_files $HOME/.maali/maali_files $MAALI_FILES $MAALI_DIR/maali_files"
+for MAALI_FILES_PATH in $MAALI_FILES_DIR; do
+  if [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.maali" ]; then
+    echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.maali for tool configuration information"
+    MAALI_MAALI_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.maali"
+    . "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.maali"
+    MAALI_FOUND_CONFIG=1
     break
-  elif [ -f "$IBS_FILES_PATH/$IBS_TOOL_NAME.ibs" ]; then
-    echo "Using $IBS_FILES_PATH/$IBS_TOOL_NAME.ibs for tool configuration information"
-    . "$IBS_FILES_PATH/$IBS_TOOL_NAME.ibs"
-    IBS_IBS_FILEPATH="$IBS_FILES_PATH/$IBS_TOOL_NAME.ibs"
-    IBS_FOUND_CONFIG=1
+  elif [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.maali" ]; then
+    echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.maali for tool configuration information"
+    . "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.maali"
+    MAALI_MAALI_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.maali"
+    MAALI_FOUND_CONFIG=1
     break
   fi
 done
 
 # we are running a rebuild - so we override the compiler
-if [ $IBS_REBUILD ]; then
-  IBS_TOOL_COMPILERS=$IBS_REBUILD_COMPILER
-  echo ".. setting IBS_TOOL_COMPILERS to $IBS_TOOL_COMPILERS"
+if [ $MAALI_REBUILD ]; then
+  MAALI_TOOL_COMPILERS=$MAALI_REBUILD_COMPILER
+  echo ".. setting MAALI_TOOL_COMPILERS to $MAALI_TOOL_COMPILERS"
 fi
 
-if [ "$IBS_TOOL_COMPILERS" == "" ]; then
-  echo ".. IBS_TOOL_COMPILERS is empty! Please define at least one compiler.";
+if [ "$MAALI_TOOL_COMPILERS" == "" ]; then
+  echo ".. MAALI_TOOL_COMPILERS is empty! Please define at least one compiler.";
   exit 1;
 fi
 
 # check if we are using python
-for IBS_COMPILER in $IBS_TOOL_COMPILERS; do
-  IBS_COMPILER_NAME=`echo "$IBS_COMPILER" | cut -d '/' -f 1`
+for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
+  MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
 
   # make the -p redundant
-  if [ "$IBS_COMPILER_NAME" == "python" ]; then
-    echo ".. detected python compiler, setting IBS_PYTHON_TOOL and IBS_TOOL_TYPE to python"
-    IBS_PYTHON_TOOL=1
-    IBS_TOOL_TYPE="python"
+  if [ "$MAALI_COMPILER_NAME" == "python" ]; then
+    echo ".. detected python compiler, setting MAALI_PYTHON_TOOL and MAALI_TOOL_TYPE to python"
+    MAALI_PYTHON_TOOL=1
+    MAALI_TOOL_TYPE="python"
 
-    if [ "$IBS_MODULE_SET_PYTHONPATH" == "" ]; then
-      IBS_MODULE_SET_PYTHONPATH=1
+    if [ "$MAALI_MODULE_SET_PYTHONPATH" == "" ]; then
+      MAALI_MODULE_SET_PYTHONPATH=1
     fi
 
     break
-  elif [ "$IBS_COMPILER_NAME" == "r" ]; then
-    echo ".. detected R, setting IBS_R_TOOL and IBS_TOOL_TYPE to r"
-    IBS_R_TOOL=1
-    IBS_TOOL_TYPE="r"
+  elif [ "$MAALI_COMPILER_NAME" == "r" ]; then
+    echo ".. detected R, setting MAALI_R_TOOL and MAALI_TOOL_TYPE to r"
+    MAALI_R_TOOL=1
+    MAALI_TOOL_TYPE="r"
 
-    if [ "$IBS_MODULE_SET_R_LIBS" == "" ]; then
-      IBS_MODULE_SET_R_LIBS=1
+    if [ "$MAALI_MODULE_SET_R_LMAALI" == "" ]; then
+      MAALI_MODULE_SET_R_LMAALI=1
     fi
 
     break
   fi
 done
 
-if [ $IBS_FOUND_CONFIG -eq 0 ]; then
-    echo "Can't find config file for $IBS_TOOL_NAME"
+if [ $MAALI_FOUND_CONFIG -eq 0 ]; then
+    echo "Can't find config file for $MAALI_TOOL_NAME"
     exit 1;
 fi
 
-if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
+if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   # create a wiki page to help David
-  IBS_WIKI_SRC="$HOME/.ibs/$IBS_OS/wiki/$IBS_LOG_PREFIX$IBS_TOOL_NAME-$IBS_TOOL_VERSION.wiki"
+  MAALI_WIKI_SRC="$HOME/.maali/$MAALI_OS/wiki/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.wiki"
 
-  if [ ! $IBS_REMODULE ]; then
+  if [ ! $MAALI_REMODULE ]; then
     # only re-build the wiki page if we re-compile
 
     # get the compile date
-    IBS_INSTALL_DATE=`date +'%d %B %Y'`
+    MAALI_INSTALL_DATE=`date +'%d %B %Y'`
 
-    IBS_WIKI_COMPILER_STRING=""
+    MAALI_WIKI_COMPILER_STRING=""
 
-    for IBS_COMPILER in $IBS_TOOL_COMPILERS; do
-      if [ "$IBS_COMPILER" == "binary" ]; then
+    for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
+      if [ "$MAALI_COMPILER" == "binary" ]; then
         # binary install does not have a verion
-        IBS_COMPILER_VERSION="N/A"
-        IBS_WIKI_COMPILER_STRING="N/A"
+        MAALI_COMPILER_VERSION="N/A"
+        MAALI_WIKI_COMPILER_STRING="N/A"
       else
-        ibs_load_module "$IBS_COMPILER"
+        maali_load_module "$MAALI_COMPILER"
 
-        if [ $IBS_PYTHON_TOOL ]; then
-          IBS_COMPILER_VERSION=`python --version 2>&1`
-        elif [ $IBS_R_TOOL ]; then
-          IBS_COMPILER_VERSION=`R --version | grep 'R version' 2>&1`
+        if [ $MAALI_PYTHON_TOOL ]; then
+          MAALI_COMPILER_VERSION=`python --version 2>&1`
+        elif [ $MAALI_R_TOOL ]; then
+          MAALI_COMPILER_VERSION=`R --version | grep 'R version' 2>&1`
         else
           if [ $CRAYOS_VERSION ]; then
-            IBS_COMPILER_NAME=`echo "$IBS_COMPILER" | cut -d '/' -f 1`
+            MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
 
-            if [ "$IBS_COMPILER_NAME" == "PrgEnv-cray" ]; then
+            if [ "$MAALI_COMPILER_NAME" == "PrgEnv-cray" ]; then
 
-              for IBS_CRAY_MODULE in $IBS_EXTRA_CRAY; do
-                ibs_load_module "$IBS_CRAY_MODULE"
+              for MAALI_CRAY_MODULE in $MAALI_EXTRA_CRAY; do
+                maali_load_module "$MAALI_CRAY_MODULE"
               done
 
-              IBS_COMPILER_VERSION=`cc -V | head -1`
+              MAALI_COMPILER_VERSION=`cc -V | head -1`
 
-              IBS_EXTRA_CRAY_REV=`echo $IBS_EXTRA_CRAY | tac -s' '`
-              for IBS_CRAY_MODULE in $IBS_PREREQ_MODULE; do
-                module unload "$IBS_CRAY_MODULE"
+              MAALI_EXTRA_CRAY_REV=`echo $MAALI_EXTRA_CRAY | tac -s' '`
+              for MAALI_CRAY_MODULE in $MAALI_PREREQ_MODULE; do
+                module unload "$MAALI_CRAY_MODULE"
               done
 
             else
-              IBS_COMPILER_VERSION=`cc --version 2>/dev/null | head -1`
+              MAALI_COMPILER_VERSION=`cc --version 2>/dev/null | head -1`
             fi
           else
-            IBS_COMPILER_VERSION=`$CC --version | head -1`
+            MAALI_COMPILER_VERSION=`$CC --version | head -1`
           fi
         fi
 
-        if [ "$IBS_WIKI_COMPILER_STRING" == "" ]; then
-          IBS_WIKI_COMPILER_STRING="<tt>$IBS_COMPILER_VERSION</tt>"
+        if [ "$MAALI_WIKI_COMPILER_STRING" == "" ]; then
+          MAALI_WIKI_COMPILER_STRING="<tt>$MAALI_COMPILER_VERSION</tt>"
         else
-          IBS_WIKI_COMPILER_STRING="$IBS_WIKI_COMPILER_STRING, <tt>$IBS_COMPILER_VERSION</tt>"
+          MAALI_WIKI_COMPILER_STRING="$MAALI_WIKI_COMPILER_STRING, <tt>$MAALI_COMPILER_VERSION</tt>"
         fi
     
-        module unload $IBS_COMPILER
+        module unload $MAALI_COMPILER
       fi
     done
 
-    if [ "$IBS_WIKI_TOOL_NAME" == "" ]; then
-      IBS_WIKI_TOOL_NAME="$IBS_TOOL_NAME_ORIG"
+    if [ "$MAALI_WIKI_TOOL_NAME" == "" ]; then
+      MAALI_WIKI_TOOL_NAME="$MAALI_TOOL_NAME_ORIG"
     fi
 
-    cat <<EOF >$IBS_WIKI_SRC
-{{NavSoftware|subsection=$IBS_WIKI_TOOL_NAME}}
+    cat <<EOF >$MAALI_WIKI_SRC
+{{NavSoftware|subsection=$MAALI_WIKI_TOOL_NAME}}
 
 
-* '''Install Date''': $IBS_INSTALL_DATE
-* '''Compiler''': $IBS_WIKI_COMPILER_STRING
+* '''Install Date''': $MAALI_INSTALL_DATE
+* '''Compiler''': $MAALI_WIKI_COMPILER_STRING
 * '''Compile Machine''': $HOSTNAME
-* '''iVEC Staff''': [mailto:$IBS_BUILDER_BUILD_MAIL $IBS_BUILDER_BUILD_CN]
+* '''iVEC Staff''': [mailto:$MAALI_BUILDER_BUILD_MAIL $MAALI_BUILDER_BUILD_CN]
 
 
 === Compile and Installation ===
 
-Compiled using iVEC Build System $IBS_VERSION:
+Compiled using iVEC Build System $MAALI_VERSION:
 
 <pre>
-$ ibs $IBS_CMDLINE
-Using $IBS_FILES_PATH/$IBS_TOOL_NAME.ibs for tool configuration information
+$ maali $MAALI_CMDLINE
+Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.maali for tool configuration information
 EOF
   fi
 
   # where the software is installed is based on the tool type
-  IBS_APPS_DIR="$IBS_ROOT/$IBS_TOOL_TYPE"
+  MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
 
   # this is now based on tool type
-  IBS_TOOL_MODULE_DIR="$IBS_MODULE_DIR/$IBS_TOOL_TYPE/$IBS_TOOL_NAME"
+  MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_TYPE/$MAALI_TOOL_NAME"
 else
-  echo "Warning: non-system build detected, overriding IBS_TOOL_TYPE (currently $IBS_TOOL_TYPE) and setting to tool type to 'apps'"
+  echo "Warning: non-system build detected, overriding MAALI_TOOL_TYPE (currently $MAALI_TOOL_TYPE) and setting to tool type to 'apps'"
   # for user builds we want them to be able to include a single module path
-  IBS_TOOL_TYPE="apps"
-  IBS_APPS_DIR="$IBS_ROOT/$IBS_TOOL_TYPE"
-  IBS_TOOL_MODULE_DIR="$IBS_MODULE_DIR/$IBS_TOOL_NAME"
+  MAALI_TOOL_TYPE="apps"
+  MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
+  MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_NAME"
 fi
 
 # make sure we have a directory to log
-IBS_TOOL_LOG="$IBS_LOG_DIR/$IBS_LOG_PREFIX$IBS_TOOL_NAME-$IBS_TOOL_VERSION.log"
+MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.log"
 
-if [ $IBS_REMODULE ]; then
+if [ $MAALI_REMODULE ]; then
   echo "just re-creating the module file"
 else
-  removefile "$IBS_TOOL_LOG"
+  removefile "$MAALI_TOOL_LOG"
 
-  log "$IBS_TOOL_NAME $IBS_TOOL_VERSION is being built by $IBS_BUILDER_BUILD_CN"
+  log "$MAALI_TOOL_NAME $MAALI_TOOL_VERSION is being built by $MAALI_BUILDER_BUILD_CN"
 
-  if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
-    # check that the IBS file has been checked into CVS
-    IBS_PWD=$PWD
+  if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+    # check that the MAALI file has been checked into CVS
+    MAALI_PWD=$PWD
 
-    cd $(dirname $IBS_IBS_FILEPATH)
-    IBS_FILE_STATUS=`cvs status $(basename $IBS_IBS_FILEPATH) 2>&1 | grep Status: | cut -d ':' -f 3`
+    cd $(dirname $MAALI_MAALI_FILEPATH)
+    MAALI_FILE_STATUS=`cvs status $(basename $MAALI_MAALI_FILEPATH) 2>&1 | grep Status: | cut -d ':' -f 3`
 
-    if [ "$IBS_FILE_STATUS" == " Unknown" ]; then
-      ibs_wiki " .. Adding $(basename $IBS_IBS_FILEPATH) to CVS"
-      ibs_run "cvs add $(basename $IBS_IBS_FILEPATH)"
+    if [ "$MAALI_FILE_STATUS" == " Unknown" ]; then
+      maali_wiki " .. Adding $(basename $MAALI_MAALI_FILEPATH) to CVS"
+      maali_run "cvs add $(basename $MAALI_MAALI_FILEPATH)"
     fi
 
-    ibs_wiki " .. checking $(basename $IBS_IBS_FILEPATH) into CVS"
-    ibs_run "cvs ci -m '$IBS_BUILDER_BUILD_CN' $(basename $IBS_IBS_FILEPATH)"
+    maali_wiki " .. checking $(basename $MAALI_MAALI_FILEPATH) into CVS"
+    maali_run "cvs ci -m '$MAALI_BUILDER_BUILD_CN' $(basename $MAALI_MAALI_FILEPATH)"
 
-    cd $IBS_PWD
+    cd $MAALI_PWD
   fi
 
-  ibs_wiki "downloading the source code for $IBS_TOOL_NAME $IBS_TOOL_VERSION"
-  ibs_download
+  maali_wiki "downloading the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
+  maali_download
 fi
 
-IBS_COMPILER_NUMBER=`echo "$IBS_TOOL_COMPILERS" | wc -w`
+MAALI_COMPILER_NUMBER=`echo "$MAALI_TOOL_COMPILERS" | wc -w`
 
 # need to build for every compiler that we support
-for IBS_COMPILER in $IBS_TOOL_COMPILERS; do
+for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
 
-  if [ "$IBS_COMPILER" != "binary" ]; then
+  if [ "$MAALI_COMPILER" != "binary" ]; then
     # "binary" installs are not versioned
-    IBS_SLASH_COUNT=`echo $(echo $IBS_COMPILER | wc -c) - $(echo $IBS_COMPILER | tr -d '/' | wc -c) | bc`
-    if [ $IBS_SLASH_COUNT != 1 ]; then
-      echo "$IBS_COMPILER should contain a single '/' (but contains $IBS_SLASH_COUNT)"
+    MAALI_SLASH_COUNT=`echo $(echo $MAALI_COMPILER | wc -c) - $(echo $MAALI_COMPILER | tr -d '/' | wc -c) | bc`
+    if [ $MAALI_SLASH_COUNT != 1 ]; then
+      echo "$MAALI_COMPILER should contain a single '/' (but contains $MAALI_SLASH_COUNT)"
       exit 1
     fi
   fi
 
   # don't need to log if we are re-moduling
-  if [ ! $IBS_REMODULE ]; then
-      ibs_wiki "building $IBS_TOOL_NAME $IBS_TOOL_VERSION with $IBS_COMPILER"
-      log "building $IBS_TOOL_NAME $IBS_TOOL_VERSION with $IBS_COMPILER"
+  if [ ! $MAALI_REMODULE ]; then
+      maali_wiki "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+      log "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
   fi
 
-  if [ $IBS_PYTHON_TOOL ]; then
-    IBS_PYTHON_VERSION=`echo "$IBS_COMPILER" | cut -d '/' -f 2`
-    IBS_PYTHON_LIB_VERSION=`echo "$IBS_PYTHON_VERSION" | cut -d '.' -f 1,2`
+  if [ $MAALI_PYTHON_TOOL ]; then
+    MAALI_PYTHON_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
+    MAALI_PYTHON_LIB_VERSION=`echo "$MAALI_PYTHON_VERSION" | cut -d '.' -f 1,2`
   else
-    IBS_COMPILER_NAME=`echo "$IBS_COMPILER" | cut -d '/' -f 1`
-    IBS_COMPILER_VERSION=`echo "$IBS_COMPILER" | cut -d '/' -f 2`
+    MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
+    MAALI_COMPILER_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
   fi
 
   # don't need to load modules if we are re-moduling
-  if [ ! $IBS_REMODULE ]; then
-      if [ "$IBS_COMPILER" != "binary" ]; then
+  if [ ! $MAALI_REMODULE ]; then
+      if [ "$MAALI_COMPILER" != "binary" ]; then
         # don't need to load the "binary" compiler
 
         # load the module for the compiler we want to use
         if [ $DEBUG ]; then
-          ibs_wiki " .. before module load \$IBS_COMPILER"
+          maali_wiki " .. before module load \$MAALI_COMPILER"
           module list
         fi
-        ibs_load_module "$IBS_COMPILER"
+        maali_load_module "$MAALI_COMPILER"
         if [ $DEBUG ]; then
-          ibs_wiki " .. after module load \$IBS_COMPILER"
+          maali_wiki " .. after module load \$MAALI_COMPILER"
           module list
         fi
       fi
 
       if [ $CRAYOS_VERSION ]; then
-        for IBS_CRAY_MODULE in $IBS_EXTRA_CRAY; do
-          ibs_load_module "$IBS_CRAY_MODULE"
+        for MAALI_CRAY_MODULE in $MAALI_EXTRA_CRAY; do
+          maali_load_module "$MAALI_CRAY_MODULE"
         done
       fi
 
-      for IBS_PREREQ_MODULE in $IBS_TOOL_PREREQ; do
-        ibs_load_module "$IBS_PREREQ_MODULE"
+      for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+        maali_load_module "$MAALI_PREREQ_MODULE"
       done
 
-      ibs_wiki " .. check for build only modules"
-      for IBS_BUILD_PREREQ_MODULE in $IBS_TOOL_BUILD_PREREQ; do
-        # turn on IBS_CMAKE_TOOL
-        IBS_BUILD_PREREQ_MODULE_NAME=`echo $IBS_BUILD_PREREQ_MODULE | cut -d '/' -f 1`
-        if [ "$IBS_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
+      maali_wiki " .. check for build only modules"
+      for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
+        # turn on MAALI_CMAKE_TOOL
+        MAALI_BUILD_PREREQ_MODULE_NAME=`echo $MAALI_BUILD_PREREQ_MODULE | cut -d '/' -f 1`
+        if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
           # this is using cmake
-          IBS_CMAKE_TOOL=1
-          ibs_wiki " .. you are using cmake, will use ibs_cmake_build to process"
+          MAALI_CMAKE_TOOL=1
+          maali_wiki " .. you are using cmake, will use maali_cmake_build to process"
         fi
-        ibs_load_module "$IBS_BUILD_PREREQ_MODULE"
+        maali_load_module "$MAALI_BUILD_PREREQ_MODULE"
       done
 
       # remove a stale tool build directory
-      removedir "$IBS_TOOL_BUILD_DIR"
+      removedir "$MAALI_TOOL_BUILD_DIR"
 
-      if [ $IBS_R_TOOL ]; then
-        ibs_wiki "  .. R tools install from source code"
+      if [ $MAALI_R_TOOL ]; then
+        maali_wiki "  .. R tools install from source code"
       else
-        ibs_wiki "  .. unpacking the source code for $IBS_TOOL_NAME $IBS_TOOL_VERSION"
-        ibs_unpack
+        maali_wiki "  .. unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
+        maali_unpack
       fi
   fi
 
   # where we want to install the tool
-  IBS_INSTALL_DIR="$IBS_APPS_DIR/$IBS_COMPILER/$IBS_TOOL_NAME/$IBS_TOOL_VERSION"
-  IBS_INSTALL_TOOLDIR="$IBS_APPS_DIR/$IBS_COMPILER/$IBS_TOOL_NAME"
+  MAALI_INSTALL_DIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+  MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME"
 
-  if [ "$IBS_PYTHON_TOOL" == 1 -o "$IBS_R_TOOL" == 1 ]; then
-    IBS_INSTALL_DIR="$IBS_ROOT/$IBS_COMPILER/$IBS_TOOL_NAME/$IBS_TOOL_VERSION"
-    IBS_INSTALL_TOOLDIR="$IBS_ROOT/$IBS_COMPILER/$IBS_TOOL_NAME"
+  if [ "$MAALI_PYTHON_TOOL" == 1 -o "$MAALI_R_TOOL" == 1 ]; then
+    MAALI_INSTALL_DIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+    MAALI_INSTALL_TOOLDIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME"
   fi
 
   # don't need to rebuild if we are re-moduling
-  if [ ! $IBS_REMODULE ]; then
+  if [ ! $MAALI_REMODULE ]; then
       # remove the previously installed version
-      removedir "$IBS_INSTALL_DIR"
+      removedir "$MAALI_INSTALL_DIR"
 
       # create a fresh directory
-      makedir "$IBS_INSTALL_DIR"
+      makedir "$MAALI_INSTALL_DIR"
 
-      if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
-        if [ "$IBS_MODULE_RESTRICT_GROUP" != "" ]; then
-          ibs_run "chmod 750 $IBS_INSTALL_TOOLDIR"
-          ibs_run "chgrp $IBS_MODULE_RESTRICT_GROUP $IBS_INSTALL_TOOLDIR"
-          ibs_run "chmod 750 $IBS_INSTALL_DIR"
-          ibs_run "chgrp $IBS_MODULE_RESTRICT_GROUP $IBS_INSTALL_DIR"
+      if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+        if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
+          maali_run "chmod 750 $MAALI_INSTALL_TOOLDIR"
+          maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_TOOLDIR"
+          maali_run "chmod 750 $MAALI_INSTALL_DIR"
+          maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_DIR"
         fi
       fi
 
-      ibs_wiki "  .. compiling $IBS_TOOL_NAME $IBS_TOOL_VERSION with $IBS_COMPILER"
-      if [ $IBS_PYTHON_TOOL ]; then
-        ibs_python_build
-      elif [ $IBS_R_TOOL ]; then
-        ibs_r_build
-      elif [ $IBS_CMAKE_TOOL ]; then
-        ibs_cmake_build
+      maali_wiki "  .. compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+      if [ $MAALI_PYTHON_TOOL ]; then
+        maali_python_build
+      elif [ $MAALI_R_TOOL ]; then
+        maali_r_build
+      elif [ $MAALI_CMAKE_TOOL ]; then
+        maali_cmake_build
       else
-        ibs_build
+        maali_build
       fi
 
       # auto-generate pkgconfig file
-      if [ "${IBS_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
-        ibs_genpkgconfig
+      if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
+        maali_genpkgconfig
       fi
 
       if [ ! $DEBUG ]; then
-        removedir "$IBS_TOOL_BUILD_DIR"
+        removedir "$MAALI_TOOL_BUILD_DIR"
       fi
 
       # unload re-requisite modules
-      IBS_TOOL_PREREQ_REV=`echo $IBS_TOOL_PREREQ | tac -s' '`
-      for IBS_PREREQ_MODULE in $IBS_TOOL_PREREQ_REV; do
-          ibs_wiki "  .. unloading $IBS_PREREQ_MODULE"
-          module unload $IBS_PREREQ_MODULE
+      MAALI_TOOL_PREREQ_REV=`echo $MAALI_TOOL_PREREQ | tac -s' '`
+      for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ_REV; do
+          maali_wiki "  .. unloading $MAALI_PREREQ_MODULE"
+          module unload $MAALI_PREREQ_MODULE
       done
 
       if [ $CRAYOS_VERSION ]; then
-        IBS_EXTRA_CRAY_REV=`echo $IBS_EXTRA_CRAY | tac -s' '`
-        for IBS_CRAY_MODULE in $IBS_PREREQ_MODULE; do
-          ibs_wiki "  .. unloading $IBS_CRAY_MODULE"
-          module unload "$IBS_CRAY_MODULE"
+        MAALI_EXTRA_CRAY_REV=`echo $MAALI_EXTRA_CRAY | tac -s' '`
+        for MAALI_CRAY_MODULE in $MAALI_PREREQ_MODULE; do
+          maali_wiki "  .. unloading $MAALI_CRAY_MODULE"
+          module unload "$MAALI_CRAY_MODULE"
         done
       fi
 
-      if [ "$IBS_COMPILER" != "binary" ]; then
+      if [ "$MAALI_COMPILER" != "binary" ]; then
         # don't need to unload the "binary" compiler
 
         # make sure we unload the modules
-        module unload $IBS_COMPILER
+        module unload $MAALI_COMPILER
       fi
   fi
 
 done
 
-if [ ! $IBS_REMODULE ]; then
-  ibs_wiki "creating module in $IBS_TOOL_MODULE_DIR"
+if [ ! $MAALI_REMODULE ]; then
+  maali_wiki "creating module in $MAALI_TOOL_MODULE_DIR"
 else
-  echo "creating module in $IBS_TOOL_MODULE_DIR"
+  echo "creating module in $MAALI_TOOL_MODULE_DIR"
 fi
 
-if [ $IBS_BUILDONLY ]; then
+if [ $MAALI_BUILDONLY ]; then
   echo "skipping module creation"
 else
   # make sure we have a module directory
-  makedir "$IBS_TOOL_MODULE_DIR"
+  makedir "$MAALI_TOOL_MODULE_DIR"
 
   # make this version the default if there is no other
-  if [ ! -f "$IBS_TOOL_MODULE_DIR/.version" ]; then
-    cat <<EOF >"$IBS_TOOL_MODULE_DIR/.version"
+  if [ ! -f "$MAALI_TOOL_MODULE_DIR/.version" ]; then
+    cat <<EOF >"$MAALI_TOOL_MODULE_DIR/.version"
 #%Module1.0#####################################################################
 ##
-set ModulesVersion "$IBS_TOOL_VERSION"
+set ModulesVersion "$MAALI_TOOL_VERSION"
 EOF
 fi
 
   # make the module
-  IBS_TOOL_MODULE="$IBS_TOOL_MODULE_DIR/$IBS_TOOL_VERSION"
+  MAALI_TOOL_MODULE="$MAALI_TOOL_MODULE_DIR/$MAALI_TOOL_VERSION"
 
-  if [ -f "$IBS_TOOL_MODULE" ]; then
-    cp $IBS_TOOL_MODULE $IBS_TOOL_MODULE~
+  if [ -f "$MAALI_TOOL_MODULE" ]; then
+    cp $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
   fi
 
-  ibs_module
+  maali_module
 fi
 
-if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
-  if [ ! $IBS_REMODULE ]; then
-    cat <<EOF >>$IBS_WIKI_SRC
+if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+  if [ ! $MAALI_REMODULE ]; then
+    cat <<EOF >>$MAALI_WIKI_SRC
 </pre>
 
 <pre>
 EOF
 
-    cat $IBS_IBS_FILEPATH >> $IBS_WIKI_SRC
+    cat $MAALI_MAALI_FILEPATH >> $MAALI_WIKI_SRC
 
-    cat <<EOF >>$IBS_WIKI_SRC
+    cat <<EOF >>$MAALI_WIKI_SRC
 </pre>
 
 
-{{NavSoftware|subsection=$IBS_WIKI_TOOL_NAME}}
+{{NavSoftware|subsection=$MAALI_WIKI_TOOL_NAME}}
 [[Category:Software]]
 EOF
 
-    for IBS_WIKI_CATEGORY_ITEM in $IBS_WIKI_CATEGORY; do
-        echo "[[Category:$IBS_WIKI_CATEGORY_ITEM]]" >>$IBS_WIKI_SRC
+    for MAALI_WIKI_CATEGORY_ITEM in $MAALI_WIKI_CATEGORY; do
+        echo "[[Category:$MAALI_WIKI_CATEGORY_ITEM]]" >>$MAALI_WIKI_SRC
     done
 
-    if [ "$IBS_TOOL_TYPE" == "devel" ]; then
-        echo "[[Category:Code Development Utilities]]" >>$IBS_WIKI_SRC
+    if [ "$MAALI_TOOL_TYPE" == "devel" ]; then
+        echo "[[Category:Code Development Utilities]]" >>$MAALI_WIKI_SRC
     fi
 
-    if [ "$IBS_TOOL_TYPE" == "python" ]; then
-        echo "[[Category:Python]]" >>$IBS_WIKI_SRC
+    if [ "$MAALI_TOOL_TYPE" == "python" ]; then
+        echo "[[Category:Python]]" >>$MAALI_WIKI_SRC
     fi
 
-    if [ "$IBS_TOOL_TYPE" == "bio-apps" ]; then
-        echo "[[Category:Bioinformatics]]" >>$IBS_WIKI_SRC
+    if [ "$MAALI_TOOL_TYPE" == "bio-apps" ]; then
+        echo "[[Category:Bioinformatics]]" >>$MAALI_WIKI_SRC
     fi
 
-    IBS_WIKI_SYSTEM_NAME=`echo ${IBS_SYSTEM:0:1} | tr  '[a-z]' '[A-Z]'`${IBS_SYSTEM:1}
-    echo "[[Category:$IBS_WIKI_SYSTEM_NAME]]" >>$IBS_WIKI_SRC
+    MAALI_WIKI_SYSTEM_NAME=`echo ${MAALI_SYSTEM:0:1} | tr  '[a-z]' '[A-Z]'`${MAALI_SYSTEM:1}
+    echo "[[Category:$MAALI_WIKI_SYSTEM_NAME]]" >>$MAALI_WIKI_SRC
   fi
 fi
 
-if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
+if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   # create a list of software that has been built
-  IBS_REBUILD_SRC="$HOME/.ibs/$IBS_OS/rebuild"
+  MAALI_REBUILD_SRC="$HOME/.maali/$MAALI_OS/rebuild"
 
-  makedir "$IBS_REBUILD_SRC"
+  makedir "$MAALI_REBUILD_SRC"
 
-  IBS_BUILD_DATE=`date +'%d %B %Y'`
+  MAALI_BUILD_DATE=`date +'%d %B %Y'`
 
-  cat <<EOF >>"$IBS_REBUILD_SRC/$IBS_SYSTEM.rebuild_script"
-# $IBS_BUILD_DATE with IBS v$IBS_VERSION - $IBS_BUILDER_BUILD_CN
+  cat <<EOF >>"$MAALI_REBUILD_SRC/$MAALI_SYSTEM.rebuild_script"
+# $MAALI_BUILD_DATE with MAALI v$MAALI_VERSION - $MAALI_BUILDER_BUILD_CN
 $0 $@ -x
 
 if [ \$? -ne 0 ]; then
@@ -1188,14 +1188,14 @@ EOF
 fi
 
 # overwrite the options for the last run
-cat <<EOF >"$IBS_LAST"
-IBS_TOOL_NAME=$IBS_TOOL_NAME
-IBS_TOOL_VERSION=$IBS_TOOL_VERSION
-IBS_PYTHON_VERSION=$IBS_PYTHON_VERSION
+cat <<EOF >"$MAALI_LAST"
+MAALI_TOOL_NAME=$MAALI_TOOL_NAME
+MAALI_TOOL_VERSION=$MAALI_TOOL_VERSION
+MAALI_PYTHON_VERSION=$MAALI_PYTHON_VERSION
 DEBUG=$DEBUG
-IBS_CONFIG=$IBS_CONFIG
-IBS_REMODULE=$IBS_REMODULE
-IBS_REBUILD_COMPILER=$IBS_REBUILD_COMPILER
-IBS_REBUILD=$IBS_REBUILD
-IBS_BUILDONLY=$IBS_BUILDONLY
+MAALI_CONFIG=$MAALI_CONFIG
+MAALI_REMODULE=$MAALI_REMODULE
+MAALI_REBUILD_COMPILER=$MAALI_REBUILD_COMPILER
+MAALI_REBUILD=$MAALI_REBUILD
+MAALI_BUILDONLY=$MAALI_BUILDONLY
 EOF
