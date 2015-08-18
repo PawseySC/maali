@@ -15,16 +15,17 @@ if [ -f "/etc/SuSE-release" ]; then
     MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
     MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
 
-    MAALI_OS="sles${$MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
+    MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
   else
     # We are a Cray
+    echo "need to detmine Cray OS version"
   fi
 fi
 
 ##############################################################################
 # these are global
 
-MAALI_ROOT="$MYGROUP/software"
+MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
 MAALI_LOG_DIR="$HOME/.maali/logs";
 MAALI_LAST="$HOME/.maali/last";
 
