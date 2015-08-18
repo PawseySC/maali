@@ -760,7 +760,7 @@ makedir "$MAALI_LOG_DIR"
 MAALI_FOUND_CONFIG=0
 
 # three search paths
-MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/maali_files $HOME/.maali/maali_files $MAALI_FILES $MAALI_DIR/maali_files"
+MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/maali_files $HOME/.maali/maali_files $MAALI_FILES $MAALI_DIR/maali_files ./"
 for MAALI_FILES_PATH in $MAALI_FILES_DIR; do
 
   # TODO: is MAALI_SYSTEM redundant?
