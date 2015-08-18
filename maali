@@ -628,11 +628,6 @@ if [ -z $MAALI_IS_LOADED ]; then
   fi
 fi
 
-if [ -z $MAALI_SYSTEM ]; then
-  echo "MAALI_SYSTEM is undefined, exiting ..."
-  exit 1
-fi
-
 if [[ -z $MAALI_TOOL_NAME ]] || [[ -z $MAALI_TOOL_VERSION ]]; then
      usage
      exit 1
@@ -767,6 +762,13 @@ MAALI_FOUND_CONFIG=0
 # three search paths
 MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/maali_files $HOME/.maali/maali_files $MAALI_FILES $MAALI_DIR/maali_files"
 for MAALI_FILES_PATH in $MAALI_FILES_DIR; do
+
+  # TODO: is MAALI_SYSTEM redundant?
+  # if [ -z $MAALI_SYSTEM ]; then
+  #   echo "MAALI_SYSTEM is undefined, exiting ..."
+  #   exit 1
+  # fi
+
   if [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.maali" ]; then
     echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.maali for tool configuration information"
     MAALI_MAALI_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.maali"
