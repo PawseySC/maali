@@ -1,11 +1,9 @@
 #!/bin/bash
 ##############################################################################
-# iVEC Build System
-#
-# $Id: maali,v 1.162 2014/10/31 04:40:04 stapops Exp $
+# Pawsey Supercomputing Centre Build System
 ##############################################################################
 # needs to be set by the install script
-MAALI_VERSION="1.7.2"
+MAALI_VERSION="tip"
 
 ##############################################################################
 # these are global
