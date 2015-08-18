@@ -8,10 +8,7 @@ MAALI_VERSION="tip"
 ##############################################################################
 # these are global
 
-MAALI_ROOT="/group/$IVEC_PROJECT/software"
-MAALI_BUILD_DIR="$MAALI_ROOT/build"
-MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
-MAALI_SRC="$MAALI_ROOT/src"
+MAALI_ROOT="$MYGROUP/software"
 MAALI_LOG_DIR="$HOME/.maali/logs";
 MAALI_LAST="$HOME/.maali/last";
 
@@ -496,13 +493,14 @@ OPTIONS:
    -h      show this message
    -t      tool name
    -v      tool version
-   -p      "tool" is a python library
    -c      maali configuration file
    -d      run in debug mode
    -m      just create the module file
    -l      use the options from the last run
    -r      build with the specified compiler (and no others)
    -b      build the tool, but don't create a module file
+   -g      group build in /group/$PAWSEY_PROJECT/software
+   -s      activate system build
 EOF
 }
 
@@ -538,7 +536,7 @@ MAALI_MODULE_PE_PKGCONFIG_NAME=
 MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
 MAALI_MODULE_PE_PKGCONFIG_LMAALI=
 
-while getopts "ht:v:pdc:mlr:b" OPTION
+while getopts "ht:v:pdc:mlr:bgs" OPTION
 do
      case $OPTION in
          h)
@@ -572,12 +570,26 @@ do
              MAALI_REBUILD_COMPILER=$OPTARG
              MAALI_REBUILD=1
              ;;
+         g)
+             MAALI_ROOT="/group/$PAWSEY_PROJECT/software"
+             MAALI_GROUP_BUILD="YES"
+             ;;
+         s)
+             # how do we reset MAALI_ROOT, MAALI_BUILD_DIR and MAALI_MODULE_DIR
+             # for system builds?
+             MAALI_SYSTEM_BUILD="YES"
+             ;;
          ?)
              usage
              exit
              ;;
      esac
 done
+
+# user and group builds derive the following through MAALI_ROOT
+MAALI_BUILD_DIR="$MAALI_ROOT/build"
+MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
+MAALI_SRC="$MAALI_ROOT/src"
 
 # Why can't SLES file the module command?
 if [ -f "/etc/SuSE-release" ]; then
