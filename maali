@@ -490,7 +490,7 @@ usage()
 cat << EOF
 usage: $0 -t toolname -v toolversion [-p] [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b]
 
-maali - iVEC Build System
+maali - Pawsey Supercomputing Centre Build System
 
 OPTIONS:
    -h      show this message
@@ -884,12 +884,12 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
 * '''Install Date''': $MAALI_INSTALL_DATE
 * '''Compiler''': $MAALI_WIKI_COMPILER_STRING
 * '''Compile Machine''': $HOSTNAME
-* '''iVEC Staff''': [mailto:$MAALI_BUILDER_BUILD_MAIL $MAALI_BUILDER_BUILD_CN]
+* '''Pawsey Supercomputing Centre Staff''': [mailto:$MAALI_BUILDER_BUILD_MAIL $MAALI_BUILDER_BUILD_CN]
 
 
 === Compile and Installation ===
 
-Compiled using iVEC Build System $MAALI_VERSION:
+Compiled using maali $MAALI_VERSION:
 
 <pre>
 $ maali $MAALI_CMDLINE
