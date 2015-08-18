@@ -784,6 +784,11 @@ for MAALI_FILES_PATH in $MAALI_FILES_DIR; do
   fi
 done
 
+if [ $MAALI_FOUND_CONFIG -eq 0 ]; then
+    echo "Can't find config file for $MAALI_TOOL_NAME"
+    exit 1;
+fi
+
 # we are running a rebuild - so we override the compiler
 if [ $MAALI_REBUILD ]; then
   MAALI_TOOL_COMPILERS=$MAALI_REBUILD_COMPILER
@@ -822,11 +827,6 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
     break
   fi
 done
-
-if [ $MAALI_FOUND_CONFIG -eq 0 ]; then
-    echo "Can't find config file for $MAALI_TOOL_NAME"
-    exit 1;
-fi
 
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   # create a wiki page to help David
