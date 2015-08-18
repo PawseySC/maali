@@ -920,24 +920,6 @@ else
 
   log "$MAALI_TOOL_NAME $MAALI_TOOL_VERSION is being built by $MAALI_BUILDER_BUILD_CN"
 
-  if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
-    # check that the MAALI file has been checked into CVS
-    MAALI_PWD=$PWD
-
-    cd $(dirname $MAALI_MAALI_FILEPATH)
-    MAALI_FILE_STATUS=`cvs status $(basename $MAALI_MAALI_FILEPATH) 2>&1 | grep Status: | cut -d ':' -f 3`
-
-    if [ "$MAALI_FILE_STATUS" == " Unknown" ]; then
-      maali_wiki " .. Adding $(basename $MAALI_MAALI_FILEPATH) to CVS"
-      maali_run "cvs add $(basename $MAALI_MAALI_FILEPATH)"
-    fi
-
-    maali_wiki " .. checking $(basename $MAALI_MAALI_FILEPATH) into CVS"
-    maali_run "cvs ci -m '$MAALI_BUILDER_BUILD_CN' $(basename $MAALI_MAALI_FILEPATH)"
-
-    cd $MAALI_PWD
-  fi
-
   maali_wiki "downloading the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
   maali_download
 fi
