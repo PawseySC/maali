@@ -805,7 +805,7 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   # make sure the drectory is there
   if [ ! -d "$HOME/.maali/$MAALI_OS/cygnet_files" ]; then
       makedir "$HOME/.maali/$MAALI_OS/cygnet_files"
-  if
+  fi
 
   wget -O "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.cyg"
   MAALI_CYGNET_FILEPATH="$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg"
