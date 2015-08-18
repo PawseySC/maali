@@ -1,0 +1,1201 @@
+#!/bin/bash
+##############################################################################
+# iVEC Build System
+#
+# $Id: ibs,v 1.162 2014/10/31 04:40:04 stapops Exp $
+##############################################################################
+# needs to be set by the install script
+IBS_VERSION="1.7.2"
+
+##############################################################################
+# these are global
+
+IBS_ROOT="/group/$IVEC_PROJECT/software"
+IBS_BUILD_DIR="$IBS_ROOT/build"
+IBS_MODULE_DIR="$IBS_ROOT/modulefiles"
+IBS_SRC="$IBS_ROOT/src"
+IBS_LOG_DIR="$HOME/.ibs/logs";
+IBS_LAST="$HOME/.ibs/last";
+
+##############################################################################
+
+function ibs_build {
+  # this is the core function for creating software
+
+  # allows late evaluation
+  IBS_TOOL_CONFIGURE_EVAL=`eval echo "$IBS_TOOL_CONFIGURE"`
+
+  cd "$IBS_TOOL_BUILD_DIR"
+  ibs_run "./configure --prefix=$IBS_INSTALL_DIR $IBS_TOOL_CONFIGURE_EVAL"
+  ibs_run "make"
+  ibs_run "make install"
+}
+
+##############################################################################
+
+function ibs_cmake_build {
+  # for tools that use cmake
+
+  # allows late evaluation
+  IBS_TOOL_CONFIGURE_EVAL=`eval echo "$IBS_TOOL_CONFIGURE"`
+
+  cd "$IBS_TOOL_BUILD_DIR"
+
+  # cmake likes to build in a director of it's own
+  mkdir "$IBS_TOOL_NAME-build"
+  cd "$IBS_TOOL_NAME-build"
+
+  ibs_run "cmake -DCMAKE_INSTALL_PREFIX=$IBS_INSTALL_DIR $IBS_TOOL_CONFIGURE $IBS_CMAKE_PATH"
+  if [ $DEBUG ]; then
+    ibs_run "make VERBOSE=TRUE"
+  else
+    ibs_run "make"
+  fi
+  ibs_run "make install"
+}
+
+##############################################################################
+
+function ibs_download {
+
+  i=0;
+  for IBS_TMP_URL in $IBS_URL ; do
+     IBS_URL_ARRAY[$i]=$IBS_TMP_URL
+    (( i++ ))
+  done
+
+  i=0;
+  for IBS_TMP_DST in $IBS_DST ; do
+     IBS_DST_ARRAY[$i]=$IBS_TMP_DST
+    (( i++ ))
+  done
+
+  if [[ $IBS_URL =~ .python.org ]] ; then
+    IBS_WGET_CMD="wget --no-check-certificate"
+  else
+    IBS_WGET_CMD="wget"
+  fi
+
+  size=${#IBS_URL_ARRAY[@]}
+  for (( i=0; i<$size; i++ ))
+  do
+    IBS_TMP_URL=${IBS_URL_ARRAY[$i]}
+    IBS_TMP_DST=${IBS_DST_ARRAY[$i]}
+
+    if [ $DEBUG ]; then
+      ibs_wiki " .. need to download $IBS_TMP_URL to $IBS_TMP_DST"
+    fi
+
+    if [ ! -f "$IBS_TMP_DST" ]; then
+        if [ $DEBUG ]; then
+          ibs_wiki " .. can't find $IBS_TMP_DST so will run '$IBS_WGET_CMD -O $IBS_TMP_DST -q $IBS_TMP_URL'"
+        fi
+      cd $IBS_SRC
+
+      if [ $DEBUG ]; then
+        $IBS_WGET_CMD -O $IBS_TMP_DST $IBS_TMP_URL
+      else
+        $IBS_WGET_CMD -O $IBS_TMP_DST -q $IBS_TMP_URL
+      fi
+    fi
+  done
+}
+
+##############################################################################
+
+function ibs_genpkgconfig {
+  makedir "$IBS_INSTALL_DIR/lib/pkgconfig"
+  for indx in `seq 0 ${#IBS_MODULE_PE_PKGCONFIG_NAME[*]}`
+  do
+    if [ ! -f "$IBS_INSTALL_DIR/lib/pkgconfig/${IBS_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc" ]; then
+      cat <<EOF > $IBS_INSTALL_DIR/lib/pkgconfig/${IBS_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc
+Name: $IBS_TOOL_NAME
+Description: $IBS_TOOL_NAME's library ${IBS_MODULE_PE_PKGCONFIG_NAME[$indx]}
+Version: $IBS_TOOL_VERSION
+
+prefix=$IBS_INSTALL_DIR
+includedir=\${prefix}/include
+libdir=\${prefix}/lib
+
+Cflags: -I\${includedir} `eval echo ${IBS_MODULE_PE_PKGCONFIG_CFLAGS[$indx]}`
+Libs: -L\${libdir} -l${IBS_MODULE_PE_PKGCONFIG_NAME[$indx]} `eval echo ${IBS_MODULE_PE_PKGCONFIG_LIBS[$indx]}`
+EOF
+    fi
+  done
+}
+
+##############################################################################
+
+function ibs_load_module {
+
+  ibs_wiki "  .. loading $1"
+  IBS_MODULE_MISSING=`module display $1 2>&1 | grep 'Unable to locate a modulefile' | wc -l`
+  if [ $IBS_MODULE_MISSING -eq 1 ]; then
+    echo "  .. Unable to locate a modulefile $1"
+    exit
+  else
+    module load $1
+  fi
+
+}
+
+##############################################################################
+
+function ibs_module {
+
+  if [ $IBS_PYTHON_TOOL ]; then
+    IBS_APP_HOME="$IBS_ROOT/python/\$env(PYTHON_VERSION)/$IBS_TOOL_NAME/$IBS_TOOL_VERSION"
+    IBS_SYSTEM_DEFAULT_PYTHON=`module display python 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
+    IBS_APP_HOME_NAME="IBS_"$IBS_TOOL_NAME_UPPERCASE"_HOME"
+  elif [ $IBS_R_TOOL ]; then
+    IBS_APP_HOME="$IBS_ROOT/r/\$env(R_VERSION)/$IBS_TOOL_NAME/$IBS_TOOL_VERSION"
+    IBS_SYSTEM_DEFAULT_R=`module display r 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
+    IBS_APP_HOME_NAME="IBS_"$IBS_TOOL_NAME_UPPERCASE"_HOME"
+  else
+    if [ $IBS_COMPILER_NUMBER -eq 1 ]; then
+      IBS_APP_HOME=$IBS_INSTALL_DIR
+    else
+      if [[ $IVEC_OS =~ cle ]]; then
+        IBS_APP_HOME="$IBS_APPS_DIR/\$cray_compiler/\$cray_version/$IBS_TOOL_NAME/$IBS_TOOL_VERSION"
+      else
+        IBS_APP_HOME="$IBS_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$IBS_TOOL_NAME/$IBS_TOOL_VERSION"
+      fi
+    fi
+    IBS_APP_HOME_NAME="IBS_"$IBS_TOOL_NAME_UPPERCASE"_HOME"
+  fi
+
+  # used to make the module look pretty
+  IBS_MODULE_MAX_VARIABLE=${#IBS_APP_HOME_NAME}
+
+  cat <<EOF >$IBS_TOOL_MODULE
+#%Module######################################################################
+#
+# $IBS_TOOL_NAME modulefile
+#
+proc ModulesHelp { } {
+  puts stderr "Sets up the paths you need to use $IBS_TOOL_NAME version $IBS_TOOL_VERSION"
+}
+set sys     [uname sysname]
+set version $IBS_TOOL_VERSION
+set tool    $IBS_TOOL_NAME
+if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
+  module unload \$tool
+}
+
+EOF
+
+  if [[ $IVEC_OS =~ cle ]]; then
+    cat <<EOF >> $IBS_TOOL_MODULE
+set cray_compiler PrgEnv-[string tolower \$env(PE_ENV)]
+set cray_version  \$env(CRAYOS_VERSION)
+
+EOF
+  fi
+
+  if [ $IBS_PYTHON_TOOL ]; then
+    cat <<EOF >> $IBS_TOOL_MODULE
+
+if {! [is-loaded python] } {
+  # this allows us support multiple python versions, but have a sensible default
+  module load python/$IBS_SYSTEM_DEFAULT_PYTHON
+}
+EOF
+  fi
+
+  if [ $IBS_R_TOOL ]; then
+    cat <<EOF >> $IBS_TOOL_MODULE
+
+if {! [is-loaded r] } {
+  # this allows us support multiple R versions, but have a sensible default
+  module load r/$IBS_SYSTEM_DEFAULT_R
+}
+EOF
+  fi
+
+  if [ "$IBS_MODULE_CONFLICT" != "" ]; then
+      (IFS=","; for IBS_PKG in $IBS_MODULE_CONFLICT
+      do
+          cat <<EOF >> $IBS_TOOL_MODULE
+conflict $IBS_PKG
+EOF
+      done)
+  fi
+
+  if [ "$IBS_MODULE_PREREQ" != "" ]; then
+      (IFS=","; for IBS_PKG in $IBS_MODULE_PREREQ
+      do
+          cat <<EOF >> $IBS_TOOL_MODULE
+prereq $IBS_PKG
+EOF
+      done)
+  fi
+
+  if [ "$IBS_MODULE_WHATIS" != "" ]; then
+      cat <<EOF >> $IBS_TOOL_MODULE
+module-whatis "$IBS_MODULE_WHATIS"
+EOF
+  fi
+
+  for IBS_TOOL_PREREQ_MODULE in $IBS_TOOL_PREREQ; do
+    cat <<EOF >> $IBS_TOOL_MODULE
+module load $IBS_TOOL_PREREQ_MODULE
+EOF
+  done
+
+  printf "%-12s %-${IBS_MODULE_MAX_VARIABLE}s %s\n" "setenv" $IBS_APP_HOME_NAME $IBS_APP_HOME >> $IBS_TOOL_MODULE
+
+  # get all the varibales which start with IBS_MODULE_SET_
+  IBS_MODULE_VARIABLES_LIST=`compgen -v | grep IBS_MODULE_SET_`
+
+  # find the maximum variable width
+  for IBS_MODULE_VARIABLE in $IBS_MODULE_VARIABLES_LIST
+  do
+    if [ "${!IBS_MODULE_VARIABLE}" != "" ]; then
+      IBS_MODULE_VARIABLE_WIDTH=$(expr ${#IBS_MODULE_VARIABLE} - 15)
+      if [ $IBS_MODULE_VARIABLE_WIDTH -gt $IBS_MODULE_MAX_VARIABLE ]; then
+        IBS_MODULE_MAX_VARIABLE=$IBS_MODULE_VARIABLE_WIDTH
+      fi
+    fi
+  done
+
+  # main loop for defining environment variables
+  for IBS_MODULE_VARIABLE in $IBS_MODULE_VARIABLES_LIST
+  do
+    IBS_MODULE_VARIABLE_NAME=`echo $IBS_MODULE_VARIABLE | sed -e 's/IBS_MODULE_SET_//g'`
+    IBS_MODULE_VARIABLE_DIR=""
+    IBS_MODULE_VARIABLE_PREPREND="$IBS_APP_HOME/"
+    IBS_MODULE_VARIABLE_TCL="prepend-path"
+
+    if [ "${!IBS_MODULE_VARIABLE}" != "" ]; then
+      case $IBS_MODULE_VARIABLE_NAME in
+        PATH)
+          IBS_MODULE_VARIABLE_DIR="bin"
+          ;;
+        PYTHONPATH)
+          IBS_MODULE_VARIABLE_DIR="\$env(IBS_PYTHON_LIBDIR)/python\$env(PYTHON_LIB_VERSION)/site-packages"
+          ;;
+        PERLLIB)
+          # TODO: get perl version from perl
+          IBS_MODULE_VARIABLE_DIR="lib/perl5/site_perl/5.10.1"
+          ;;
+        R_LIBS)
+          ;;
+        LD_LIBRARY_PATH | CRAY_LD_LIBRARY_PATH)
+          IBS_MODULE_VARIABLE_DIR="lib"
+          ;;
+        CPATH | C_INCLUDE_PATH | CPLUS_INCLUDE_PATH | FPATH | FCPATH | INCLUDE_PATH)
+          IBS_MODULE_VARIABLE_DIR="include"
+          ;;
+        PKG_CONFIG_PATH)
+          IBS_MODULE_VARIABLE_DIR="lib/pkgconfig"
+          ;;
+        MANPATH)
+          IBS_MODULE_VARIABLE_DIR="share/man"
+          ;;
+        *)
+          # the default is to setenv
+          IBS_MODULE_VARIABLE_TCL="setenv"
+          IBS_MODULE_VARIABLE_PREPREND=""
+          ;;
+        esac
+
+        if [ ${!IBS_MODULE_VARIABLE} == "1" ]; then
+          printf "%-12s %-${IBS_MODULE_MAX_VARIABLE}s %s\n" $IBS_MODULE_VARIABLE_TCL $IBS_MODULE_VARIABLE_NAME $IBS_MODULE_VARIABLE_PREPREND$IBS_MODULE_VARIABLE_DIR >> $IBS_TOOL_MODULE
+        elif [ ${!IBS_MODULE_VARIABLE} == "toplevel" ]; then
+          printf "%-12s %-${IBS_MODULE_MAX_VARIABLE}s %s\n" $IBS_MODULE_VARIABLE_TCL $IBS_MODULE_VARIABLE_NAME $IBS_MODULE_VARIABLE_PREPREND >> $IBS_TOOL_MODULE
+        else
+          for IBS_MODULE_VARIABLE_VALUE in ${!IBS_MODULE_VARIABLE} ; do
+            IBS_MODULE_VARIABLE_EVAL=`eval echo "$IBS_MODULE_VARIABLE_VALUE"`
+            printf "%-12s %-${IBS_MODULE_MAX_VARIABLE}s %s\n" $IBS_MODULE_VARIABLE_TCL $IBS_MODULE_VARIABLE_NAME $IBS_MODULE_VARIABLE_PREPREND$IBS_MODULE_VARIABLE_EVAL >> $IBS_TOOL_MODULE
+          done
+        fi
+    fi
+  done
+
+  if [ "${IBS_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
+    libs=`echo ${IBS_MODULE_PE_PKGCONFIG_NAME[*]} | sed -e 's/ \+$//' -e 's/ \+/:/g'`
+    cat <<EOF >> $IBS_TOOL_MODULE
+prepend-path PE_PKGCONFIG_LIBS    $libs
+EOF
+  fi
+
+  if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
+    if [ "$IBS_MODULE_RESTRICT_GROUP" != "" ]; then
+      ibs_run "chmod 750 $IBS_TOOL_MODULE_DIR"
+      ibs_run "chgrp $IBS_MODULE_RESTRICT_GROUP $IBS_TOOL_MODULE_DIR"
+      ibs_run "chmod 640 $IBS_TOOL_MODULE_DIR/.version"
+      ibs_run "chgrp $IBS_MODULE_RESTRICT_GROUP $IBS_TOOL_MODULE_DIR/.version"
+      ibs_run "chmod 640 $IBS_TOOL_MODULE"
+      ibs_run "chgrp $IBS_MODULE_RESTRICT_GROUP $IBS_TOOL_MODULE"
+
+      if [ -f "$IBS_TOOL_MODULE~" ]; then
+        ibs_run "chmod 640 $IBS_TOOL_MODULE~"
+        ibs_run "chgrp $IBS_MODULE_RESTRICT_GROUP $IBS_TOOL_MODULE~"
+      fi
+    fi
+  fi
+
+  if [ $DEBUG ]; then
+    if [ -f "$IBS_TOOL_MODULE~" ]; then
+      echo "differences between $IBS_TOOL_MODULE and $IBS_TOOL_MODULE~"
+      diff $IBS_TOOL_MODULE $IBS_TOOL_MODULE~
+    fi
+  fi
+}
+
+##############################################################################
+
+function ibs_python_build {
+  # should work with most python packages
+
+  # need to add the python library path to PYTHONPATH temporarily
+  IBS_OLD_PYTHONPATH=$PYTHONPATH
+  IBS_NEWPYTHONPATH="$IBS_INSTALL_DIR/$IBS_PYTHON_LIBDIR/python$PYTHON_LIB_VERSION/site-packages"
+  export PYTHONPATH="$IBS_NEWPYTHONPATH:$PYTHONPATH"
+
+  makedir "$IBS_NEWPYTHONPATH"
+
+  cd "$IBS_TOOL_BUILD_DIR"
+  ibs_run "python setup.py build"
+  ibs_run "python setup.py install --prefix=$IBS_INSTALL_DIR"
+
+  export PYTHONPATH=$IBS_OLD_PYTHONPATH
+}
+
+##############################################################################
+
+function ibs_run {
+  # primarly use for capturing stdout/stderr
+
+  if [ $DEBUG ]; then
+    echo "Running $@ in $PWD"
+    eval "$@" 2>&1 | tee -a $IBS_TOOL_LOG
+
+    # only interested in the first command, not what tee returns
+    IBS_EXIT_STATUS=${PIPESTATUS[0]}
+  else
+    eval "$@" >>$IBS_TOOL_LOG 2>&1
+
+    # use this below
+    IBS_EXIT_STATUS=$?
+  fi
+
+  if [ $IBS_EXIT_STATUS -ne 0 ]; then
+    echo "failed to run $@, exiting"
+    exit $IBS_EXIT_STATUS
+  fi
+}
+
+##############################################################################
+
+function ibs_r_build {
+
+  export R_LIBS="$IBS_INSTALL_DIR:$R_LIBS"
+  ibs_run "R CMD INSTALL $IBS_DST"
+
+}
+
+##############################################################################
+
+function ibs_unpack {
+  cd $IBS_BUILD_DIR
+
+  if [ ! -f "$IBS_DST" ]; then
+    echo "$IBS_DST does not exit"
+    exit 1
+  fi
+
+  IBS_DST_FILESIZE=$(stat -c%s "$IBS_DST")
+  if [ $IBS_DST_FILESIZE -eq 0 ]; then
+    echo "$IBS_DST is 0 bytes big"
+    exit 1
+  fi
+
+  if [ $IBS_UNPACK_MKDIR ]; then
+    mkdir "$IBS_TOOL_NAME-$IBS_TOOL_VERSION"
+    cd "$IBS_TOOL_NAME-$IBS_TOOL_VERSION"
+  fi
+
+  IBS_TYPE=`file -b $IBS_DST | cut -d ',' -f 1`
+
+  if [ "$IBS_TYPE" = "bzip2 compressed data" ]; then
+    tar jxf $IBS_DST
+  elif [ "$IBS_TYPE" = "compress'd data 16 bits" ]; then
+    tar zxf $IBS_DST
+  elif [ "$IBS_TYPE" = "xz compressed data" -o "$IBS_TYPE" = "XZ compressed data" ]; then
+    tar Jxf $IBS_DST
+  elif [ "$IBS_TYPE" = "gzip compressed data" ]; then
+    tar zxf $IBS_DST
+
+    if [ $? -ne 0 ]; then
+      gzip -dc $IBS_DST | tar zxf -
+    fi
+  elif [ "$IBS_TYPE" = "POSIX tar archive (GNU)" ]; then
+    tar xf $IBS_DST
+  elif [ "$IBS_TYPE" = "Zip archive data" ]; then
+    unzip -qq $IBS_DST
+  else
+    echo "IBS $IBS_VERSION does not support decompressing $IBS_TYPE. Please e-mail help@ivec.org and lodge a feature request"
+    exit 1
+  fi
+}
+
+##############################################################################
+
+function ibs_wiki {
+  # echo to screen and add to wiki
+  echo $1
+
+  if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
+    if [ ! $IBS_REMODULE ]; then
+      echo $1 >> $IBS_WIKI_SRC
+    fi
+  fi
+}
+
+##############################################################################
+
+function log {
+  echo "#####################################################################" >>$IBS_TOOL_LOG
+  echo "$1" >>$IBS_TOOL_LOG
+  echo "#####################################################################" >>$IBS_TOOL_LOG
+}
+
+##############################################################################
+
+function makedir {
+  if [ ! -d "$1" ]; then
+    mkdir -p "$1"
+  fi
+}
+
+##############################################################################
+
+function removedir {
+  if [ -d "$1" ]; then
+    rm -fr "$1"
+  fi
+}
+
+##############################################################################
+
+function removefile {
+  if [ -f "$1" ]; then
+    rm -f "$1"
+  fi
+}
+
+##############################################################################
+
+usage()
+{
+cat << EOF
+usage: $0 -t toolname -v toolversion [-p] [-h] [-d] [-c ibs config file] [-m] [-l] [-r compiler/version] [-b]
+
+ibs - iVEC Build System
+
+OPTIONS:
+   -h      show this message
+   -t      tool name
+   -v      tool version
+   -p      "tool" is a python library
+   -c      ibs configuration file
+   -d      run in debug mode
+   -m      just create the module file
+   -l      use the options from the last run
+   -r      build with the specified compiler (and no others)
+   -b      build the tool, but don't create a module file
+EOF
+}
+
+##############################################################################
+# from http://rsalveti.wordpress.com/2007/04/03/bash-parsing-arguments-with-getopts/
+
+IBS_TOOL_NAME=
+IBS_TOOL_VERSION=
+IBS_PYTHON_VERSION=
+DEBUG=
+IBS_CONFIG=
+IBS_REBUILD=
+IBS_REBUILD_COMPILER=
+IBS_REMODULE=
+IBS_BUILDONLY=
+IBS_SYSTEM_BUILD=NO
+IBS_CMAKE_PATH=".."
+
+# for auto-building module files
+IBS_MODULE_SET_PATH=
+IBS_MODULE_SET_LD_LIBRARY_PATH=
+IBS_MODULE_SET_CPATH=
+IBS_MODULE_SET_FPATH=
+IBS_MODULE_SET_FCPATH=
+IBS_MODULE_SET_INCLUDE_PATH=
+IBS_MODULE_SET_PKG_CONFIG_PATH=
+IBS_MODULE_SET_MANPATH=
+IBS_MODULE_SET_PERLLIB=
+
+# for auto-building module files for Cray
+IBS_MODULE_SET_CRAY_LD_LIBRARY_PATH=
+IBS_MODULE_PE_PKGCONFIG_NAME=
+IBS_MODULE_PE_PKGCONFIG_CFLAGS=
+IBS_MODULE_PE_PKGCONFIG_LIBS=
+
+while getopts "ht:v:pdc:mlr:b" OPTION
+do
+     case $OPTION in
+         h)
+             usage
+             exit 1
+             ;;
+         l)
+             if [ -f "$IBS_LAST" ]; then
+               . "$IBS_LAST"
+             fi
+             ;;
+         t)
+             IBS_TOOL_NAME=$OPTARG
+             ;;
+         v)
+             IBS_TOOL_VERSION=$OPTARG
+             ;;
+         p)
+             IBS_PYTHON_TOOL=1
+             ;;
+         d)
+             DEBUG=1
+             ;;
+         c)
+             IBS_CONFIG=$OPTARG
+             ;;
+         m)
+             IBS_REMODULE=1
+             ;;
+         b)
+             IBS_BUILDONLY=1
+             ;;
+         r)
+             IBS_REBUILD_COMPILER=$OPTARG
+             IBS_REBUILD=1
+             ;;
+         ?)
+             usage
+             exit
+             ;;
+     esac
+done
+
+# Why can't SLES file the module command?
+if [ -f "/etc/SuSE-release" ]; then
+  # but a Cray can?
+  if [ ! $CRAYOS_VERSION ]; then
+    . /etc/profile.d/modules.sh
+  else
+    if [ ! -f "/etc/profile.d/modules.sh" ]; then
+      if [ -f "/opt/modules/default/etc/modules.sh" ]; then
+        # internal login node
+        if [ $DEBUG ]; then
+          echo "Detected Cray Internal Login node"
+        fi
+        . /opt/modules/default/etc/modules.sh
+      fi
+    fi
+  fi
+fi
+
+# this is to deal with the module purge on fornax
+IBS_LOADEDMODULES=`echo $LOADEDMODULES | sed -e 's/:/ /g' | tac -s' '`
+
+for IBS_MODULE in $IBS_LOADEDMODULES
+do
+    # module without the version
+    IBS_MODULE_NAME=`echo $IBS_MODULE | cut -d '/' -f 1`
+
+    if [ "$IBS_MODULE_NAME" == "ibs" ]; then
+      IBS_IS_LOADED=1
+    fi
+done
+
+if [ -z $IBS_IS_LOADED ]; then
+  if [ "$IBS_VERSION" != "trunk" ]; then
+    module load ibs/$IBS_VERSION
+  fi
+fi
+
+if [ -z $IBS_SYSTEM ]; then
+  echo "IBS_SYSTEM is undefined, exiting ..."
+  exit 1
+fi
+
+if [[ -z $IBS_TOOL_NAME ]] || [[ -z $IBS_TOOL_VERSION ]]; then
+     usage
+     exit 1
+fi
+
+# helpful for building URL
+IBS_TOOL_MAJOR_VERSION=`echo "$IBS_TOOL_VERSION" | cut -d '.' -f 1`
+IBS_TOOL_MAJOR_MINOR_VERSION=`echo "$IBS_TOOL_VERSION" | cut -d '.' -f 1,2`
+
+# for use for make -j $IBS_CORES
+if [ -z $PBS_NODEFILE ]; then
+  # not running in PBS Pro
+  IBS_CORES=1
+else
+  # make sure you set mpiprocs
+  IBS_CORES=`wc -l $PBS_NODEFILE | cut -d ' ' -f 1`
+fi
+
+IBS_CMDLINE=$*
+
+# lowercase the name, but keep the original
+IBS_TOOL_NAME_ORIG=$IBS_TOOL_NAME
+IBS_TOOL_NAME=$(echo "$IBS_TOOL_NAME" | tr '[:upper:]' '[:lower:]')
+IBS_TOOL_NAME_UPPERCASE=$(echo "$IBS_TOOL_NAME" | tr '[:lower:]' '[:upper:]' | sed -e 's/-//g' | sed -e 's/+/PLUS/g' )
+
+# chicken and egg
+IBS_PYTHON_FIRSTLETTER=`echo "$IBS_TOOL_NAME_ORIG" | cut -b 1`
+
+if [ "$IBS_CONFIG" != "" ]; then
+  # allow us to override the config
+  if [ -f "$HOME/.ibs/$IBS_CONFIG.config" ]; then
+     . "$HOME/.ibs/$IBS_CONFIG.config"
+
+
+     # use the name of our config file to create a different log file
+     IBS_LOG_PREFIX="$IBS_CONFIG-"
+  else
+    echo "Could not open $HOME/.ibs/$IBS_CONFIG.config!";
+    exit 1;
+  fi
+fi
+
+# system builds require IBS_USER_MAP and IBS_BUILDER_UID to be defined
+if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
+  if [ -z $IBS_BUILDER_UID ]; then
+    echo "Please set IBS_BUILDER_UID your uid so we can track who is building software on $IBS_SYSTEM"
+    exit 1
+  fi
+
+  if [ -z $IBS_OS ]; then
+    echo "IBS 1.5 and higher require IBS_OS to be set"
+    exit 1
+  fi
+
+  IBS_LOG_DIR="$HOME/.ibs/$IBS_OS/logs"
+  makedir "$IBS_LOG_DIR"
+  makedir "$HOME/.ibs/$IBS_OS/wiki"
+
+  if [ -z $IBS_USER_MAP ]; then
+    echo "IBS_USER_MAP is undefined, exiting ..."
+    exit 1
+  fi
+
+  echo "Running System build - checking user map file"
+
+  . "$IBS_USER_MAP"  
+
+  if [[ -z $IBS_BUILDER_BUILD_CN ]] || [[ -z $IBS_BUILDER_BUILD_MAIL ]]; then
+    echo "$IBS_BUILDER_UID is not in the user map file"
+    exit 1
+  fi
+fi
+
+# need to set IBS_DEFAULT_GCC_COMPILERS and IBS_DEFAULT_INTEL_COMPILERS
+if [ "$IBS_DEFAULT_COMPILERS" != "" ]; then
+  for IBS_DEFAULT_COMPILER in $IBS_DEFAULT_COMPILERS; do
+    IBS_DEFAULT_COMPILER_NAME=`echo "$IBS_DEFAULT_COMPILER" | cut -d '/' -f 1`
+    if [ "$IBS_DEFAULT_COMPILER_NAME" == "gcc" -o "$IBS_DEFAULT_COMPILER_NAME" == "PrgEnv-gnu" ]; then
+      if [ "$IBS_DEFAULT_GCC_COMPILERS" == "" ]; then
+        IBS_DEFAULT_GCC_COMPILERS="$IBS_DEFAULT_COMPILER"
+      else
+        IBS_DEFAULT_GCC_COMPILERS="$IBS_DEFAULT_GCC_COMPILERS $IBS_DEFAULT_COMPILER"
+      fi
+    elif [ "$IBS_DEFAULT_COMPILER_NAME" == "intel" -o "$IBS_DEFAULT_COMPILER_NAME" == "PrgEnv-intel" ]; then
+      if [ "$IBS_DEFAULT_INTEL_COMPILERS" == "" ]; then
+        IBS_DEFAULT_INTEL_COMPILERS="$IBS_DEFAULT_COMPILER"
+      else
+        IBS_DEFAULT_INTEL_COMPILERS=" $IBS_DEFAULT_COMPILER"
+      fi
+    fi
+  done
+fi
+
+# we are running a rebuild
+if [ $IBS_REBUILD ]; then
+  IBS_REBUILD_COMPILER_LOG=`echo $IBS_REBUILD_COMPILER | sed -e 's!/!-!g'`
+
+  IBS_LOG_PREFIX=$IBS_LOG_PREFIX"rebuild-"$IBS_REBUILD_COMPILER_LOG"-"
+fi
+
+# setup the module correctly environment 
+
+# unload currently loaded modules
+IBS_LOADEDMODULES=`echo $LOADEDMODULES | sed -e 's/:/ /g' | tac -s' '`
+
+for IBS_MODULE in $IBS_LOADEDMODULES
+do
+    # module without the version
+    IBS_MODULE_NAME=`echo $IBS_MODULE | cut -d '/' -f 1`
+
+    if [ "$IBS_MODULE_NAME" != "ibs" ]; then
+      module unload $IBS_MODULE
+    fi
+done
+
+if [ -z $IBS_TOOL_TYPE ]; then
+  IBS_TOOL_TYPE="apps"
+fi
+
+# make sure we have a directory to download our source code
+makedir "$IBS_SRC"
+
+# make sure we have a directory to build our source code
+makedir "$IBS_BUILD_DIR"
+
+# make sure we have a directory to log
+makedir "$IBS_LOG_DIR"
+
+# need to inherit some other file here to set compiler, etc
+IBS_FOUND_CONFIG=0
+
+# three search paths
+IBS_FILES_DIR="$HOME/.ibs/$IBS_OS/ibs_files $HOME/.ibs/ibs_files $IBS_FILES $IBS_DIR/ibs_files"
+for IBS_FILES_PATH in $IBS_FILES_DIR; do
+  if [ -f "$IBS_FILES_PATH/$IBS_TOOL_NAME.$IBS_SYSTEM.ibs" ]; then
+    echo "Using $IBS_FILES_PATH/$IBS_TOOL_NAME.$IBS_SYSTEM.ibs for tool configuration information"
+    IBS_IBS_FILEPATH="$IBS_FILES_PATH/$IBS_TOOL_NAME.$IBS_SYSTEM.ibs"
+    . "$IBS_FILES_PATH/$IBS_TOOL_NAME.$IBS_SYSTEM.ibs"
+    IBS_FOUND_CONFIG=1
+    break
+  elif [ -f "$IBS_FILES_PATH/$IBS_TOOL_NAME.ibs" ]; then
+    echo "Using $IBS_FILES_PATH/$IBS_TOOL_NAME.ibs for tool configuration information"
+    . "$IBS_FILES_PATH/$IBS_TOOL_NAME.ibs"
+    IBS_IBS_FILEPATH="$IBS_FILES_PATH/$IBS_TOOL_NAME.ibs"
+    IBS_FOUND_CONFIG=1
+    break
+  fi
+done
+
+# we are running a rebuild - so we override the compiler
+if [ $IBS_REBUILD ]; then
+  IBS_TOOL_COMPILERS=$IBS_REBUILD_COMPILER
+  echo ".. setting IBS_TOOL_COMPILERS to $IBS_TOOL_COMPILERS"
+fi
+
+if [ "$IBS_TOOL_COMPILERS" == "" ]; then
+  echo ".. IBS_TOOL_COMPILERS is empty! Please define at least one compiler.";
+  exit 1;
+fi
+
+# check if we are using python
+for IBS_COMPILER in $IBS_TOOL_COMPILERS; do
+  IBS_COMPILER_NAME=`echo "$IBS_COMPILER" | cut -d '/' -f 1`
+
+  # make the -p redundant
+  if [ "$IBS_COMPILER_NAME" == "python" ]; then
+    echo ".. detected python compiler, setting IBS_PYTHON_TOOL and IBS_TOOL_TYPE to python"
+    IBS_PYTHON_TOOL=1
+    IBS_TOOL_TYPE="python"
+
+    if [ "$IBS_MODULE_SET_PYTHONPATH" == "" ]; then
+      IBS_MODULE_SET_PYTHONPATH=1
+    fi
+
+    break
+  elif [ "$IBS_COMPILER_NAME" == "r" ]; then
+    echo ".. detected R, setting IBS_R_TOOL and IBS_TOOL_TYPE to r"
+    IBS_R_TOOL=1
+    IBS_TOOL_TYPE="r"
+
+    if [ "$IBS_MODULE_SET_R_LIBS" == "" ]; then
+      IBS_MODULE_SET_R_LIBS=1
+    fi
+
+    break
+  fi
+done
+
+if [ $IBS_FOUND_CONFIG -eq 0 ]; then
+    echo "Can't find config file for $IBS_TOOL_NAME"
+    exit 1;
+fi
+
+if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
+  # create a wiki page to help David
+  IBS_WIKI_SRC="$HOME/.ibs/$IBS_OS/wiki/$IBS_LOG_PREFIX$IBS_TOOL_NAME-$IBS_TOOL_VERSION.wiki"
+
+  if [ ! $IBS_REMODULE ]; then
+    # only re-build the wiki page if we re-compile
+
+    # get the compile date
+    IBS_INSTALL_DATE=`date +'%d %B %Y'`
+
+    IBS_WIKI_COMPILER_STRING=""
+
+    for IBS_COMPILER in $IBS_TOOL_COMPILERS; do
+      if [ "$IBS_COMPILER" == "binary" ]; then
+        # binary install does not have a verion
+        IBS_COMPILER_VERSION="N/A"
+        IBS_WIKI_COMPILER_STRING="N/A"
+      else
+        ibs_load_module "$IBS_COMPILER"
+
+        if [ $IBS_PYTHON_TOOL ]; then
+          IBS_COMPILER_VERSION=`python --version 2>&1`
+        elif [ $IBS_R_TOOL ]; then
+          IBS_COMPILER_VERSION=`R --version | grep 'R version' 2>&1`
+        else
+          if [ $CRAYOS_VERSION ]; then
+            IBS_COMPILER_NAME=`echo "$IBS_COMPILER" | cut -d '/' -f 1`
+
+            if [ "$IBS_COMPILER_NAME" == "PrgEnv-cray" ]; then
+
+              for IBS_CRAY_MODULE in $IBS_EXTRA_CRAY; do
+                ibs_load_module "$IBS_CRAY_MODULE"
+              done
+
+              IBS_COMPILER_VERSION=`cc -V | head -1`
+
+              IBS_EXTRA_CRAY_REV=`echo $IBS_EXTRA_CRAY | tac -s' '`
+              for IBS_CRAY_MODULE in $IBS_PREREQ_MODULE; do
+                module unload "$IBS_CRAY_MODULE"
+              done
+
+            else
+              IBS_COMPILER_VERSION=`cc --version 2>/dev/null | head -1`
+            fi
+          else
+            IBS_COMPILER_VERSION=`$CC --version | head -1`
+          fi
+        fi
+
+        if [ "$IBS_WIKI_COMPILER_STRING" == "" ]; then
+          IBS_WIKI_COMPILER_STRING="<tt>$IBS_COMPILER_VERSION</tt>"
+        else
+          IBS_WIKI_COMPILER_STRING="$IBS_WIKI_COMPILER_STRING, <tt>$IBS_COMPILER_VERSION</tt>"
+        fi
+    
+        module unload $IBS_COMPILER
+      fi
+    done
+
+    if [ "$IBS_WIKI_TOOL_NAME" == "" ]; then
+      IBS_WIKI_TOOL_NAME="$IBS_TOOL_NAME_ORIG"
+    fi
+
+    cat <<EOF >$IBS_WIKI_SRC
+{{NavSoftware|subsection=$IBS_WIKI_TOOL_NAME}}
+
+
+* '''Install Date''': $IBS_INSTALL_DATE
+* '''Compiler''': $IBS_WIKI_COMPILER_STRING
+* '''Compile Machine''': $HOSTNAME
+* '''iVEC Staff''': [mailto:$IBS_BUILDER_BUILD_MAIL $IBS_BUILDER_BUILD_CN]
+
+
+=== Compile and Installation ===
+
+Compiled using iVEC Build System $IBS_VERSION:
+
+<pre>
+$ ibs $IBS_CMDLINE
+Using $IBS_FILES_PATH/$IBS_TOOL_NAME.ibs for tool configuration information
+EOF
+  fi
+
+  # where the software is installed is based on the tool type
+  IBS_APPS_DIR="$IBS_ROOT/$IBS_TOOL_TYPE"
+
+  # this is now based on tool type
+  IBS_TOOL_MODULE_DIR="$IBS_MODULE_DIR/$IBS_TOOL_TYPE/$IBS_TOOL_NAME"
+else
+  echo "Warning: non-system build detected, overriding IBS_TOOL_TYPE (currently $IBS_TOOL_TYPE) and setting to tool type to 'apps'"
+  # for user builds we want them to be able to include a single module path
+  IBS_TOOL_TYPE="apps"
+  IBS_APPS_DIR="$IBS_ROOT/$IBS_TOOL_TYPE"
+  IBS_TOOL_MODULE_DIR="$IBS_MODULE_DIR/$IBS_TOOL_NAME"
+fi
+
+# make sure we have a directory to log
+IBS_TOOL_LOG="$IBS_LOG_DIR/$IBS_LOG_PREFIX$IBS_TOOL_NAME-$IBS_TOOL_VERSION.log"
+
+if [ $IBS_REMODULE ]; then
+  echo "just re-creating the module file"
+else
+  removefile "$IBS_TOOL_LOG"
+
+  log "$IBS_TOOL_NAME $IBS_TOOL_VERSION is being built by $IBS_BUILDER_BUILD_CN"
+
+  if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
+    # check that the IBS file has been checked into CVS
+    IBS_PWD=$PWD
+
+    cd $(dirname $IBS_IBS_FILEPATH)
+    IBS_FILE_STATUS=`cvs status $(basename $IBS_IBS_FILEPATH) 2>&1 | grep Status: | cut -d ':' -f 3`
+
+    if [ "$IBS_FILE_STATUS" == " Unknown" ]; then
+      ibs_wiki " .. Adding $(basename $IBS_IBS_FILEPATH) to CVS"
+      ibs_run "cvs add $(basename $IBS_IBS_FILEPATH)"
+    fi
+
+    ibs_wiki " .. checking $(basename $IBS_IBS_FILEPATH) into CVS"
+    ibs_run "cvs ci -m '$IBS_BUILDER_BUILD_CN' $(basename $IBS_IBS_FILEPATH)"
+
+    cd $IBS_PWD
+  fi
+
+  ibs_wiki "downloading the source code for $IBS_TOOL_NAME $IBS_TOOL_VERSION"
+  ibs_download
+fi
+
+IBS_COMPILER_NUMBER=`echo "$IBS_TOOL_COMPILERS" | wc -w`
+
+# need to build for every compiler that we support
+for IBS_COMPILER in $IBS_TOOL_COMPILERS; do
+
+  if [ "$IBS_COMPILER" != "binary" ]; then
+    # "binary" installs are not versioned
+    IBS_SLASH_COUNT=`echo $(echo $IBS_COMPILER | wc -c) - $(echo $IBS_COMPILER | tr -d '/' | wc -c) | bc`
+    if [ $IBS_SLASH_COUNT != 1 ]; then
+      echo "$IBS_COMPILER should contain a single '/' (but contains $IBS_SLASH_COUNT)"
+      exit 1
+    fi
+  fi
+
+  # don't need to log if we are re-moduling
+  if [ ! $IBS_REMODULE ]; then
+      ibs_wiki "building $IBS_TOOL_NAME $IBS_TOOL_VERSION with $IBS_COMPILER"
+      log "building $IBS_TOOL_NAME $IBS_TOOL_VERSION with $IBS_COMPILER"
+  fi
+
+  if [ $IBS_PYTHON_TOOL ]; then
+    IBS_PYTHON_VERSION=`echo "$IBS_COMPILER" | cut -d '/' -f 2`
+    IBS_PYTHON_LIB_VERSION=`echo "$IBS_PYTHON_VERSION" | cut -d '.' -f 1,2`
+  else
+    IBS_COMPILER_NAME=`echo "$IBS_COMPILER" | cut -d '/' -f 1`
+    IBS_COMPILER_VERSION=`echo "$IBS_COMPILER" | cut -d '/' -f 2`
+  fi
+
+  # don't need to load modules if we are re-moduling
+  if [ ! $IBS_REMODULE ]; then
+      if [ "$IBS_COMPILER" != "binary" ]; then
+        # don't need to load the "binary" compiler
+
+        # load the module for the compiler we want to use
+        if [ $DEBUG ]; then
+          ibs_wiki " .. before module load \$IBS_COMPILER"
+          module list
+        fi
+        ibs_load_module "$IBS_COMPILER"
+        if [ $DEBUG ]; then
+          ibs_wiki " .. after module load \$IBS_COMPILER"
+          module list
+        fi
+      fi
+
+      if [ $CRAYOS_VERSION ]; then
+        for IBS_CRAY_MODULE in $IBS_EXTRA_CRAY; do
+          ibs_load_module "$IBS_CRAY_MODULE"
+        done
+      fi
+
+      for IBS_PREREQ_MODULE in $IBS_TOOL_PREREQ; do
+        ibs_load_module "$IBS_PREREQ_MODULE"
+      done
+
+      ibs_wiki " .. check for build only modules"
+      for IBS_BUILD_PREREQ_MODULE in $IBS_TOOL_BUILD_PREREQ; do
+        # turn on IBS_CMAKE_TOOL
+        IBS_BUILD_PREREQ_MODULE_NAME=`echo $IBS_BUILD_PREREQ_MODULE | cut -d '/' -f 1`
+        if [ "$IBS_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
+          # this is using cmake
+          IBS_CMAKE_TOOL=1
+          ibs_wiki " .. you are using cmake, will use ibs_cmake_build to process"
+        fi
+        ibs_load_module "$IBS_BUILD_PREREQ_MODULE"
+      done
+
+      # remove a stale tool build directory
+      removedir "$IBS_TOOL_BUILD_DIR"
+
+      if [ $IBS_R_TOOL ]; then
+        ibs_wiki "  .. R tools install from source code"
+      else
+        ibs_wiki "  .. unpacking the source code for $IBS_TOOL_NAME $IBS_TOOL_VERSION"
+        ibs_unpack
+      fi
+  fi
+
+  # where we want to install the tool
+  IBS_INSTALL_DIR="$IBS_APPS_DIR/$IBS_COMPILER/$IBS_TOOL_NAME/$IBS_TOOL_VERSION"
+  IBS_INSTALL_TOOLDIR="$IBS_APPS_DIR/$IBS_COMPILER/$IBS_TOOL_NAME"
+
+  if [ "$IBS_PYTHON_TOOL" == 1 -o "$IBS_R_TOOL" == 1 ]; then
+    IBS_INSTALL_DIR="$IBS_ROOT/$IBS_COMPILER/$IBS_TOOL_NAME/$IBS_TOOL_VERSION"
+    IBS_INSTALL_TOOLDIR="$IBS_ROOT/$IBS_COMPILER/$IBS_TOOL_NAME"
+  fi
+
+  # don't need to rebuild if we are re-moduling
+  if [ ! $IBS_REMODULE ]; then
+      # remove the previously installed version
+      removedir "$IBS_INSTALL_DIR"
+
+      # create a fresh directory
+      makedir "$IBS_INSTALL_DIR"
+
+      if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
+        if [ "$IBS_MODULE_RESTRICT_GROUP" != "" ]; then
+          ibs_run "chmod 750 $IBS_INSTALL_TOOLDIR"
+          ibs_run "chgrp $IBS_MODULE_RESTRICT_GROUP $IBS_INSTALL_TOOLDIR"
+          ibs_run "chmod 750 $IBS_INSTALL_DIR"
+          ibs_run "chgrp $IBS_MODULE_RESTRICT_GROUP $IBS_INSTALL_DIR"
+        fi
+      fi
+
+      ibs_wiki "  .. compiling $IBS_TOOL_NAME $IBS_TOOL_VERSION with $IBS_COMPILER"
+      if [ $IBS_PYTHON_TOOL ]; then
+        ibs_python_build
+      elif [ $IBS_R_TOOL ]; then
+        ibs_r_build
+      elif [ $IBS_CMAKE_TOOL ]; then
+        ibs_cmake_build
+      else
+        ibs_build
+      fi
+
+      # auto-generate pkgconfig file
+      if [ "${IBS_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
+        ibs_genpkgconfig
+      fi
+
+      if [ ! $DEBUG ]; then
+        removedir "$IBS_TOOL_BUILD_DIR"
+      fi
+
+      # unload re-requisite modules
+      IBS_TOOL_PREREQ_REV=`echo $IBS_TOOL_PREREQ | tac -s' '`
+      for IBS_PREREQ_MODULE in $IBS_TOOL_PREREQ_REV; do
+          ibs_wiki "  .. unloading $IBS_PREREQ_MODULE"
+          module unload $IBS_PREREQ_MODULE
+      done
+
+      if [ $CRAYOS_VERSION ]; then
+        IBS_EXTRA_CRAY_REV=`echo $IBS_EXTRA_CRAY | tac -s' '`
+        for IBS_CRAY_MODULE in $IBS_PREREQ_MODULE; do
+          ibs_wiki "  .. unloading $IBS_CRAY_MODULE"
+          module unload "$IBS_CRAY_MODULE"
+        done
+      fi
+
+      if [ "$IBS_COMPILER" != "binary" ]; then
+        # don't need to unload the "binary" compiler
+
+        # make sure we unload the modules
+        module unload $IBS_COMPILER
+      fi
+  fi
+
+done
+
+if [ ! $IBS_REMODULE ]; then
+  ibs_wiki "creating module in $IBS_TOOL_MODULE_DIR"
+else
+  echo "creating module in $IBS_TOOL_MODULE_DIR"
+fi
+
+if [ $IBS_BUILDONLY ]; then
+  echo "skipping module creation"
+else
+  # make sure we have a module directory
+  makedir "$IBS_TOOL_MODULE_DIR"
+
+  # make this version the default if there is no other
+  if [ ! -f "$IBS_TOOL_MODULE_DIR/.version" ]; then
+    cat <<EOF >"$IBS_TOOL_MODULE_DIR/.version"
+#%Module1.0#####################################################################
+##
+set ModulesVersion "$IBS_TOOL_VERSION"
+EOF
+fi
+
+  # make the module
+  IBS_TOOL_MODULE="$IBS_TOOL_MODULE_DIR/$IBS_TOOL_VERSION"
+
+  if [ -f "$IBS_TOOL_MODULE" ]; then
+    cp $IBS_TOOL_MODULE $IBS_TOOL_MODULE~
+  fi
+
+  ibs_module
+fi
+
+if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
+  if [ ! $IBS_REMODULE ]; then
+    cat <<EOF >>$IBS_WIKI_SRC
+</pre>
+
+<pre>
+EOF
+
+    cat $IBS_IBS_FILEPATH >> $IBS_WIKI_SRC
+
+    cat <<EOF >>$IBS_WIKI_SRC
+</pre>
+
+
+{{NavSoftware|subsection=$IBS_WIKI_TOOL_NAME}}
+[[Category:Software]]
+EOF
+
+    for IBS_WIKI_CATEGORY_ITEM in $IBS_WIKI_CATEGORY; do
+        echo "[[Category:$IBS_WIKI_CATEGORY_ITEM]]" >>$IBS_WIKI_SRC
+    done
+
+    if [ "$IBS_TOOL_TYPE" == "devel" ]; then
+        echo "[[Category:Code Development Utilities]]" >>$IBS_WIKI_SRC
+    fi
+
+    if [ "$IBS_TOOL_TYPE" == "python" ]; then
+        echo "[[Category:Python]]" >>$IBS_WIKI_SRC
+    fi
+
+    if [ "$IBS_TOOL_TYPE" == "bio-apps" ]; then
+        echo "[[Category:Bioinformatics]]" >>$IBS_WIKI_SRC
+    fi
+
+    IBS_WIKI_SYSTEM_NAME=`echo ${IBS_SYSTEM:0:1} | tr  '[a-z]' '[A-Z]'`${IBS_SYSTEM:1}
+    echo "[[Category:$IBS_WIKI_SYSTEM_NAME]]" >>$IBS_WIKI_SRC
+  fi
+fi
+
+if [ "$IBS_SYSTEM_BUILD" == "YES" ]; then
+  # create a list of software that has been built
+  IBS_REBUILD_SRC="$HOME/.ibs/$IBS_OS/rebuild"
+
+  makedir "$IBS_REBUILD_SRC"
+
+  IBS_BUILD_DATE=`date +'%d %B %Y'`
+
+  cat <<EOF >>"$IBS_REBUILD_SRC/$IBS_SYSTEM.rebuild_script"
+# $IBS_BUILD_DATE with IBS v$IBS_VERSION - $IBS_BUILDER_BUILD_CN
+$0 $@ -x
+
+if [ \$? -ne 0 ]; then
+  echo "failed to run $0 $@, exiting"
+  exit 1
+fi
+
+EOF
+
+fi
+
+# overwrite the options for the last run
+cat <<EOF >"$IBS_LAST"
+IBS_TOOL_NAME=$IBS_TOOL_NAME
+IBS_TOOL_VERSION=$IBS_TOOL_VERSION
+IBS_PYTHON_VERSION=$IBS_PYTHON_VERSION
+DEBUG=$DEBUG
+IBS_CONFIG=$IBS_CONFIG
+IBS_REMODULE=$IBS_REMODULE
+IBS_REBUILD_COMPILER=$IBS_REBUILD_COMPILER
+IBS_REBUILD=$IBS_REBUILD
+IBS_BUILDONLY=$IBS_BUILDONLY
+EOF
