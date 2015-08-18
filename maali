@@ -769,15 +769,15 @@ for MAALI_FILES_PATH in $MAALI_FILES_DIR; do
   #   exit 1
   # fi
 
-  if [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.maali" ]; then
-    echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.maali for tool configuration information"
-    MAALI_MAALI_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.maali"
-    . "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.maali"
+  if [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg" ]; then
+    echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg for tool configuration information"
+    MAALI_MAALI_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg"
+    . "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg"
     MAALI_FOUND_CONFIG=1
     break
-  elif [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.maali" ]; then
-    echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.maali for tool configuration information"
-    . "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.maali"
+  elif [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg" ]; then
+    echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg for tool configuration information"
+    . "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg"
     MAALI_MAALI_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.maali"
     MAALI_FOUND_CONFIG=1
     break
@@ -907,7 +907,7 @@ Compiled using maali $MAALI_VERSION:
 
 <pre>
 $ maali $MAALI_CMDLINE
-Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.maali for tool configuration information
+Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg for tool configuration information
 EOF
   fi
 
