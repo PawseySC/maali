@@ -6,6 +6,22 @@
 MAALI_VERSION="tip"
 
 ##############################################################################
+# Rudimentary Operating System detecting which can be overriden by setting
+# MAALI_OS to a value of your choosing
+
+if [ -f "/etc/SuSE-release" ]; then
+  if [ ! $CRAYOS_VERSION ]; then
+    # We are running SLES
+    MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
+    MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
+
+    MAALI_OS="sles${$MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
+  else
+    # We are a Cray
+  fi
+fi
+
+##############################################################################
 # these are global
 
 MAALI_ROOT="$MYGROUP/software"
@@ -273,7 +289,7 @@ EOF
           # TODO: get perl version from perl
           MAALI_MODULE_VARIABLE_DIR="lib/perl5/site_perl/5.10.1"
           ;;
-        R_LMAALI)
+        R_LIBS)
           ;;
         LD_LIBRARY_PATH | CRAY_LD_LIBRARY_PATH)
           MAALI_MODULE_VARIABLE_DIR="lib"
@@ -294,7 +310,10 @@ EOF
           ;;
         esac
 
-        if [ ${!MAALI_MODULE_VARIABLE} == "1" ]; then
+        if [ "$MAALI_MODULE_VARIABLE_NAME" == "MAALI_DEFAULT_COMPILERS" ]; then
+          # probably true of all MAALI_DEFAULT_* variables
+          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
+        elif [ ${!MAALI_MODULE_VARIABLE} == "1" ]; then
           printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
         elif [ ${!MAALI_MODULE_VARIABLE} == "toplevel" ]; then
           printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
@@ -674,11 +693,6 @@ fi
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   if [ -z $MAALI_BUILDER_UID ]; then
     echo "Please set MAALI_BUILDER_UID your uid so we can track who is building software on $MAALI_SYSTEM"
-    exit 1
-  fi
-
-  if [ -z $MAALI_OS ]; then
-    echo "MAALI 1.5 and higher require MAALI_OS to be set"
     exit 1
   fi
 
