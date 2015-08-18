@@ -256,8 +256,12 @@ module load $MAALI_TOOL_PREREQ_MODULE
 EOF
   done
 
+  # sort MAALI_MODULE_SET_MAALI variables first
+  MAALI_MODULE_VARIABLES_LIST_MAALI=`compgen -v | grep MAALI_MODULE_SET_MAALI`
+  MAALI_MODULE_VARIABLES_LIST_NON_MAALI=`compgen -v | grep MAALI_MODULE_SET_ | grep -v MAALI_MODULE_SET_MAALI`
+
   # get all the varibales which start with MAALI_MODULE_SET_
-  MAALI_MODULE_VARIABLES_LIST=`compgen -v | grep MAALI_MODULE_SET_`
+  MAALI_MODULE_VARIABLES_LIST="$MAALI_MODULE_VARIABLES_LIST_MAALI $MAALI_MODULE_VARIABLES_LIST_NON_MAALI"
 
   # find the maximum variable width
   for MAALI_MODULE_VARIABLE in $MAALI_MODULE_VARIABLES_LIST
@@ -286,7 +290,7 @@ EOF
           MAALI_MODULE_VARIABLE_DIR="bin"
           ;;
         PYTHONPATH)
-          MAALI_MODULE_VARIABLE_DIR="\$env(MAALI_PYTHON_LIBDIR)/python\$env(PYTHON_LIB_VERSION)/site-packages"
+          MAALI_MODULE_VARIABLE_DIR="\$env(MAALI_PYTHON_LIBDIR)/python\$env(MAALI_PYTHON_LIB_VERSION)/site-packages"
           ;;
         PERLLIB)
           # TODO: get perl version from perl
