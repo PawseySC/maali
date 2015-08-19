@@ -18,7 +18,9 @@ if [ -f "/etc/SuSE-release" ]; then
     MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
   else
     # We are a Cray
-    echo "need to detmine Cray OS version"
+    MAALI_OS_VERSION=`echo $CRAYOS_VERSION | cut -d '.' -f 1,2 | sed -e 's/\.//g'`
+
+    MAALI_OS="cle$MAALI_OS_VERSION"
   fi
 fi
 
