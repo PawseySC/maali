@@ -22,6 +22,9 @@ if [ -f "/etc/SuSE-release" ]; then
 
     MAALI_OS="cle$MAALI_OS_VERSION"
   fi
+else
+  echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
+  exit 1
 fi
 
 ##############################################################################
