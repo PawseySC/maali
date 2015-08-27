@@ -992,34 +992,36 @@ fi
 
 MAALI_COMPILER_NUMBER=`echo "$MAALI_TOOL_COMPILERS" | wc -w`
 
-# need to build for every compiler that we support
-for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
+# need to build for every PrgENV that we support
+for MAALI_PRGENV in $MAALI_DEFAULT_PRGENV; do
+  # need to build for every compiler that we support
+  for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
 
-  if [ "$MAALI_COMPILER" != "binary" ]; then
-    # "binary" installs are not versioned
-    MAALI_SLASH_COUNT=`echo $(echo $MAALI_COMPILER | wc -c) - $(echo $MAALI_COMPILER | tr -d '/' | wc -c) | bc`
-    if [ $MAALI_SLASH_COUNT != 1 ]; then
-      echo "$MAALI_COMPILER should contain a single '/' (but contains $MAALI_SLASH_COUNT)"
-      exit 1
+    if [ "$MAALI_COMPILER" != "binary" ]; then
+      # "binary" installs are not versioned
+      MAALI_SLASH_COUNT=`echo $(echo $MAALI_COMPILER | wc -c) - $(echo $MAALI_COMPILER | tr -d '/' | wc -c) | bc`
+      if [ $MAALI_SLASH_COUNT != 1 ]; then
+        echo "$MAALI_COMPILER should contain a single '/' (but contains $MAALI_SLASH_COUNT)"
+        exit 1
+      fi
     fi
-  fi
 
-  # don't need to log if we are re-moduling
-  if [ ! $MAALI_REMODULE ]; then
-      maali_wiki "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-      log "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-  fi
+    # don't need to log if we are re-moduling
+    if [ ! $MAALI_REMODULE ]; then
+        maali_wiki "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+        log "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+    fi
 
-  if [ $MAALI_PYTHON_TOOL ]; then
-    MAALI_PYTHON_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
-    MAALI_PYTHON_LIB_VERSION=`echo "$MAALI_PYTHON_VERSION" | cut -d '.' -f 1,2`
-  else
-    MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
-    MAALI_COMPILER_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
-  fi
+    if [ $MAALI_PYTHON_TOOL ]; then
+      MAALI_PYTHON_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
+      MAALI_PYTHON_LIB_VERSION=`echo "$MAALI_PYTHON_VERSION" | cut -d '.' -f 1,2`
+    else
+      MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
+      MAALI_COMPILER_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
+    fi
 
-  # don't need to load modules if we are re-moduling
-  if [ ! $MAALI_REMODULE ]; then
+    # don't need to load modules if we are re-moduling
+    if [ ! $MAALI_REMODULE ]; then
       if [ "$MAALI_COMPILER" != "binary" ]; then
         # don't need to load the "binary" compiler
 
@@ -1066,19 +1068,19 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
         maali_wiki "  .. unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
         maali_unpack
       fi
-  fi
+    fi
 
-  # where we want to install the tool
-  MAALI_INSTALL_DIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-  MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME"
+    # where we want to install the tool
+    MAALI_INSTALL_DIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+    MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME"
 
-  if [ "$MAALI_PYTHON_TOOL" == 1 -o "$MAALI_R_TOOL" == 1 ]; then
-    MAALI_INSTALL_DIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-    MAALI_INSTALL_TOOLDIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME"
-  fi
+    if [ "$MAALI_PYTHON_TOOL" == 1 -o "$MAALI_R_TOOL" == 1 ]; then
+      MAALI_INSTALL_DIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+      MAALI_INSTALL_TOOLDIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME"
+    fi
 
-  # don't need to rebuild if we are re-moduling
-  if [ ! $MAALI_REMODULE ]; then
+    # don't need to rebuild if we are re-moduling
+    if [ ! $MAALI_REMODULE ]; then
       # remove the previously installed version
       removedir "$MAALI_INSTALL_DIR"
 
@@ -1135,9 +1137,11 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
         # make sure we unload the modules
         module unload $MAALI_COMPILER
       fi
-  fi
+    fi
 
-done
+  done # compiler
+
+done # prgenv
 
 if [ ! $MAALI_REMODULE ]; then
   maali_wiki "creating module in $MAALI_TOOL_MODULE_DIR"
