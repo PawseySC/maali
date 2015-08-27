@@ -324,7 +324,7 @@ EOF
           ;;
         esac
 
-        if [ "$MAALI_MODULE_VARIABLE_NAME" == "MAALI_DEFAULT_COMPILERS" -o "$MAALI_MODULE_VARIABLE_NAME" == "MAALI_DEFAULT_PRGENV" ]; then
+        if [ "$MAALI_MODULE_VARIABLE_NAME" == "MAALI_DEFAULT_COMPILERS" -o "$MAALI_MODULE_VARIABLE_NAME" == "MAALI_DEFAULT_CRAY_PRGENVS" ]; then
           # probably true of all MAALI_DEFAULT_* variables
           printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
         elif [ ${!MAALI_MODULE_VARIABLE} == "1" ]; then
@@ -1019,7 +1019,12 @@ fi
 MAALI_COMPILER_NUMBER=`echo "$MAALI_TOOL_COMPILERS" | wc -w`
 
 if [ "$MAALI_TOOL_CRAY_PRGENV" == "" ]; then
-  MAALI_TOOL_CRAY_PRGENV="na"
+  if [ $MAALI_CRAY -eq 1 -a "$MAALI_COMPILER" != "binary" ]; then
+    echo "You are compiling on a cray, you need to define MAALI_TOOL_CRAY_PRGENV"
+    exit
+  else 
+    MAALI_TOOL_CRAY_PRGENV="na"
+  fi
 fi
 
 # need to build for every PrgENV that we support
