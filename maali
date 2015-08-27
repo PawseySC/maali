@@ -150,12 +150,22 @@ EOF
 function maali_load_module {
 
   maali_wiki "  .. loading $1"
+  if [ $DEBUG ]; then
+    echo "Trying to load $1"
+  fi
   MAALI_MODULE_MISSING=`module display $1 2>&1 | grep 'Unable to locate a modulefile' | wc -l`
   if [ $MAALI_MODULE_MISSING -eq 1 ]; then
     echo "  .. Unable to locate a modulefile $1"
     exit
   else
-    module load $1
+    MAALI_TMP_FILE="/tmp/maali.$$.out"
+    module load $1 >$MAALI_TMP_FILE 2>&1
+    MAALI_MODULE_CONFLICT=`grep 'conflicts with the currently loaded module' $MAALI_TMP_FILE | wc -l`
+    rm -f $MAALI_TMP_FILE
+    if [ $MAALI_MODULE_CONFLICT -eq 1 ]; then
+      echo "  .. modulefile $1 conflicts with an already loaded module"
+      exit
+    fi
   fi
 
 }
