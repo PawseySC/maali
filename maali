@@ -238,6 +238,8 @@ if { [is-loaded PrgEnv-intel] } {
 EOF
   fi
 
+  # TODO: module conflict
+
   if [ $MAALI_PYTHON_TOOL ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 
