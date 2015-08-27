@@ -187,7 +187,7 @@ function maali_module {
       MAALI_APP_HOME=$MAALI_INSTALL_DIR
     else
       if [ $MAALI_CRAY ]; then
-        MAALI_APP_HOME="$MAALI_APPS_DIR/\$cray_compiler/\$cray_version/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+        MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(MAALI_LOADED_PRGENV)/\$env(CRAYOS_VERSION)/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
       else
         MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
       fi
@@ -217,8 +217,23 @@ EOF
 
   if [ $MAALI_CRAY ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
-set cray_compiler PrgEnv-[string tolower \$env(PE_ENV)]
-set cray_version  \$env(CRAYOS_VERSION)
+if { [is-loaded PrgEnv-cray] } {
+  setenv MAALI_LOADED_PRGENV PrgEnv-cray
+  setenv COMPILER            cce
+  setenv COMPILER_VER        \$env(CRAY_CC_VERSION)
+}
+
+if { [is-loaded PrgEnv-gnu] } {
+  setenv MAALI_LOADED_PRGENV PrgEnv-cray
+  setenv COMPILER            gcc
+  setenv COMPILER_VER        \$env(GCC_VERSION)
+}
+
+if { [is-loaded PrgEnv-intel] } {
+  setenv MAALI_LOADED_PRGENV PrgEnv-cray
+  setenv COMPILER            intel
+  setenv COMPILER_VER        \$env(INTEL_VERSION)
+}
 
 EOF
   fi
@@ -1091,6 +1106,15 @@ for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
           maali_wiki " .. before module load \$MAALI_COMPILER"
           module list
         fi
+
+        if [ $MAALI_CRAY -eq 1 ]; then
+          # check to see if the PrgEnv loaded the wrong compiler
+          MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep $MAALI_COMPILER_NAME | wc -l`
+          if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
+            module unload $MAALI_COMPILER_NAME
+          fi
+        fi
+
         maali_load_module "$MAALI_COMPILER"
         if [ $DEBUG ]; then
           maali_wiki " .. after module load \$MAALI_COMPILER"
