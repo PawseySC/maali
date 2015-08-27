@@ -21,6 +21,8 @@ if [ -f "/etc/SuSE-release" ]; then
     MAALI_OS_VERSION=`echo $CRAYOS_VERSION | cut -d '.' -f 1,2 | sed -e 's/\.//g'`
 
     MAALI_OS="cle$MAALI_OS_VERSION"
+
+    MAALI_CRAY=1
   fi
 else
   echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
@@ -174,7 +176,7 @@ function maali_module {
     if [ $MAALI_COMPILER_NUMBER -eq 1 ]; then
       MAALI_APP_HOME=$MAALI_INSTALL_DIR
     else
-      if [[ $IVEC_OS =~ cle ]]; then
+      if [ $MAALI_CRAY ]; then
         MAALI_APP_HOME="$MAALI_APPS_DIR/\$cray_compiler/\$cray_version/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
       else
         MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
@@ -203,7 +205,7 @@ if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
 
 EOF
 
-  if [[ $IVEC_OS =~ cle ]]; then
+  if [ $MAALI_CRAY ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 set cray_compiler PrgEnv-[string tolower \$env(PE_ENV)]
 set cray_version  \$env(CRAYOS_VERSION)
