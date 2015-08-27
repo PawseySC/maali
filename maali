@@ -1018,7 +1018,7 @@ fi
 
 MAALI_COMPILER_NUMBER=`echo "$MAALI_TOOL_COMPILERS" | wc -w`
 
-if [ $MAALI_TOOL_PRGENV -eq "" ]; then
+if [ "$MAALI_TOOL_PRGENV" == "" ]; then
   MAALI_TOOL_PRGENV="na"
 fi
 
