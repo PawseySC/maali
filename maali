@@ -322,7 +322,7 @@ EOF
           ;;
         esac
 
-        if [ "$MAALI_MODULE_VARIABLE_NAME" == "MAALI_DEFAULT_COMPILERS" ]; then
+        if [ "$MAALI_MODULE_VARIABLE_NAME" == "MAALI_DEFAULT_COMPILERS" -o "$MAALI_MODULE_VARIABLE_NAME" == "MAALI_DEFAULT_PRGENV" ]; then
           # probably true of all MAALI_DEFAULT_* variables
           printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
         elif [ ${!MAALI_MODULE_VARIABLE} == "1" ]; then
