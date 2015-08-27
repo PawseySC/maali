@@ -992,8 +992,28 @@ fi
 
 MAALI_COMPILER_NUMBER=`echo "$MAALI_TOOL_COMPILERS" | wc -w`
 
+if [ $MAALI_TOOL_PRGENV -eq "" ]; then
+  MAALI_TOOL_PRGENV="na"
+fi
+
 # need to build for every PrgENV that we support
-for MAALI_PRGENV in $MAALI_DEFAULT_PRGENV; do
+for MAALI_CRAY_PRGENV in $MAALI_TOOL_PRGENV; do
+
+  if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+    # load the Cray Programming Environment
+
+    if [ $DEBUG ]; then
+      maali_wiki " .. before module load \$MAALI_CRAY_PRGENV"
+      module list
+    fi
+    maali_load_module "$MAALI_CRAY_PRGENV"
+    if [ $DEBUG ]; then
+      maali_wiki " .. after module load \$MAALI_CRAY_PRGENV"
+      module list
+    fi
+
+  fi
+
   # need to build for every compiler that we support
   for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
 
@@ -1071,8 +1091,13 @@ for MAALI_PRGENV in $MAALI_DEFAULT_PRGENV; do
     fi
 
     # where we want to install the tool
-    MAALI_INSTALL_DIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-    MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME"
+    if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+      MAALI_INSTALL_DIR="$MAALI_APPS_DIR/$MAALI_CRAY_PRGENV/$MAALI_COMPILER/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+      MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_CRAY_PRGENV/$MAALI_COMPILER/$MAALI_TOOL_NAME"
+    else
+      MAALI_INSTALL_DIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+      MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME"
+    fi
 
     if [ "$MAALI_PYTHON_TOOL" == 1 -o "$MAALI_R_TOOL" == 1 ]; then
       MAALI_INSTALL_DIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
@@ -1140,6 +1165,11 @@ for MAALI_PRGENV in $MAALI_DEFAULT_PRGENV; do
     fi
 
   done # compiler
+
+  if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+    # unload the Cray Programming Environment
+    module unload $MAALI_CRAY_PRGENV
+  fi
 
 done # prgenv
 
