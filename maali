@@ -1018,12 +1018,12 @@ fi
 
 MAALI_COMPILER_NUMBER=`echo "$MAALI_TOOL_COMPILERS" | wc -w`
 
-if [ "$MAALI_TOOL_PRGENV" == "" ]; then
-  MAALI_TOOL_PRGENV="na"
+if [ "$MAALI_TOOL_CRAY_PRGENV" == "" ]; then
+  MAALI_TOOL_CRAY_PRGENV="na"
 fi
 
 # need to build for every PrgENV that we support
-for MAALI_CRAY_PRGENV in $MAALI_TOOL_PRGENV; do
+for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
 
   if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
     # load the Cray Programming Environment
