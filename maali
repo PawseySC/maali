@@ -845,9 +845,9 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   fi
 
   if [ $DEBUG ]; then
-    wget -O "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.cyg"
+    wget --no-check-certificate -O "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.cyg"
   else
-    wget -q -O "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.cyg"
+    wget --no-check-certificate -q -O "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.cyg"
   fi
   MAALI_CYGNET_FILEPATH="$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg"
   MAALI_FOUND_CYGENT=1
