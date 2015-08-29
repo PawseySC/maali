@@ -9,6 +9,9 @@ MAALI_VERSION="tip"
 # Rudimentary Operating System detecting which can be overriden by setting
 # MAALI_OS to a value of your choosing
 
+# by default we are not a cray
+MAALI_CRAY=0
+
 if [ -f "/etc/SuSE-release" ]; then
   if [ ! $CRAYOS_VERSION ]; then
     # We are running SLES
@@ -750,9 +753,15 @@ if [ -z $MAALI_IS_LOADED ]; then
   fi
 fi
 
-if [[ -z $MAALI_TOOL_NAME ]] || [[ -z $MAALI_TOOL_VERSION ]]; then
+if [ -z $MAALI_TOOL_NAME ]; then
      usage
      exit 1
+fi
+
+# do we need to set the version or are there other instances of it being derived?
+if [ "$MAALI_TOOL_NAME" != "system-gcc" -a -z $MAALI_TOOL_VERSION ]; then 
+  usage
+  exit 1
 fi
 
 # helpful for building URL
