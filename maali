@@ -596,16 +596,16 @@ function removefile {
 usage()
 {
 cat << EOF
-usage: $0 -t toolname -v toolversion [-p] [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b]
+usage: $0 -t toolname -v toolversion [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b] [-g] [-s] [-w] [-a]
 
 maali - Pawsey Supercomputing Centre Build System
 
 OPTIONS:
-   -h      show this message
    -t      tool name
    -v      tool version
-   -c      maali configuration file
+   -h      show this message
    -d      run in debug mode
+   -c      maali configuration file
    -m      just create the module file
    -l      use the options from the last run
    -r      build with the specified compiler (and no others)
@@ -613,6 +613,7 @@ OPTIONS:
    -g      group build in /group/$PAWSEY_PROJECT/software
    -s      activate system build
    -w      workstation build in $HOME/software
+   -a      activate this version as the default version
 EOF
 }
 
@@ -630,6 +631,7 @@ MAALI_REMODULE=
 MAALI_BUILDONLY=
 MAALI_SYSTEM_BUILD=NO
 MAALI_CMAKE_PATH=".."
+MAALI_MAKE_VERSION_DEFAULT=0
 
 # for auto-building module files
 MAALI_MODULE_SET_PATH=
@@ -648,7 +650,7 @@ MAALI_MODULE_PE_PKGCONFIG_NAME=
 MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
 MAALI_MODULE_PE_PKGCONFIG_LMAALI=
 
-while getopts "ht:v:pdc:mlr:bgsw" OPTION
+while getopts "ht:v:pdc:mlr:bgswa" OPTION
 do
      case $OPTION in
          h)
@@ -693,6 +695,9 @@ do
              ;;
          w)
              MAALI_ROOT="$HOME/software"
+             ;;
+         a)
+             MAALI_MAKE_VERSION_DEFAULT=1
              ;;
          ?)
              usage
@@ -1308,13 +1313,31 @@ else
   makedir "$MAALI_TOOL_MODULE_DIR"
 
   # make this version the default if there is no other
-  if [ ! -f "$MAALI_TOOL_MODULE_DIR/.version" ]; then
+  if [ ! -f "$MAALI_TOOL_MODULE_DIR/.version" -o $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then
+
+    if [ $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then
+      if [ -f "$MAALI_TOOL_MODULE_DIR/.version" ]; then
+        mv "$MAALI_TOOL_MODULE_DIR/.version" "$MAALI_TOOL_MODULE_DIR/.version~"
+        if [ $DEBUG ]; then
+          echo "backing up $MAALI_TOOL_MODULE_DIR/.version"
+        fi
+      fi
+    fi
+
     cat <<EOF >"$MAALI_TOOL_MODULE_DIR/.version"
 #%Module1.0#####################################################################
 ##
 set ModulesVersion "$MAALI_TOOL_VERSION"
 EOF
-fi
+
+    if [ $DEBUG ]; then
+      if [ -f "$MAALI_TOOL_MODULE_DIR/.version~" ]; then
+        echo "differences between $MAALI_TOOL_MODULE_DIR/.version and $MAALI_TOOL_MODULE_DIR/.version~"
+        diff "$MAALI_TOOL_MODULE_DIR/.version" "$MAALI_TOOL_MODULE_DIR/.version~"
+      fi
+    fi
+
+  fi
 
   # make the module
   MAALI_TOOL_MODULE="$MAALI_TOOL_MODULE_DIR/$MAALI_TOOL_VERSION"
