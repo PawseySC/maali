@@ -423,7 +423,6 @@ EOF
             printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
           done
         elif [ ${!MAALI_MODULE_VARIABLE} == "1" ]; then
-          echo "$MAALI_MODULE_VARIABLE_NAME = ${!MAALI_MODULE_VARIABLE}"
           printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
         elif [ ${!MAALI_MODULE_VARIABLE} == "toplevel" ]; then
           printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
@@ -774,7 +773,7 @@ if [ -z $MAALI_TOOL_NAME ]; then
 fi
 
 # do we need to set the version or are there other instances of it being derived?
-if [[ "$MAALI_TOOL_NAME" != "systeg-gcc" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel" ]] && [[ -z $MAALI_TOOL_VERSION ]]; then 
+if [[ "$MAALI_TOOL_NAME" != "systeg-gcc" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel-mkl" ]] && [[ -z $MAALI_TOOL_VERSION ]]; then 
   usage
   exit 1
 fi
