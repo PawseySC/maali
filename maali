@@ -934,6 +934,10 @@ if [ $MAALI_FORCE_DOWNLOAD_FROM_GITHUB -eq 0 ]; then
     #   exit 1
     # fi
 
+    if [ $DEBUG ]; then
+      echo "Searching for $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg"
+    fi
+
     if [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg" ]; then
       echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg for tool configuration information"
       MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg"
@@ -1164,188 +1168,190 @@ if [ "$MAALI_TOOL_CRAY_PRGENV" == "" ]; then
   fi
 fi
 
-# need to build for every PrgENV that we support
-for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
-
-  if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
-    # load the Cray Programming Environment
-
-    if [ $DEBUG ]; then
-      maali_wiki " .. before module load \$MAALI_CRAY_PRGENV"
-      module list
-    fi # if [ $DEBUG ]; then
-    maali_load_module "$MAALI_CRAY_PRGENV"
-    if [ $DEBUG ]; then
-      maali_wiki " .. after module load \$MAALI_CRAY_PRGENV"
-      module list
-    fi # if [ $DEBUG ]; then
-
-  fi # if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
-
-  # need to build for every compiler that we support
-  for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
-
-    if [ "$MAALI_COMPILER" != "binary" ]; then
-      # "binary" installs are not versioned
-      MAALI_SLASH_COUNT=`echo $(echo $MAALI_COMPILER | wc -c) - $(echo $MAALI_COMPILER | tr -d '/' | wc -c) | bc`
-      if [ $MAALI_SLASH_COUNT != 1 ]; then
-        echo "$MAALI_COMPILER should contain a single '/' (but contains $MAALI_SLASH_COUNT)"
-        exit 1
-      fi # if [ $MAALI_SLASH_COUNT != 1 ]; then; then
-    fi # if [ "$MAALI_COMPILER" != "binary" ]; then
-
-    maali_wiki "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-    log "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-
-    if [ $MAALI_PYTHON_TOOL ]; then
-      MAALI_PYTHON_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
-      MAALI_PYTHON_LIB_VERSION=`echo "$MAALI_PYTHON_VERSION" | cut -d '.' -f 1,2`
-    else
-      MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
-      MAALI_COMPILER_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
-    fi # if [ $MAALI_PYTHON_TOOL ]; then
-
-    # don't need to load compiler if we are using the "binary" compiler
-    if [ "$MAALI_COMPILER" != "binary" ]; then
-
-      # load the module for the compiler we want to use
+if [ ! $MAALI_REMODULE ]; then
+  # need to build for every PrgENV that we support
+  for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
+  
+    if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+      # load the Cray Programming Environment
+  
       if [ $DEBUG ]; then
-        maali_wiki " .. before module load \$MAALI_COMPILER"
+        maali_wiki " .. before module load \$MAALI_CRAY_PRGENV"
         module list
       fi # if [ $DEBUG ]; then
-
-      if [ $MAALI_CRAY -eq 1 ]; then
-        # check to see if the PrgEnv loaded the wrong compiler
-        MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep $MAALI_COMPILER_NAME | wc -l`
-        if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
-          module unload $MAALI_COMPILER_NAME
-        fi # if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
-      fi # if [ $MAALI_CRAY -eq 1 ]; then
-
-      maali_load_module "$MAALI_COMPILER"
-
+      maali_load_module "$MAALI_CRAY_PRGENV"
       if [ $DEBUG ]; then
-        maali_wiki " .. after module load \$MAALI_COMPILER"
+        maali_wiki " .. after module load \$MAALI_CRAY_PRGENV"
         module list
-      fi
-    fi # if [ "$MAALI_COMPILER" != "binary" ]; then
-
-    # need to build for every cpu target that we support
-    for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
-
-      if [ "$MAALI_CRAY_CPU_TARGET" != "na" ]; then
-        # load the Cray Parallel Environment for cpu target
-
+      fi # if [ $DEBUG ]; then
+  
+    fi # if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+  
+    # need to build for every compiler that we support
+    for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
+  
+      if [ "$MAALI_COMPILER" != "binary" ]; then
+        # "binary" installs are not versioned
+        MAALI_SLASH_COUNT=`echo $(echo $MAALI_COMPILER | wc -c) - $(echo $MAALI_COMPILER | tr -d '/' | wc -c) | bc`
+        if [ $MAALI_SLASH_COUNT != 1 ]; then
+          echo "$MAALI_COMPILER should contain a single '/' (but contains $MAALI_SLASH_COUNT)"
+          exit 1
+        fi # if [ $MAALI_SLASH_COUNT != 1 ]; then; then
+      fi # if [ "$MAALI_COMPILER" != "binary" ]; then
+  
+      maali_wiki "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+      log "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+  
+      if [ $MAALI_PYTHON_TOOL ]; then
+        MAALI_PYTHON_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
+        MAALI_PYTHON_LIB_VERSION=`echo "$MAALI_PYTHON_VERSION" | cut -d '.' -f 1,2`
+      else
+        MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
+        MAALI_COMPILER_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
+      fi # if [ $MAALI_PYTHON_TOOL ]; then
+  
+      # don't need to load compiler if we are using the "binary" compiler
+      if [ "$MAALI_COMPILER" != "binary" ]; then
+  
+        # load the module for the compiler we want to use
         if [ $DEBUG ]; then
-          maali_wiki " .. before module load \$MAALI_CRAY_CPU_TARGET"
+          maali_wiki " .. before module load \$MAALI_COMPILER"
           module list
         fi # if [ $DEBUG ]; then
-        maali_load_module "craype-$MAALI_CRAY_CPU_TARGET"
+  
+        if [ $MAALI_CRAY -eq 1 ]; then
+          # check to see if the PrgEnv loaded the wrong compiler
+          MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep $MAALI_COMPILER_NAME | wc -l`
+          if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
+            module unload $MAALI_COMPILER_NAME
+          fi # if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
+        fi # if [ $MAALI_CRAY -eq 1 ]; then
+  
+        maali_load_module "$MAALI_COMPILER"
+  
         if [ $DEBUG ]; then
-          maali_wiki " .. after module load \$MAALI_CRAY_CPU_TARGET"
+          maali_wiki " .. after module load \$MAALI_COMPILER"
           module list
-        fi # 
-
-      fi # if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
-
-      for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
-        maali_load_module "$MAALI_PREREQ_MODULE"
-      done # for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
-
-      maali_wiki " .. check for build only modules"
-      for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
-        # turn on MAALI_CMAKE_TOOL
-        MAALI_BUILD_PREREQ_MODULE_NAME=`echo $MAALI_BUILD_PREREQ_MODULE | cut -d '/' -f 1`
-        if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
-          # this is using cmake
-          MAALI_CMAKE_TOOL=1
-          maali_wiki " .. you are using cmake, will use maali_cmake_build to process"
-        fi # if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
-        maali_load_module "$MAALI_BUILD_PREREQ_MODULE"
-      done # for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
-
-      # remove a stale tool build directory
-      removedir "$MAALI_TOOL_BUILD_DIR"
-
-      if [ $MAALI_R_TOOL ]; then
-        maali_wiki "  .. R tools install from source code"
-      else
-        maali_wiki "  .. unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
-        maali_unpack
-      fi # if [ $MAALI_R_TOOL ]; then
-
-      # where we want to install the tool
-      if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
-        MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_CRAY_PRGENV/$MAALI_COMPILER/$MAALI_CRAY_CPU_TARGET/$MAALI_TOOL_NAME"
-      elif [ "$MAALI_PYTHON_TOOL" == 1 -o "$MAALI_R_TOOL" == 1 ]; then
-        MAALI_INSTALL_TOOLDIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME"
-      else
-        MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME"
-      fi
-
-      MAALI_INSTALL_DIR="$MAALI_INSTALL_TOOLDIR/$MAALI_TOOL_VERSION"
-
-      # remove the previously installed version
-      removedir "$MAALI_INSTALL_DIR"
-
-      # create a fresh directory
-      makedir "$MAALI_INSTALL_DIR"
-
-      if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
-        if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
-          maali_run "chmod 750 $MAALI_INSTALL_TOOLDIR"
-          maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_TOOLDIR"
-          maali_run "chmod 750 $MAALI_INSTALL_DIR"
-          maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_DIR"
         fi
-      fi
-
-      maali_wiki "  .. compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-      if [ $MAALI_PYTHON_TOOL ]; then
-        maali_python_build
-      elif [ $MAALI_R_TOOL ]; then
-        maali_r_build
-      elif [ $MAALI_CMAKE_TOOL ]; then
-        maali_cmake_build
-      else
-        maali_build
-      fi
-
-      # auto-generate pkgconfig file
-      if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
-        maali_genpkgconfig
-      fi
-
-      if [ ! $DEBUG ]; then
+      fi # if [ "$MAALI_COMPILER" != "binary" ]; then
+  
+      # need to build for every cpu target that we support
+      for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
+  
+        if [ "$MAALI_CRAY_CPU_TARGET" != "na" ]; then
+          # load the Cray Parallel Environment for cpu target
+  
+          if [ $DEBUG ]; then
+            maali_wiki " .. before module load \$MAALI_CRAY_CPU_TARGET"
+            module list
+          fi # if [ $DEBUG ]; then
+          maali_load_module "craype-$MAALI_CRAY_CPU_TARGET"
+          if [ $DEBUG ]; then
+            maali_wiki " .. after module load \$MAALI_CRAY_CPU_TARGET"
+            module list
+          fi # 
+  
+        fi # if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+  
+        for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+          maali_load_module "$MAALI_PREREQ_MODULE"
+        done # for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+  
+        maali_wiki " .. check for build only modules"
+        for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
+          # turn on MAALI_CMAKE_TOOL
+          MAALI_BUILD_PREREQ_MODULE_NAME=`echo $MAALI_BUILD_PREREQ_MODULE | cut -d '/' -f 1`
+          if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
+            # this is using cmake
+            MAALI_CMAKE_TOOL=1
+            maali_wiki " .. you are using cmake, will use maali_cmake_build to process"
+          fi # if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
+          maali_load_module "$MAALI_BUILD_PREREQ_MODULE"
+        done # for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
+  
+        # remove a stale tool build directory
         removedir "$MAALI_TOOL_BUILD_DIR"
+  
+        if [ $MAALI_R_TOOL ]; then
+          maali_wiki "  .. R tools install from source code"
+        else
+          maali_wiki "  .. unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
+          maali_unpack
+        fi # if [ $MAALI_R_TOOL ]; then
+  
+        # where we want to install the tool
+        if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+          MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_CRAY_PRGENV/$MAALI_COMPILER/$MAALI_CRAY_CPU_TARGET/$MAALI_TOOL_NAME"
+        elif [ "$MAALI_PYTHON_TOOL" == 1 -o "$MAALI_R_TOOL" == 1 ]; then
+          MAALI_INSTALL_TOOLDIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME"
+        else
+          MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME"
+        fi
+  
+        MAALI_INSTALL_DIR="$MAALI_INSTALL_TOOLDIR/$MAALI_TOOL_VERSION"
+  
+        # remove the previously installed version
+        removedir "$MAALI_INSTALL_DIR"
+  
+        # create a fresh directory
+        makedir "$MAALI_INSTALL_DIR"
+  
+        if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+          if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
+            maali_run "chmod 750 $MAALI_INSTALL_TOOLDIR"
+            maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_TOOLDIR"
+            maali_run "chmod 750 $MAALI_INSTALL_DIR"
+            maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_DIR"
+          fi
+        fi
+  
+        maali_wiki "  .. compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+        if [ $MAALI_PYTHON_TOOL ]; then
+          maali_python_build
+        elif [ $MAALI_R_TOOL ]; then
+          maali_r_build
+        elif [ $MAALI_CMAKE_TOOL ]; then
+          maali_cmake_build
+        else
+          maali_build
+        fi
+  
+        # auto-generate pkgconfig file
+        if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
+          maali_genpkgconfig
+        fi
+  
+        if [ ! $DEBUG ]; then
+          removedir "$MAALI_TOOL_BUILD_DIR"
+        fi
+  
+        # unload re-requisite modules
+        MAALI_TOOL_PREREQ_REV=`echo $MAALI_TOOL_PREREQ | tac -s' '`
+        for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ_REV; do
+          maali_wiki "  .. unloading $MAALI_PREREQ_MODULE"
+          module unload $MAALI_PREREQ_MODULE
+        done
+  
+        # TODO: unload parallel environment
+  
+      done # cpu target
+  
+      if [ "$MAALI_COMPILER" != "binary" ]; then
+        # don't need to unload the "binary" compiler
+  
+        # make sure we unload the modules
+        module unload $MAALI_COMPILER
       fi
-
-      # unload re-requisite modules
-      MAALI_TOOL_PREREQ_REV=`echo $MAALI_TOOL_PREREQ | tac -s' '`
-      for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ_REV; do
-        maali_wiki "  .. unloading $MAALI_PREREQ_MODULE"
-        module unload $MAALI_PREREQ_MODULE
-      done
-
-      # TODO: unload parallel environment
-
-    done # cpu target
-
-    if [ "$MAALI_COMPILER" != "binary" ]; then
-      # don't need to unload the "binary" compiler
-
-      # make sure we unload the modules
-      module unload $MAALI_COMPILER
+  
+    done # compiler
+  
+    if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+      # unload the Cray Programming Environment
+      module unload $MAALI_CRAY_PRGENV
     fi
-
-  done # compiler
-
-  if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
-    # unload the Cray Programming Environment
-    module unload $MAALI_CRAY_PRGENV
-  fi
-
-done # for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
+  
+  done # for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
+fi # if [ ! $MAALI_REMODULE ]; then
 
 if [ ! $MAALI_REMODULE ]; then
   maali_wiki "creating module in $MAALI_TOOL_MODULE_DIR"
