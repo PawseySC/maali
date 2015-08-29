@@ -268,6 +268,8 @@ EOF
     done
   fi
 
+  # conflict for craype
+
   if [ "$MAALI_TOOL_COMPILERS" != "binary" ]; then
     # conflict for compilers
     MAALI_SUPPORTED_COMPILERS="gcc intel cce"
@@ -1241,7 +1243,6 @@ for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
           maali_wiki " .. after module load \$MAALI_CRAY_CPU_TARGET"
           module list
         fi # 
-        if
 
       fi # if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
 
