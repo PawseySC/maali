@@ -764,8 +764,6 @@ fi
 
 # do we need to set the version or are there other instances of it being derived?
 if [[ "$MAALI_TOOL_NAME" != "system-gcc" ]] &&  [[ -z $MAALI_TOOL_VERSION ]]; then 
-# TODO: fix
-# ./maali: line 762: [: argument expected
   usage
   exit 1
 fi
@@ -931,13 +929,25 @@ if [ $MAALI_FORCE_DOWNLOAD_FROM_GITHUB -eq 0 ]; then
     if [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg" ]; then
       echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg for tool configuration information"
       MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg"
-      MAALI_FOUND_CYGENT=1
-      break
+      MAALI_CYGNET_FILESIZE=$(stat -c%s "$MAALI_CYGNET_FILEPATH")
+      if [ $MAALI_CYGNET_FILESIZE -eq 0 ]; then
+        # this are just going to cause problems
+        rm -f $MAALI_CYGNET_FILESIZE
+      else
+        MAALI_FOUND_CYGENT=1
+        break
+      fi
     elif [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg" ]; then
       echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg for tool configuration information"
       MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg"
-      MAALI_FOUND_CYGENT=1
-      break
+      MAALI_CYGNET_FILESIZE=$(stat -c%s "$MAALI_CYGNET_FILEPATH")
+      if [ $MAALI_CYGNET_FILESIZE -eq 0 ]; then
+        # this are just going to cause problems
+        rm -f $MAALI_CYGNET_FILESIZE
+      else
+        MAALI_FOUND_CYGENT=1
+        break
+      fi
     fi
   done
 fi
@@ -965,6 +975,7 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   MAALI_CYGNET_FILESIZE=$(stat -c%s "$MAALI_CYGNET_FILEPATH")
   if [ $MAALI_CYGNET_FILESIZE -eq 0 ]; then
     echo "Can't find config file for $MAALI_TOOL_NAME and could not download from github"
+    rm -f $MAALI_CYGNET_FILESIZE
     exit 1
   fi
 
