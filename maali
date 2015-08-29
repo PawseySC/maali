@@ -217,7 +217,7 @@ if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
 
 EOF
 
-  if [ $MAALI_CRAY ]; then
+  if [ $MAALI_CRAY -a "$MAALI_TOOL_COMPILERS" != "binary" ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 if { [is-loaded PrgEnv-cray] } {
   setenv MAALI_LOADED_PRGENV PrgEnv-cray
