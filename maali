@@ -39,7 +39,6 @@ MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet
 
 MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
 MAALI_LOG_DIR="$HOME/.maali/logs";
-MAALI_LAST="$HOME/.maali/last";
 
 ##############################################################################
 
@@ -602,7 +601,7 @@ function removefile {
 usage()
 {
 cat << EOF
-usage: $0 -t toolname -v toolversion [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b] [-g] [-s] [-w] [-a]
+usage: $0 -t toolname -v toolversion [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b] [-g] [-s] [-w] [-a] [-u] [-x]
 
 maali - Pawsey Supercomputing Centre Build System
 
@@ -621,6 +620,8 @@ OPTIONS:
    -w      workstation build in $HOME/software
    -a      activate this version as the default version
    -f      force download from github
+   -u      unistall by hiding the module
+   -x      expunge tool from history
 EOF
 }
 
@@ -658,17 +659,12 @@ MAALI_MODULE_PE_PKGCONFIG_NAME=
 MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
 MAALI_MODULE_PE_PKGCONFIG_LMAALI=
 
-while getopts "ht:v:pdc:mlr:bgswaf" OPTION
+while getopts "ht:v:pdc:mr:bgswafux" OPTION
 do
      case $OPTION in
          h)
              usage
              exit 1
-             ;;
-         l)
-             if [ -f "$MAALI_LAST" ]; then
-               . "$MAALI_LAST"
-             fi
              ;;
          t)
              MAALI_TOOL_NAME=$OPTARG
@@ -709,6 +705,12 @@ do
              ;;
          f)
              MAALI_FORCE_DOWNLOAD_FROM_GITHUB=1
+             ;;
+         u)
+             # TODO: uninstall by hiding the module (do we need a restore?)
+             ;;
+         x)
+             # TODO: uninstall by removing from filesystem
              ;;
          ?)
              usage
@@ -1454,16 +1456,3 @@ fi
 EOF
 
 fi
-
-# overwrite the options for the last run
-cat <<EOF >"$MAALI_LAST"
-MAALI_TOOL_NAME=$MAALI_TOOL_NAME
-MAALI_TOOL_VERSION=$MAALI_TOOL_VERSION
-MAALI_PYTHON_VERSION=$MAALI_PYTHON_VERSION
-DEBUG=$DEBUG
-MAALI_CONFIG=$MAALI_CONFIG
-MAALI_REMODULE=$MAALI_REMODULE
-MAALI_REBUILD_COMPILER=$MAALI_REBUILD_COMPILER
-MAALI_REBUILD=$MAALI_REBUILD
-MAALI_BUILDONLY=$MAALI_BUILDONLY
-EOF
