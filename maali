@@ -1312,6 +1312,15 @@ else
   # make sure we have a module directory
   makedir "$MAALI_TOOL_MODULE_DIR"
 
+  # make the module
+  MAALI_TOOL_MODULE="$MAALI_TOOL_MODULE_DIR/$MAALI_TOOL_VERSION"
+
+  if [ -f "$MAALI_TOOL_MODULE" ]; then
+    cp $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
+  fi
+
+  maali_module
+
   # make this version the default if there is no other
   if [ ! -f "$MAALI_TOOL_MODULE_DIR/.version" -o $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then
 
@@ -1339,14 +1348,6 @@ EOF
 
   fi
 
-  # make the module
-  MAALI_TOOL_MODULE="$MAALI_TOOL_MODULE_DIR/$MAALI_TOOL_VERSION"
-
-  if [ -f "$MAALI_TOOL_MODULE" ]; then
-    cp $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
-  fi
-
-  maali_module
 fi
 
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
