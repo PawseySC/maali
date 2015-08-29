@@ -19,7 +19,8 @@ MAALI_TOOL_TYPE="tools"
 
 # for auto-building module files
 MAALI_MODULE_SET_PATH=1
-MAALI_MODULE_SET_MAALI_USER_MAP='$MAALI_APP_HOME/share/user.map'
+# only needed for system builds
+# MAALI_MODULE_SET_MAALI_USER_MAP='$MAALI_APP_HOME/share/user.map'
 
 ##############################################################################
 
