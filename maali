@@ -612,6 +612,7 @@ OPTIONS:
    -b      build the tool, but don't create a module file
    -g      group build in /group/$PAWSEY_PROJECT/software
    -s      activate system build
+   -w      workstation build in $HOME/software
 EOF
 }
 
@@ -647,7 +648,7 @@ MAALI_MODULE_PE_PKGCONFIG_NAME=
 MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
 MAALI_MODULE_PE_PKGCONFIG_LMAALI=
 
-while getopts "ht:v:pdc:mlr:bgs" OPTION
+while getopts "ht:v:pdc:mlr:bgsw" OPTION
 do
      case $OPTION in
          h)
@@ -689,6 +690,9 @@ do
              # how do we reset MAALI_ROOT, MAALI_BUILD_DIR and MAALI_MODULE_DIR
              # for system builds?
              MAALI_SYSTEM_BUILD="YES"
+             ;;
+         w)
+             MAALI_ROOT="$HOME/software"
              ;;
          ?)
              usage
