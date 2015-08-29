@@ -763,7 +763,7 @@ if [ -z $MAALI_TOOL_NAME ]; then
 fi
 
 # do we need to set the version or are there other instances of it being derived?
-if [ "$MAALI_TOOL_NAME" != "system-gcc" -a -z $MAALI_TOOL_VERSION ]; then 
+if [[ "$MAALI_TOOL_NAME" != "system-gcc" ]] &&  [[ -z $MAALI_TOOL_VERSION ]]; then 
 # TODO: fix
 # ./maali: line 762: [: argument expected
   usage
