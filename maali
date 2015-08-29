@@ -619,6 +619,7 @@ OPTIONS:
    -s      activate system build
    -w      workstation build in $HOME/software
    -a      activate this version as the default version
+   -f      force download from github
 EOF
 }
 
@@ -637,6 +638,7 @@ MAALI_BUILDONLY=
 MAALI_SYSTEM_BUILD=NO
 MAALI_CMAKE_PATH=".."
 MAALI_MAKE_VERSION_DEFAULT=0
+MAALI_FORCE_DOWNLOAD_FROM_GITHUB=0
 
 # for auto-building module files
 MAALI_MODULE_SET_PATH=
@@ -655,7 +657,7 @@ MAALI_MODULE_PE_PKGCONFIG_NAME=
 MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
 MAALI_MODULE_PE_PKGCONFIG_LMAALI=
 
-while getopts "ht:v:pdc:mlr:bgswa" OPTION
+while getopts "ht:v:pdc:mlr:bgswaf" OPTION
 do
      case $OPTION in
          h)
@@ -703,6 +705,9 @@ do
              ;;
          a)
              MAALI_MAKE_VERSION_DEFAULT=1
+             ;;
+         f)
+             MAALI_FORCE_DOWNLOAD_FROM_GITHUB=1
              ;;
          ?)
              usage
@@ -760,6 +765,8 @@ fi
 
 # do we need to set the version or are there other instances of it being derived?
 if [ "$MAALI_TOOL_NAME" != "system-gcc" -a -z $MAALI_TOOL_VERSION ]; then 
+# TODO: fix
+# ./maali: line 762: [: argument expected
   usage
   exit 1
 fi
@@ -911,28 +918,30 @@ makedir "$MAALI_LOG_DIR"
 # need to inherit some other file here to set compiler, etc
 MAALI_FOUND_CYGENT=0
 
-# three search paths
-MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/cygnet_files $HOME/.maali/cygnet_files $MAALI_FILES $MAALI_DIR/cygnet_files ./"
-for MAALI_FILES_PATH in $MAALI_FILES_DIR; do
+if [ $MAALI_FORCE_DOWNLOAD_FROM_GITHUB -eq 0 ]; then
+  # three search paths
+  MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/cygnet_files $HOME/.maali/cygnet_files $MAALI_FILES $MAALI_DIR/cygnet_files ./"
+  for MAALI_FILES_PATH in $MAALI_FILES_DIR; do
 
-  # TODO: is MAALI_SYSTEM redundant?
-  # if [ -z $MAALI_SYSTEM ]; then
-  #   echo "MAALI_SYSTEM is undefined, exiting ..."
-  #   exit 1
-  # fi
+    # TODO: is MAALI_SYSTEM redundant?
+    # if [ -z $MAALI_SYSTEM ]; then
+    #   echo "MAALI_SYSTEM is undefined, exiting ..."
+    #   exit 1
+    # fi
 
-  if [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg" ]; then
-    echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg for tool configuration information"
-    MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg"
-    MAALI_FOUND_CYGENT=1
-    break
-  elif [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg" ]; then
-    echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg for tool configuration information"
-    MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg"
-    MAALI_FOUND_CYGENT=1
-    break
-  fi
-done
+    if [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg" ]; then
+      echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg for tool configuration information"
+      MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg"
+      MAALI_FOUND_CYGENT=1
+      break
+    elif [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg" ]; then
+      echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg for tool configuration information"
+      MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg"
+      MAALI_FOUND_CYGENT=1
+      break
+    fi
+  done
+fi
 
 if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   # try and download it from github
@@ -940,6 +949,10 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   # make sure the drectory is there
   if [ ! -d "$HOME/.maali/$MAALI_OS/cygnet_files" ]; then
       makedir "$HOME/.maali/$MAALI_OS/cygnet_files"
+  fi
+
+  if [ -f "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" ]; then
+    mv "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg~"
   fi
 
   if [ $DEBUG ]; then
@@ -954,6 +967,13 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   if [ $MAALI_CYGNET_FILESIZE -eq 0 ]; then
     echo "Can't find config file for $MAALI_TOOL_NAME and could not download from github"
     exit 1
+  fi
+
+  if [ $DEBUG ]; then
+    if [ -f "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg~" ]; then
+      echo "differences between $HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg $HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg~"
+      diff "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg~"
+    fi
   fi
 
 fi
