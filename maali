@@ -224,13 +224,13 @@ if { [is-loaded PrgEnv-cray] } {
 }
 
 if { [is-loaded PrgEnv-gnu] } {
-  setenv MAALI_LOADED_PRGENV PrgEnv-cray
+  setenv MAALI_LOADED_PRGENV PrgEnv-gnu
   setenv COMPILER            gcc
   setenv COMPILER_VER        \$env(GCC_VERSION)
 }
 
 if { [is-loaded PrgEnv-intel] } {
-  setenv MAALI_LOADED_PRGENV PrgEnv-cray
+  setenv MAALI_LOADED_PRGENV PrgEnv-intel
   setenv COMPILER            intel
   setenv COMPILER_VER        \$env(INTEL_VERSION)
 }
@@ -238,7 +238,58 @@ if { [is-loaded PrgEnv-intel] } {
 EOF
   fi
 
-  # TODO: module conflict
+  # conflict for PrgEnv
+  if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+    MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray"
+
+    for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
+      MAALI_SYSTEM_CRAY_PRGENV_LIST=`module avail $MAALI_CRAY_PRGENV_TYPE -t 2>&1 | grep $MAALI_CRAY_PRGENV_TYPE | sed -e 's/(default)//g'`
+      for MAALI_SYSTEM_CRAY_PRGENV in $MAALI_SYSTEM_CRAY_PRGENV_LIST; do
+
+        # need to see if the system PrgEnv is anywhere in the list
+        MAALI_CRAY_PRGENV_FOUND_MATCH=0
+
+        for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
+          if [ "$MAALI_SYSTEM_CRAY_PRGENV" == "$MAALI_CRAY_PRGENV" ]; then
+            MAALI_CRAY_PRGENV_FOUND_MATCH=1
+          fi
+        done
+
+        # if not found in list, force conflict
+        if [ $MAALI_CRAY_PRGENV_FOUND_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_SYSTEM_CRAY_PRGENV
+EOF
+        fi
+      done
+    done
+  fi
+
+  # conflict for compilers
+  MAALI_SUPPORTED_COMPILERS="gcc intel cce"
+
+  for MAALI_COMPILER_TYPE in $MAALI_SUPPORTED_COMPILERS; do
+    MAALI_SYSTEM_COMPILER_LIST=`module avail $MAALI_COMPILER_TYPE -t 2>&1 | grep $MAALI_COMPILER_TYPE | sed -e 's/(default)//g'`
+    for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
+
+      # need to see if the system compiler is anywhere in the list
+      MAALI_COMPILER_FOUND_MATCH=0
+
+      for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
+        if [ "$MAALI_SYSTEM_COMPILER" == "$MAALI_COMPILER" ]; then
+          MAALI_COMPILER_FOUND_MATCH=1
+        fi
+      done
+
+      # if not found in list, force conflict
+      if [ $MAALI_COMPILER_FOUND_MATCH -eq 0 ]; then
+        cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_SYSTEM_COMPILER
+EOF
+      fi
+
+    done
+  done
 
   if [ $MAALI_PYTHON_TOOL ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
