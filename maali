@@ -271,10 +271,14 @@ EOF
 
   if [ "$MAALI_TOOL_COMPILERS" != "binary" ]; then
     # conflict for compilers
-    MAALI_SUPPORTED_COMPILERS="gcc intel cce"
+    if [ $MAALI_PYTHON_TOOL ]; then
+      MAALI_SUPPORTED_COMPILERS="python"
+    else
+      MAALI_SUPPORTED_COMPILERS="gcc intel cce"
+    fi # if [ $MAALI_PYTHON_TOOL ]; then
 
     for MAALI_COMPILER_TYPE in $MAALI_SUPPORTED_COMPILERS; do
-      MAALI_SYSTEM_COMPILER_LIST=`module avail $MAALI_COMPILER_TYPE -t 2>&1 | grep $MAALI_COMPILER_TYPE | sed -e 's/(default)//g'`
+      MAALI_SYSTEM_COMPILER_LIST=`module avail $MAALI_COMPILER_TYPE/ -t 2>&1 | grep $MAALI_COMPILER_TYPE/ | sed -e 's/(default)//g'`
       for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
 
         # need to see if the system compiler is anywhere in the list
