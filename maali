@@ -40,6 +40,8 @@ fi
 # these are global
 
 MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet/master"
+MAALI_CYGNET_DIR_NAME='cygnet_files'
+MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 
 MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
 MAALI_LOG_DIR="$HOME/.maali/logs";
@@ -966,7 +968,7 @@ MAALI_FOUND_CYGENT=0
 
 if [ $MAALI_FORCE_DOWNLOAD_FROM_GITHUB -eq 0 ]; then
   # three search paths
-  MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/cygnet_files $HOME/.maali/cygnet_files $MAALI_FILES $MAALI_DIR/cygnet_files ./"
+  MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME $HOME/.maali/$MAALI_CYGNET_DIR_NAME $MAALI_FILES $MAALI_DIR/$MAALI_CYGNET_DIR_NAME ./"
   for MAALI_FILES_PATH in $MAALI_FILES_DIR; do
 
     # TODO: is MAALI_SYSTEM redundant?
@@ -976,12 +978,12 @@ if [ $MAALI_FORCE_DOWNLOAD_FROM_GITHUB -eq 0 ]; then
     # fi
 
     if [ $DEBUG ]; then
-      echo "Searching for $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg"
+      echo "Searching for $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.$MAALI_CYGNET_BUILD_FILE_EXT"
     fi
 
-    if [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg" ]; then
-      echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg for tool configuration information"
-      MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.cyg"
+    if [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.$MAALI_CYGNET_BUILD_FILE_EXT" ]; then
+      echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.$MAALI_CYGNET_BUILD_FILE_EXT for tool configuration information"
+      MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.MAALI_CYGNET_BUILD_FILE_EXT"
       MAALI_CYGNET_FILESIZE=$(stat -c%s "$MAALI_CYGNET_FILEPATH")
       if [ $MAALI_CYGNET_FILESIZE -eq 0 ]; then
         # this are just going to cause problems
@@ -990,9 +992,9 @@ if [ $MAALI_FORCE_DOWNLOAD_FROM_GITHUB -eq 0 ]; then
         MAALI_FOUND_CYGENT=1
         break
       fi
-    elif [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg" ]; then
-      echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg for tool configuration information"
-      MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg"
+    elif [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.MAALI_CYGNET_BUILD_FILE_EXT" ]; then
+      echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT for tool configuration information"
+      MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
       MAALI_CYGNET_FILESIZE=$(stat -c%s "$MAALI_CYGNET_FILEPATH")
       if [ $MAALI_CYGNET_FILESIZE -eq 0 ]; then
         # this are just going to cause problems
@@ -1009,20 +1011,20 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   # try and download it from github
 
   # make sure the drectory is there
-  if [ ! -d "$HOME/.maali/$MAALI_OS/cygnet_files" ]; then
-    makedir "$HOME/.maali/$MAALI_OS/cygnet_files"
+  if [ ! -d "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME" ]; then
+    makedir "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME"
   fi
 
-  if [ -f "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" ]; then
-    mv "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg~"
+  if [ -f "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT" ]; then
+    mv "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT" "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT~"
   fi
 
   if [ $DEBUG ]; then
-    wget --no-check-certificate -O "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.cyg"
+    wget --no-check-certificate -O "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
   else
-    wget --no-check-certificate -q -O "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.cyg"
+    wget --no-check-certificate -q -O "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
   fi
-  MAALI_CYGNET_FILEPATH="$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg"
+  MAALI_CYGNET_FILEPATH="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
   MAALI_FOUND_CYGENT=1
 
   MAALI_CYGNET_FILESIZE=$(stat -c%s "$MAALI_CYGNET_FILEPATH")
@@ -1033,9 +1035,9 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   fi
 
   if [ $DEBUG ]; then
-    if [ -f "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg~" ]; then
-      echo "differences between $HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg $HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg~"
-      diff "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg" "$HOME/.maali/$MAALI_OS/cygnet_files/$MAALI_TOOL_NAME.cyg~"
+    if [ -f "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT~" ]; then
+      echo "differences between $HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT $HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT~"
+      diff "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT" "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT~"
     fi
   fi
 
@@ -1166,7 +1168,7 @@ Compiled using maali $MAALI_VERSION:
 
 <pre>
 $ maali $MAALI_CMDLINE
-Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.cyg for tool configuration information
+Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT for tool configuration information
 EOF
   fi
 
