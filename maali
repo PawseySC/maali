@@ -268,6 +268,32 @@ EOF
   fi
 
   # conflict for craype
+  if [ "$MAALI_CRAY_CPU_TARGET" != "na" ]; then
+    MAALI_SUPPORTED_CRAY_CPU_TARGETS="sandybridge ivybridge haswell"
+
+    for MAALI_CRAY_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CRAY_CPU_TARGETS; do
+      MAALI_SYSTEM_CRAY_CPU_TARGET_LIST=`module avail craype-$MAALI_CRAY_CPU_TARGET_TYPE -t 2>&1 | grep craype-$MAALI_CRAY_CPU_TARGET_TYPE | sed -e 's/(default)//g'`
+      for MAALI_SYSTEM_CRAY_CPU_TARGET in $MAALI_SYSTEM_CRAY_CPU_TARGET_LIST; do
+
+        # need to see if the system CPU_TARGET is anywhere in the list
+        MAALI_CRAY_CPU_TARGET_FOUND_MATCH=0
+
+        for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
+          if [ "$MAALI_SYSTEM_CRAY_CPU_TARGET" == "craype-$MAALI_CRAY_CPU_TARGET" ]; then
+            MAALI_CRAY_CPU_TARGET_FOUND_MATCH=1
+          fi
+        done
+
+        # if not found in list, force conflict
+        if [ $MAALI_CRAY_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_SYSTEM_CRAY_CPU_TARGET
+EOF
+        fi
+      done
+    done
+
+  fi
 
   if [ "$MAALI_TOOL_COMPILERS" != "binary" ]; then
     # conflict for compilers
@@ -1343,7 +1369,11 @@ if [ ! $MAALI_REMODULE ]; then
           module unload $MAALI_PREREQ_MODULE
         done
   
-        # TODO: unload parallel environment
+        if [ "$MAALI_CRAY_CPU_TARGET" != "na" ]; then
+          # unload the Cray Parallel Environment for cpu target
+
+          module unload "craype-$MAALI_CRAY_CPU_TARGET"
+        fi
   
       done # cpu target
   
