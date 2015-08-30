@@ -27,6 +27,10 @@ if [ -f "/etc/SuSE-release" ]; then
 
     MAALI_CRAY=1
   fi
+elif [ -f "/etc/centos-release" ]; then
+  MAALI_OS_VERSION=`cat /etc/centos-release  | cut -d ' ' -f 3 | cut -d '.' -f 1`
+
+  MAALI_OS="centos$MAALI_OS_VERSION"
 else
   echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
   exit 1
@@ -803,7 +807,7 @@ if [ -z $MAALI_TOOL_NAME ]; then
 fi
 
 # do we need to set the version or are there other instances of it being derived?
-if [[ "$MAALI_TOOL_NAME" != "systeg-gcc" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel-mkl" ]] && [[ -z $MAALI_TOOL_VERSION ]]; then 
+if [[ "$MAALI_TOOL_NAME" != "system-gcc" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel-mkl" ]] && [[ -z $MAALI_TOOL_VERSION ]]; then 
   usage
   exit 1
 fi
