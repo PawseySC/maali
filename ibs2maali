@@ -8,7 +8,7 @@ MAALI_DIR=`echo $IBS_DIR | sed -e 's/\.ibs/\.maali/g' | sed -e 's/ibs_files/cygn
 IBS_MODULE=`grep ibs_module $1 | wc -l`
 
 if [ $IBS_MODULE -eq 0 ]; then
-  sed -e 's/IBS/MAALI/g' $1 | sed -e 's/ibs_/maali_/g' > $MAALI_DIR/$TOOLNAME.cyg
+  sed -e 's/IBS/MAALI/g' $1 | sed -e 's/ibs_/maali_/g' | grep -v Id | uniq > $MAALI_DIR/$TOOLNAME.cyg
 
   sed -i -e 's/ibs config file/maali cygnet file/g' $MAALI_DIR/$TOOLNAME.cyg
 
