@@ -44,7 +44,7 @@ MAALI_CYGNET_DIR_NAME='cygnet_files'
 MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 
 MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
-MAALI_LOG_DIR="$HOME/.maali/logs";
+MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
 
 ##############################################################################
 
@@ -889,8 +889,6 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
     exit 1
   fi
 
-  MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
-  makedir "$MAALI_LOG_DIR"
   makedir "$HOME/.maali/$MAALI_OS/wiki"
 
   if [ -z $MAALI_USER_MAP ]; then
