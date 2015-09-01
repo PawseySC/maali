@@ -836,8 +836,12 @@ MAALI_TOOL_MAJOR_MINOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1,2`
 
 # for use for make -j $MAALI_CORES
 if [ -z $PBS_NODEFILE ]; then
-  # not running in PBS Pro
-  MAALI_CORES=1
+  if [ -z $SLURM_JOB_CPUS_PER_NODE ]; then
+    # not running in PBS Pro or SLURM
+    MAALI_CORES=1
+  else
+    MAALI_CORES="$SLURM_JOB_CPUS_PER_NODE"
+  fi
 else
   # make sure you set mpiprocs
   MAALI_CORES=`wc -l $PBS_NODEFILE | cut -d ' ' -f 1`
