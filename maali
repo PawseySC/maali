@@ -695,6 +695,7 @@ MAALI_SYSTEM_BUILD=NO
 MAALI_CMAKE_PATH=".."
 MAALI_MAKE_VERSION_DEFAULT=0
 MAALI_FORCE_DOWNLOAD_FROM_GITHUB=0
+MAALI_UNINSTALL_HIDE=0
 
 # for auto-building module files
 MAALI_MODULE_SET_PATH=
@@ -761,7 +762,10 @@ do
              MAALI_FORCE_DOWNLOAD_FROM_GITHUB=1
              ;;
          u)
-             # TODO: uninstall by hiding the module (do we need a restore?)
+             # simply hide the module file
+             MAALI_UNINSTALL_HIDE=1
+             # turn off building
+             MAALI_REMODULE=1
              ;;
          x)
              # TODO: uninstall by removing from filesystem
@@ -1204,7 +1208,11 @@ fi
 MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.log"
 
 if [ $MAALI_REMODULE ]; then
-  echo "just re-creating the module file"
+  if [ $MAALI_UNINSTALL_HIDE ]; then
+    echo "uninstalling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
+  else
+    echo "just re-creating the module file"
+  fi
 else
   removefile "$MAALI_TOOL_LOG"
 
@@ -1418,52 +1426,73 @@ fi # if [ ! $MAALI_REMODULE ]; then
 if [ ! $MAALI_REMODULE ]; then
   maali_wiki "creating module in $MAALI_TOOL_MODULE_DIR"
 else
-  echo "creating module in $MAALI_TOOL_MODULE_DIR"
+  if [ $MAALI_UNINSTALL_HIDE ]; then
+    echo "hiding the module in $MAALI_TOOL_MODULE_DIR"
+  else
+    echo "creating module in $MAALI_TOOL_MODULE_DIR"
+  fi
 fi
 
 if [ $MAALI_BUILDONLY ]; then
   echo "skipping module creation"
 else
-  # make sure we have a module directory
-  makedir "$MAALI_TOOL_MODULE_DIR"
 
   # make the module
   MAALI_TOOL_MODULE="$MAALI_TOOL_MODULE_DIR/$MAALI_TOOL_VERSION"
 
-  if [ -f "$MAALI_TOOL_MODULE" ]; then
-    cp $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
-  fi
+  if [ $MAALI_UNINSTALL_HIDE ]; then
 
-  maali_module
+    # hide the module file
+    mv $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
 
-  # make this version the default if there is no other
-  if [ ! -f "$MAALI_TOOL_MODULE_DIR/.version" -o $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then
+    # check if it is the default version
+    MAALI_TOOL_VERSION_CURRENT_DEFAULT=`grep \"$MAALI_TOOL_VERSION\" $MAALI_TOOL_MODULE_DIR/.version | wc -l`
 
-    if [ $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then
-      if [ -f "$MAALI_TOOL_MODULE_DIR/.version" ]; then
-        mv "$MAALI_TOOL_MODULE_DIR/.version" "$MAALI_TOOL_MODULE_DIR/.version~"
-        if [ $DEBUG ]; then
-          echo "backing up $MAALI_TOOL_MODULE_DIR/.version"
-        fi
-      fi
+    if [ $MAALI_TOOL_VERSION_CURRENT_DEFAULT -eq 1 ]; then
+      rm -f "$MAALI_TOOL_MODULE_DIR/.version"
     fi
 
-    cat <<EOF >"$MAALI_TOOL_MODULE_DIR/.version"
+  else
+
+    # make sure we have a module directory
+    makedir "$MAALI_TOOL_MODULE_DIR"
+
+    if [ -f "$MAALI_TOOL_MODULE" ]; then
+      cp $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
+    fi
+
+    maali_module
+
+    # make this version the default if there is no other
+    if [ ! -f "$MAALI_TOOL_MODULE_DIR/.version" -o $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then
+
+      if [ $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then
+        if [ -f "$MAALI_TOOL_MODULE_DIR/.version" ]; then
+          mv "$MAALI_TOOL_MODULE_DIR/.version" "$MAALI_TOOL_MODULE_DIR/.version~"
+          if [ $DEBUG ]; then
+            echo "backing up $MAALI_TOOL_MODULE_DIR/.version"
+          fi
+        fi
+      fi
+
+      cat <<EOF >"$MAALI_TOOL_MODULE_DIR/.version"
 #%Module1.0#####################################################################
 ##
 set ModulesVersion "$MAALI_TOOL_VERSION"
 EOF
 
-    if [ $DEBUG ]; then
-      if [ -f "$MAALI_TOOL_MODULE_DIR/.version~" ]; then
-        echo "differences between $MAALI_TOOL_MODULE_DIR/.version and $MAALI_TOOL_MODULE_DIR/.version~"
-        diff "$MAALI_TOOL_MODULE_DIR/.version" "$MAALI_TOOL_MODULE_DIR/.version~"
+      if [ $DEBUG ]; then
+        if [ -f "$MAALI_TOOL_MODULE_DIR/.version~" ]; then
+          echo "differences between $MAALI_TOOL_MODULE_DIR/.version and $MAALI_TOOL_MODULE_DIR/.version~"
+          diff "$MAALI_TOOL_MODULE_DIR/.version" "$MAALI_TOOL_MODULE_DIR/.version~"
+        fi
       fi
+
     fi
 
-  fi
+  fi # if [ $MAALI_UNINSTALL_HIDE ]; then 
 
-fi
+fi # if [ $MAALI_BUILDONLY ]; then
 
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   if [ ! $MAALI_REMODULE ]; then
