@@ -837,7 +837,7 @@ if [[ "$MAALI_TOOL_NAME" != "system-gcc" ]] && [[ "$MAALI_TOOL_NAME" != "system-
 fi
 
 # must be a better way to express this
-if [[ "$MAALI_TOOL_NAME" == "system-gcc" ]] || [[ "$MAALI_TOOL_NAME" == "system-intel" ]] || [[ "$MAALI_TOOL_NAME" != "system-intel-mkl" ]]; then
+if [[ "$MAALI_TOOL_NAME" == "system-gcc" ]] || [[ "$MAALI_TOOL_NAME" == "system-intel" ]] || [[ "$MAALI_TOOL_NAME" == "system-intel-mkl" ]]; then
   MAALI_SYSTEM_CYGNET_FILE=1
 fi
 
