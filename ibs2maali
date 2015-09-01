@@ -26,7 +26,7 @@ if [ $IBS_MODULE -eq 0 ]; then
       fi
     done
 
-    sed -i -e "s/MAALI_MODULE_SET_SETENV/$REPLACEMENT\n#MAALI_MODULE_SET_SETENV/g" $MAALI_DIR/$TOOLNAME.cyg
+    sed -i -e "s;MAALI_MODULE_SET_SETENV;$REPLACEMENT\n#MAALI_MODULE_SET_SETENV;g" $MAALI_DIR/$TOOLNAME.cyg
   fi
 
 else
