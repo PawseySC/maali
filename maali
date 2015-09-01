@@ -1341,7 +1341,7 @@ if [ ! $MAALI_REMODULE ]; then
         # remove a stale tool build directory
         removedir "$MAALI_TOOL_BUILD_DIR"
   
-        if [ ! $MAALI_UNINSTALL_REMOVE ] then
+        if [ ! $MAALI_UNINSTALL_REMOVE ]; then
           if [ $MAALI_R_TOOL ]; then
             maali_wiki "  .. R tools install from source code"
           else
