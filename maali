@@ -696,6 +696,7 @@ MAALI_CMAKE_PATH=".."
 MAALI_MAKE_VERSION_DEFAULT=0
 MAALI_FORCE_DOWNLOAD_FROM_GITHUB=0
 MAALI_UNINSTALL_HIDE=0
+MAALI_UNINSTALL_REMOVE=0
 
 # for auto-building module files
 MAALI_MODULE_SET_PATH=
@@ -768,7 +769,7 @@ do
              MAALI_REMODULE=1
              ;;
          x)
-             # TODO: uninstall by removing from filesystem
+             MAALI_UNINSTALL_REMOVE=1
              ;;
          ?)
              usage
@@ -1207,8 +1208,8 @@ fi
 # make sure we have a directory to log
 MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.log"
 
-if [ $MAALI_REMODULE ]; then
-  if [ $MAALI_UNINSTALL_HIDE ]; then
+if [[ $MAALI_REMODULE ]] || [[ $MAALI_UNINSTALL_REMOVE ]] ; then
+  if [[ $MAALI_UNINSTALL_HIDE ]] || [[ $MAALI_UNINSTALL_REMOVE ]]; then
     echo "uninstalling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
   else
     echo "just re-creating the module file"
@@ -1265,8 +1266,10 @@ if [ ! $MAALI_REMODULE ]; then
         fi # if [ $MAALI_SLASH_COUNT != 1 ]; then; then
       fi # if [ "$MAALI_COMPILER" != "binary" ]; then
   
-      maali_wiki "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-      log "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+      if [ ! $MAALI_UNINSTALL_REMOVE ]; then
+        maali_wiki "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+        log "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+      fi
   
       if [ $MAALI_PYTHON_TOOL ]; then
         MAALI_PYTHON_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
@@ -1338,12 +1341,14 @@ if [ ! $MAALI_REMODULE ]; then
         # remove a stale tool build directory
         removedir "$MAALI_TOOL_BUILD_DIR"
   
-        if [ $MAALI_R_TOOL ]; then
-          maali_wiki "  .. R tools install from source code"
-        else
-          maali_wiki "  .. unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
-          maali_unpack
-        fi # if [ $MAALI_R_TOOL ]; then
+        if [ ! $MAALI_UNINSTALL_REMOVE ] then
+          if [ $MAALI_R_TOOL ]; then
+            maali_wiki "  .. R tools install from source code"
+          else
+            maali_wiki "  .. unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
+            maali_unpack
+          fi # if [ $MAALI_R_TOOL ]; then
+        fi
   
         # where we want to install the tool
         if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
@@ -1359,37 +1364,40 @@ if [ ! $MAALI_REMODULE ]; then
         # remove the previously installed version
         removedir "$MAALI_INSTALL_DIR"
   
-        # create a fresh directory
-        makedir "$MAALI_INSTALL_DIR"
+        if [ ! $MAALI_UNINSTALL_REMOVE ]; then
+          # create a fresh directory
+          makedir "$MAALI_INSTALL_DIR"
   
-        if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
-          if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
-            maali_run "chmod 750 $MAALI_INSTALL_TOOLDIR"
-            maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_TOOLDIR"
-            maali_run "chmod 750 $MAALI_INSTALL_DIR"
-            maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_DIR"
+          if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+            if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
+              maali_run "chmod 750 $MAALI_INSTALL_TOOLDIR"
+              maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_TOOLDIR"
+              maali_run "chmod 750 $MAALI_INSTALL_DIR"
+              maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_DIR"
+            fi
           fi
-        fi
   
-        maali_wiki "  .. compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-        if [ $MAALI_PYTHON_TOOL ]; then
-          maali_python_build
-        elif [ $MAALI_R_TOOL ]; then
-          maali_r_build
-        elif [ $MAALI_CMAKE_TOOL ]; then
-          maali_cmake_build
-        else
-          maali_build
-        fi
+          maali_wiki "  .. compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+          if [ $MAALI_PYTHON_TOOL ]; then
+            maali_python_build
+          elif [ $MAALI_R_TOOL ]; then
+            maali_r_build
+          elif [ $MAALI_CMAKE_TOOL ]; then
+            maali_cmake_build
+          else
+            maali_build
+          fi
   
-        # auto-generate pkgconfig file
-        if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
-          maali_genpkgconfig
-        fi
+          # auto-generate pkgconfig file
+          if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
+            maali_genpkgconfig
+          fi
   
-        if [ ! $DEBUG ]; then
-          removedir "$MAALI_TOOL_BUILD_DIR"
-        fi
+          if [ ! $DEBUG ]; then
+            removedir "$MAALI_TOOL_BUILD_DIR"
+          fi
+
+        fi # if [ ! $MAALI_UNINSTALL_REMOVE ] then
   
         # unload re-requisite modules
         MAALI_TOOL_PREREQ_REV=`echo $MAALI_TOOL_PREREQ | tac -s' '`
@@ -1423,10 +1431,17 @@ if [ ! $MAALI_REMODULE ]; then
   done # for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
 fi # if [ ! $MAALI_REMODULE ]; then
 
+if [ $MAALI_UNINSTALL_REMOVE ]; then
+  # move to remodule mode
+  MAALI_REMODULE=1
+fi
+
 if [ ! $MAALI_REMODULE ]; then
   maali_wiki "creating module in $MAALI_TOOL_MODULE_DIR"
 else
-  if [ $MAALI_UNINSTALL_HIDE ]; then
+  if [ $MAALI_UNINSTALL_REMOVE ]; then
+    echo "purging the module from $MAALI_TOOL_MODULE_DIR"
+  elif [ $MAALI_UNINSTALL_HIDE ]; then
     echo "hiding the module in $MAALI_TOOL_MODULE_DIR"
   else
     echo "creating module in $MAALI_TOOL_MODULE_DIR"
@@ -1440,16 +1455,21 @@ else
   # make the module
   MAALI_TOOL_MODULE="$MAALI_TOOL_MODULE_DIR/$MAALI_TOOL_VERSION"
 
-  if [ $MAALI_UNINSTALL_HIDE ]; then
-
-    # hide the module file
-    mv $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
+  if [[ $MAALI_UNINSTALL_REMOVE ]] || [[ $MAALI_UNINSTALL_HIDE ]]; then
 
     # check if it is the default version
     MAALI_TOOL_VERSION_CURRENT_DEFAULT=`grep \"$MAALI_TOOL_VERSION\" $MAALI_TOOL_MODULE_DIR/.version | wc -l`
 
     if [ $MAALI_TOOL_VERSION_CURRENT_DEFAULT -eq 1 ]; then
       rm -f "$MAALI_TOOL_MODULE_DIR/.version"
+    fi
+
+    if [ $MAALI_UNINSTALL_REMOVE ]; then
+      rm -f $MAALI_TOOL_MODULE
+      rm -f $MAALI_TOOL_MODULE~
+    else
+      # hide the module file
+      mv $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
     fi
 
   else
