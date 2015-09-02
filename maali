@@ -155,6 +155,42 @@ EOF
 
 ##############################################################################
 
+function maali_git_download {
+
+  MAALI_GIT_DOWNLOAD_DIR="$1"
+  MAALI_GIT_DOWNLOAD_FILE="$2"
+
+  MAALI_GIT_DOWNLOAD_FILEPATH="$MAALI_GIT_DOWNLOAD_DIR/$MAALI_GIT_DOWNLOAD_FILE"
+
+  if [ -f "$MAALI_GIT_DOWNLOAD_FILEPATH" ]; then
+    mv ${MAALI_GIT_DOWNLOAD_FILEPATH} ${MAALI_GIT_DOWNLOAD_FILEPATH}~
+  fi
+
+  if [ $DEBUG ]; then
+    MAALI_WGET_EXTRA=''
+  else
+    MAALI_WGET_EXTRA='-q'
+  fi
+  wget --no-check-certificate $MAALI_WGET_EXTRA -O "$MAALI_GIT_DOWNLOAD_FILEPATH" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
+
+  MAALI_GIT_DOWNLOAD_FILESIZE=$(stat -c%s "$MAALI_GIT_DOWNLOAD_FILEPATH")
+  if [ $MAALI_GIT_DOWNLOAD_FILEPATH -eq 0 ]; then
+    echo "Can't find config file for $MAALI_TOOL_NAME and could not download from github"
+    rm -f $MAALI_GIT_DOWNLOAD_FILEPATH
+    exit 1
+  fi
+
+  if [ $DEBUG ]; then
+    if [ -f "${MAALI_GIT_DOWNLOAD_FILEPATH}~" ]; then
+      echo "differences between ${MAALI_GIT_DOWNLOAD_FILEPATH} and ${MAALI_GIT_DOWNLOAD_FILEPATH}~"
+      diff ${MAALI_GIT_DOWNLOAD_FILEPATH} ${MAALI_GIT_DOWNLOAD_FILEPATH}~
+    fi
+  fi
+
+}
+
+##############################################################################
+
 function maali_load_module {
 
   maali_wiki "  .. loading $1"
@@ -1048,31 +1084,16 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
     makedir "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME"
   fi
 
-  if [ -f "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT" ]; then
-    mv "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT" "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT~"
-  fi
+  maali_git_download "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME" "$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
 
-  if [ $DEBUG ]; then
-    wget --no-check-certificate -O "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
-  else
-    wget --no-check-certificate -q -O "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
-  fi
   MAALI_CYGNET_FILEPATH="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
   MAALI_FOUND_CYGENT=1
 
-  MAALI_CYGNET_FILESIZE=$(stat -c%s "$MAALI_CYGNET_FILEPATH")
-  if [ $MAALI_CYGNET_FILESIZE -eq 0 ]; then
-    echo "Can't find config file for $MAALI_TOOL_NAME and could not download from github"
-    rm -f $MAALI_CYGNET_FILESIZE
-    exit 1
-  fi
+  # patch files
+  for MAALI_PATCH_NUMBER in $MAALI_TOOL_PATCHES; do
+    maali_git_download "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME" "$MAALI_TOOL_NAME.$MAALI_PATCH_NUMBER.patch"
+  done
 
-  if [ $DEBUG ]; then
-    if [ -f "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT~" ]; then
-      echo "differences between $HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT $HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT~"
-      diff "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT" "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT~"
-    fi
-  fi
 
 fi
 
