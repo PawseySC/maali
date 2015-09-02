@@ -1105,6 +1105,7 @@ if [ $? -ne 0 ]; then
 fi
 
 for MAALI_SYSTEM_PACKAGES_NAME in $MAALI_SYSTEM_PACKAGES_PREREQ; do
+  # This works for CentOS, SLES, Cray and Fedora, but what about Ubuntu?
   MAALI_SYSTEM_PACKAGES_VERSION=`rpmquery --qf "%{VERSION}" ${MAALI_SYSTEM_PACKAGES_NAME}`
   if [ $? -eq 1 ]; then
     echo "$MAALI_SYSTEM_PACKAGES_NAME is not installed on this system"
