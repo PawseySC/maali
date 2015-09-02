@@ -171,10 +171,14 @@ function maali_git_download {
   else
     MAALI_WGET_EXTRA='-q'
   fi
-  wget --no-check-certificate $MAALI_WGET_EXTRA -O "$MAALI_GIT_DOWNLOAD_FILEPATH" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
+  wget --no-check-certificate $MAALI_WGET_EXTRA -O "$MAALI_GIT_DOWNLOAD_FILEPATH" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_GIT_DOWNLOAD_FILE"
+
+  if [ $DEBUG ]; then
+    echo "Checking the size of $MAALI_GIT_DOWNLOAD_FILEPATH"
+  fi
 
   MAALI_GIT_DOWNLOAD_FILESIZE=$(stat -c%s "$MAALI_GIT_DOWNLOAD_FILEPATH")
-  if [ $MAALI_GIT_DOWNLOAD_FILEPATH -eq 0 ]; then
+  if [ $MAALI_GIT_DOWNLOAD_FILESIZE -eq 0 ]; then
     echo "Can't find config file for $MAALI_TOOL_NAME and could not download from github"
     rm -f $MAALI_GIT_DOWNLOAD_FILEPATH
     exit 1
@@ -1084,16 +1088,12 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
     makedir "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME"
   fi
 
-  maali_git_download "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME" "$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
-
   MAALI_CYGNET_FILEPATH="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
+  MAALI_FILES_PATH="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME"
+
+  maali_git_download "$MAALI_FILES_PATH" "$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
+
   MAALI_FOUND_CYGENT=1
-
-  # patch files
-  for MAALI_PATCH_NUMBER in $MAALI_TOOL_PATCHES; do
-    maali_git_download "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME" "$MAALI_TOOL_NAME.$MAALI_PATCH_NUMBER.patch"
-  done
-
 
 fi
 
@@ -1103,6 +1103,29 @@ if [ $? -ne 0 ]; then
     echo "failed to source $MAALI_CYGNET_FILEPATH exiting"
     exit 1
 fi
+
+# patch files - I'm note entirely sure of the logic
+for MAALI_PATCH_NUMBER in $MAALI_TOOL_PATCHES; do
+  
+  if [ $DEBUG ]; then
+    echo "Searching for Patch Number $MAALI_PATCH_NUMBER"
+  fi
+
+  if [ ! -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_PATCH_NUMBER.patch" ]; then
+  
+    if [ $DEBUG ]; then
+      echo "Can't find $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_PATCH_NUMBER.patch"
+    fi
+
+    maali_git_download "$MAALI_FILES_PATH" "$MAALI_TOOL_NAME.$MAALI_PATCH_NUMBER.patch"
+  else
+
+    if [ $DEBUG ]; then
+      echo ".. found $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_PATCH_NUMBER.patch"
+    fi
+
+  fi
+done
 
 for MAALI_SYSTEM_PACKAGES_NAME in $MAALI_SYSTEM_PACKAGES_PREREQ; do
   # This works for CentOS, SLES, Cray and Fedora, but what about Ubuntu?
