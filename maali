@@ -852,6 +852,8 @@ fi
 # this is to deal with the module purge on fornax
 MAALI_LOADEDMODULES=`echo $LOADEDMODULES | sed -e 's/:/ /g' | tac -s' '`
 
+MAALI_IS_LOADED=0
+
 for MAALI_MODULE in $MAALI_LOADEDMODULES; do
   # module without the version
   MAALI_MODULE_NAME=`echo $MAALI_MODULE | cut -d '/' -f 1`
@@ -861,7 +863,7 @@ for MAALI_MODULE in $MAALI_LOADEDMODULES; do
   fi
 done
 
-if [ -z $MAALI_IS_LOADED ]; then
+if [ $MAALI_IS_LOADED -eq 0 ]; then
   if [ "$MAALI_VERSION" != "tip" ]; then
     module load maali/$MAALI_VERSION
   fi
@@ -1021,7 +1023,7 @@ if [ "$MAALI_DEFAULT_PYTHON" != "" ]; then
   done
 fi
 
-# we are running a rebuild
+# we are running a rebuild - is this redundant?
 if [ $MAALI_REBUILD ]; then
   MAALI_REBUILD_COMPILER_LOG=`echo $MAALI_REBUILD_COMPILER | sed -e 's!/!-!g'`
 
