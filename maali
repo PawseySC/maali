@@ -214,6 +214,12 @@ function maali_load_module {
       echo "  .. modulefile $1 conflicts with an already loaded module"
       exit
     fi
+
+    if [[ ! "$LOADEDMODULES" =~ "$1" ]]; then
+      echo "LOADEDMODULES ($LOADEDMODULES) does not contain $1"
+      exit
+    fi
+
   fi
 
 }
