@@ -1050,6 +1050,11 @@ for MAALI_MODULE in $MAALI_LOADEDMODULES; do
   fi
 done
 
+# define modules which are required by the system
+for MAALI_MODULE in $MAALI_REQUIRED_SYSTEM_MODULES; do
+  module load $MAALI_MODULE
+done
+
 if [ -z $MAALI_TOOL_TYPE ]; then
   MAALI_TOOL_TYPE="apps"
 fi
