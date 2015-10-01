@@ -513,7 +513,7 @@ EOF
         MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
         if [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_DEFAULT_' ]]; then
           printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
-        elif [ $MAALI_MODULE_VARIABLE_WORDS -eq 2 ]; then
+        elif [ $MAALI_MODULE_VARIABLE_WORDS -gt 1 ]; then
           for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
             MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
             printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
@@ -585,6 +585,7 @@ function maali_python_build {
 function maali_run {
   # primarly use for capturing stdout/stderr
 
+  echo "-- Running $@ in $PWD" >> $MAALI_TOOL_LOG
   if [ $DEBUG ]; then
     echo "Running $@ in $PWD"
     eval "$@" 2>&1 | tee -a $MAALI_TOOL_LOG
@@ -881,13 +882,13 @@ if [ -z $MAALI_TOOL_NAME ]; then
 fi
 
 # do we need to set the version or are there other instances of it being derived?
-if [[ "$MAALI_TOOL_NAME" != "system-gcc" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel-mkl" ]] && [[ -z $MAALI_TOOL_VERSION ]]; then 
+if [[ "$MAALI_TOOL_NAME" != "system-gcc" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel-mkl" ]] && [[ "$MAALI_TOOL_NAME" != "system-pgi" ]]  && [[ -z $MAALI_TOOL_VERSION ]]; then 
   usage
   exit 1
 fi
 
 # must be a better way to express this
-if [[ "$MAALI_TOOL_NAME" == "system-gcc" ]] || [[ "$MAALI_TOOL_NAME" == "system-intel" ]] || [[ "$MAALI_TOOL_NAME" == "system-intel-mkl" ]]; then
+if [[ "$MAALI_TOOL_NAME" == "system-gcc" ]] || [[ "$MAALI_TOOL_NAME" == "system-intel" ]] || [[ "$MAALI_TOOL_NAME" == "system-intel-mkl" ]] || [[ "$MAALI_TOOL_NAME" == "system-pgi" ]]; then
   MAALI_SYSTEM_CYGNET_FILE=1
 fi
 
