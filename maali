@@ -71,7 +71,7 @@ function maali_cmake_build {
   cd "$MAALI_TOOL_BUILD_DIR"
 
   # cmake likes to build in a director of it's own
-  mkdir "$MAALI_TOOL_NAME-build"
+  makedir "$MAALI_TOOL_NAME-build"
   cd "$MAALI_TOOL_NAME-build"
 
   maali_run "cmake -DCMAKE_INSTALL_PREFIX=$MAALI_INSTALL_DIR $MAALI_TOOL_CONFIGURE $MAALI_CMAKE_PATH"
@@ -364,7 +364,7 @@ EOF
     if [ $MAALI_PYTHON_TOOL ]; then
       MAALI_SUPPORTED_COMPILERS="python"
     else
-      MAALI_SUPPORTED_COMPILERS="gcc intel cce"
+      MAALI_SUPPORTED_COMPILERS="gcc intel cce pgi"
     fi # if [ $MAALI_PYTHON_TOOL ]; then
 
     if [ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
@@ -373,20 +373,25 @@ EOF
         MAALI_SYSTEM_COMPILER_LIST=`module avail $MAALI_COMPILER_TYPE/ -t 2>&1 | grep $MAALI_COMPILER_TYPE/ | sed -e 's/(default)//g'`
         for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
 
-          # need to see if the system compiler is anywhere in the list
-          MAALI_COMPILER_FOUND_MATCH=0
+          if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+            # never conflict with the system compiler
 
-          for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
-            if [ "$MAALI_SYSTEM_COMPILER" == "$MAALI_COMPILER" ]; then
-              MAALI_COMPILER_FOUND_MATCH=1
-            fi
-          done
+            # need to see if the system compiler is anywhere in the list
+            MAALI_COMPILER_FOUND_MATCH=0
 
-          # if not found in list, force conflict
-          if [ $MAALI_COMPILER_FOUND_MATCH -eq 0 ]; then
+            for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
+              if [ "$MAALI_SYSTEM_COMPILER" == "$MAALI_COMPILER" ]; then
+                MAALI_COMPILER_FOUND_MATCH=1
+              fi
+            done
+
+            # if not found in list, force conflict
+            if [ $MAALI_COMPILER_FOUND_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
 conflict $MAALI_SYSTEM_COMPILER
 EOF
+            fi # if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+
           fi
         done
       done
@@ -631,7 +636,7 @@ function maali_unpack {
   fi
 
   if [ $MAALI_UNPACK_MKDIR ]; then
-    mkdir "$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION"
+    makedir "$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION"
     cd "$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION"
   fi
 
@@ -686,6 +691,13 @@ function makedir {
   if [ ! -d "$1" ]; then
     mkdir -p "$1"
   fi
+
+  # this is Pawsey specific
+  if [ "$IVEC_PROJECT" != "" ]; then
+    chgrp $IVEC_PROJECT $1
+    chmod g+s $1
+  fi
+
 }
 
 ##############################################################################
