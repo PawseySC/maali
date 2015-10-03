@@ -694,16 +694,46 @@ function log {
 ##############################################################################
 
 function makedir {
-  if [ ! -d "$1" ]; then
-    mkdir -p "$1"
-  fi
+  # save IFS
+  MAALI_IFS=$IFS
 
-  # this is Pawsey specific
-  if [ "$IVEC_PROJECT" != "" ]; then
-    chgrp $IVEC_PROJECT $1
-    chmod g+s $1
-  fi
+  # want to do through directories
+  IFS='/'
 
+  for MAALI_DIR in $1
+  do
+    if [ "$MAALI_DIR" == "" ]; then
+      MAALI_DIR_PATH="/"
+    else
+      if [ "$MAALI_DIR_PATH" == "/" ]; then
+        MAALI_DIR_PATH="/$MAALI_DIR"
+      else 
+        MAALI_DIR_PATH="$MAALI_DIR_PATH/$MAALI_DIR"
+      fi
+    fi
+    echo "$MAALI_DIR_PATH"
+
+    if [ ! -d "$MAALI_DIR_PATH" ]; then
+      if [ -f "$MAALI_TOOL_LOG" ]; then
+        echo "-- Making directory $MAALI_DIR_PATH" >> $MAALI_TOOL_LOG
+      fi
+
+      mkdir "$MAALI_DIR_PATH"
+
+      if [ "$IVEC_PROJECT" != "" ]; then
+        if [ -f "$MAALI_TOOL_LOG" ]; then
+          echo "-- Changind group ownership to $IVEC_PROJECT and setting sticky bit" >> $MAALI_TOOL_LOG
+        fi
+
+        chgrp $IVEC_PROJECT "$MAALI_DIR_PATH"
+        chmod g+s "$MAALI_DIR_PATH"
+      fi
+    fi
+
+  done
+
+  # reset IFS
+  IFS=$MAALI_IFS
 }
 
 ##############################################################################
