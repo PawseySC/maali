@@ -208,9 +208,9 @@ function maali_load_module {
   else
     MAALI_TMP_FILE="/tmp/maali.$$.out"
     module load $1 >$MAALI_TMP_FILE 2>&1
-    MAALI_MODULE_CONFLICT=`grep 'conflicts with the currently loaded module' $MAALI_TMP_FILE | wc -l`
+    MAALI_MODULE_CONFLICT_CHECK=`grep 'conflicts with the currently loaded module' $MAALI_TMP_FILE | wc -l`
     rm -f $MAALI_TMP_FILE
-    if [ $MAALI_MODULE_CONFLICT -eq 1 ]; then
+    if [ $MAALI_MODULE_CONFLICT_CHECK -eq 1 ]; then
       echo "  .. modulefile $1 conflicts with an already loaded module"
       exit
     fi
@@ -371,29 +371,35 @@ EOF
       # if we have compiled with the system compiler, do we need conflict resolution?
       for MAALI_COMPILER_TYPE in $MAALI_SUPPORTED_COMPILERS; do
         MAALI_SYSTEM_COMPILER_LIST=`module avail $MAALI_COMPILER_TYPE/ -t 2>&1 | grep $MAALI_COMPILER_TYPE/ | sed -e 's/(default)//g'`
-        for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
 
-          if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
-            # never conflict with the system compiler
+        if [ "$MAALI_SYSTEM_COMPILER_LIST" != "" ]; then
+          for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
 
-            # need to see if the system compiler is anywhere in the list
-            MAALI_COMPILER_FOUND_MATCH=0
+            if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+              # never conflict with the system compiler
 
-            for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
-              if [ "$MAALI_SYSTEM_COMPILER" == "$MAALI_COMPILER" ]; then
-                MAALI_COMPILER_FOUND_MATCH=1
-              fi
-            done
+              # need to see if the system compiler is anywhere in the list
+              MAALI_COMPILER_FOUND_MATCH=0
 
-            # if not found in list, force conflict
-            if [ $MAALI_COMPILER_FOUND_MATCH -eq 0 ]; then
+              for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
+                if [ "$MAALI_SYSTEM_COMPILER" == "$MAALI_COMPILER" ]; then
+                  MAALI_COMPILER_FOUND_MATCH=1
+                fi
+              done
+
+              # if not found in list, force conflict
+              if [ $MAALI_COMPILER_FOUND_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
 conflict $MAALI_SYSTEM_COMPILER
 EOF
-            fi # if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+              fi # if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
 
-          fi
-        done
+            fi
+
+          done # for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
+
+        fi # if [ $MAALI_SYSTEM_COMPILER_LIST != "" ]; then
+
       done
     fi # if [ "$MAALI_COMPILER_TYPE" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
   fi
