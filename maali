@@ -236,6 +236,10 @@ function maali_module {
     MAALI_APP_HOME="$MAALI_ROOT/r/\$env(R_VERSION)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
     MAALI_SYSTEM_DEFAULT_R=`module display r 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
     MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
+  elif [ $MAALI_CUDA_BUILD -eq 1 ]; then
+    MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+    MAALI_SYSTEM_DEFAULT_CUDA=`module display cda 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
+    MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   else
     if [ $MAALI_COMPILER_NUMBER -eq 1 ]; then
 
@@ -402,6 +406,18 @@ EOF
 
       done
     fi # if [ "$MAALI_COMPILER_TYPE" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+  fi
+
+  # need cuda conflict
+
+  if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+    cat <<EOF >> $MAALI_TOOL_MODULE
+
+if {! [is-loaded cuda] } {
+  # this allows us support multiple cuda versions, but have a sensible default
+  module load cuda/$MAALI_SYSTEM_DEFAULT_CUDA
+}
+EOF
   fi
 
   if [ $MAALI_PYTHON_TOOL ]; then
@@ -711,7 +727,6 @@ function makedir {
         MAALI_DIR_PATH="$MAALI_DIR_PATH/$MAALI_DIR"
       fi
     fi
-    echo "$MAALI_DIR_PATH"
 
     if [ ! -d "$MAALI_DIR_PATH" ]; then
       if [ -f "$MAALI_TOOL_LOG" ]; then
@@ -721,12 +736,14 @@ function makedir {
       mkdir "$MAALI_DIR_PATH"
 
       if [ "$IVEC_PROJECT" != "" ]; then
-        if [ -f "$MAALI_TOOL_LOG" ]; then
-          echo "-- Changind group ownership to $IVEC_PROJECT and setting sticky bit" >> $MAALI_TOOL_LOG
-        fi
+        if [[ ! "$MAALI_DIR_PATH" =~ "/home" ]]; then
+          if [ -f "$MAALI_TOOL_LOG" ]; then
+            echo "-- Changind group ownership to $IVEC_PROJECT and setting sticky bit" >> $MAALI_TOOL_LOG
+          fi
 
-        chgrp $IVEC_PROJECT "$MAALI_DIR_PATH"
-        chmod g+s "$MAALI_DIR_PATH"
+          chgrp $IVEC_PROJECT "$MAALI_DIR_PATH"
+          chmod g+s "$MAALI_DIR_PATH"
+        fi
       fi
     fi
 
@@ -778,6 +795,7 @@ OPTIONS:
    -f      force download from github
    -u      unistall by hiding the module
    -x      expunge tool from history
+   -n      NVIDIA mode; compile software with cuda support
 EOF
 }
 
@@ -800,6 +818,8 @@ MAALI_FORCE_DOWNLOAD_FROM_GITHUB=0
 MAALI_UNINSTALL_HIDE=0
 MAALI_UNINSTALL_REMOVE=0
 MAALI_SYSTEM_CYGNET_FILE=0
+MAALI_CUDA_BUILD=0
+MAALI_CUDA_SUPPORT=0
 
 # for auto-building module files
 MAALI_MODULE_SET_PATH=
@@ -818,7 +838,7 @@ MAALI_MODULE_PE_PKGCONFIG_NAME=
 MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
 MAALI_MODULE_PE_PKGCONFIG_LMAALI=
 
-while getopts "ht:v:pdc:mr:bgswafux" OPTION
+while getopts "ht:v:pdc:mr:bgswafuxn" OPTION
 do
      case $OPTION in
          h)
@@ -873,6 +893,9 @@ do
              ;;
          x)
              MAALI_UNINSTALL_REMOVE=1
+             ;;
+         n)
+             MAALI_CUDA_BUILD=1
              ;;
          ?)
              usage
@@ -930,13 +953,13 @@ if [ -z $MAALI_TOOL_NAME ]; then
 fi
 
 # do we need to set the version or are there other instances of it being derived?
-if [[ "$MAALI_TOOL_NAME" != "system-gcc" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel" ]] && [[ "$MAALI_TOOL_NAME" != "system-intel-mkl" ]] && [[ "$MAALI_TOOL_NAME" != "system-pgi" ]]  && [[ -z $MAALI_TOOL_VERSION ]]; then 
+if [[ ! "$MAALI_TOOL_NAME" =~ "system-" ]] && [[ -z $MAALI_TOOL_VERSION ]]; then
   usage
   exit 1
 fi
 
 # must be a better way to express this
-if [[ "$MAALI_TOOL_NAME" == "system-gcc" ]] || [[ "$MAALI_TOOL_NAME" == "system-intel" ]] || [[ "$MAALI_TOOL_NAME" == "system-intel-mkl" ]] || [[ "$MAALI_TOOL_NAME" == "system-pgi" ]]; then
+if [[ "$MAALI_TOOL_NAME" =~ "system-" ]] ;then
   MAALI_SYSTEM_CYGNET_FILE=1
 fi
 
@@ -1189,6 +1212,15 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+  if [ $MAALI_CUDA_SUPPORT -eq 0 ]; then
+    echo "$MAALI_TOOL_NAME does not support CUDA builds"
+    exit 1
+  fi
+else
+  MAALI_TOOL_CUDA_COMPILERS="na"
+fi
+
 # patch files - I'm note entirely sure of the logic
 for MAALI_PATCH_NUMBER in $MAALI_TOOL_PATCHES; do
   
@@ -1347,13 +1379,21 @@ EOF
   MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
 
   # this is now based on tool type
-  MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_TYPE/$MAALI_TOOL_NAME"
+  if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+    MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_TYPE/$MAALI_TOOL_NAME-gpu"
+  else
+    MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_TYPE/$MAALI_TOOL_NAME"
+  fi
 else
   echo "Warning: non-system build detected, overriding MAALI_TOOL_TYPE (currently $MAALI_TOOL_TYPE) and setting to tool type to 'apps'"
   # for user builds we want them to be able to include a single module path
   MAALI_TOOL_TYPE="apps"
   MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
-  MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_NAME"
+  if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+    MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_NAME-gpu"
+  else
+    MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_NAME"
+  fi
 fi
 
 # make sure we have a directory to log
@@ -1472,97 +1512,118 @@ if [ $MAALI_REMODULE -eq 0 ]; then
           fi # 
   
         fi # if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+
+        for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
+
+          if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
+             # load the CUDA environment
+
+             if [ $DEBUG ]; then
+               maali_wiki " .. before module load \$MAALI_TOOL_CUDA_COMPILER"
+               module list
+             fi # if [ $DEBUG ]; then
+             maali_load_module "$MAALI_TOOL_CUDA_COMPILER"
+             if [ $DEBUG ]; then
+               maali_wiki " .. after module load \$MAALI_TOOL_CUDA_COMPILER"
+               module list
+             fi # 
+
+          fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
   
-        for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
-          maali_load_module "$MAALI_PREREQ_MODULE"
-        done # for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+          for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+            maali_load_module "$MAALI_PREREQ_MODULE"
+          done # for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
   
-        maali_wiki " .. check for build only modules"
-        for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
-          # turn on MAALI_CMAKE_TOOL
-          MAALI_BUILD_PREREQ_MODULE_NAME=`echo $MAALI_BUILD_PREREQ_MODULE | cut -d '/' -f 1`
-          if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
-            # this is using cmake
-            MAALI_CMAKE_TOOL=1
-            maali_wiki " .. you are using cmake, will use maali_cmake_build to process"
-          fi # if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
-          maali_load_module "$MAALI_BUILD_PREREQ_MODULE"
-        done # for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
+          maali_wiki " .. check for build only modules"
+          for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
+            # turn on MAALI_CMAKE_TOOL
+            MAALI_BUILD_PREREQ_MODULE_NAME=`echo $MAALI_BUILD_PREREQ_MODULE | cut -d '/' -f 1`
+            if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
+              # this is using cmake
+              MAALI_CMAKE_TOOL=1
+              maali_wiki " .. you are using cmake, will use maali_cmake_build to process"
+            fi # if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
+            maali_load_module "$MAALI_BUILD_PREREQ_MODULE"
+          done # for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
   
-        # remove a stale tool build directory
-        removedir "$MAALI_TOOL_BUILD_DIR"
+          # remove a stale tool build directory
+          removedir "$MAALI_TOOL_BUILD_DIR"
   
-        if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
-          if [ $MAALI_R_TOOL ]; then
-            maali_wiki "  .. R tools install from source code"
+          if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
+            if [ $MAALI_R_TOOL ]; then
+              maali_wiki "  .. R tools install from source code"
+            else
+              maali_wiki "  .. unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
+              maali_unpack
+            fi # if [ $MAALI_R_TOOL ]; then
+          fi
+
+          # where we want to install the tool
+          if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+            MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_CRAY_PRGENV/$MAALI_COMPILER/$MAALI_CRAY_CPU_TARGET/$MAALI_TOOL_NAME"
+          elif [ "$MAALI_PYTHON_TOOL" == 1 -o "$MAALI_R_TOOL" == 1 ]; then
+            MAALI_INSTALL_TOOLDIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME"
+          elif [ $MAALI_CUDA_BUILD -eq 1 ]; then
+            MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME-gpu"
           else
-            maali_wiki "  .. unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
-            maali_unpack
-          fi # if [ $MAALI_R_TOOL ]; then
-        fi
+            MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME"
+          fi
+    
+          MAALI_INSTALL_DIR="$MAALI_INSTALL_TOOLDIR/$MAALI_TOOL_VERSION"
   
-        # where we want to install the tool
-        if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
-          MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_CRAY_PRGENV/$MAALI_COMPILER/$MAALI_CRAY_CPU_TARGET/$MAALI_TOOL_NAME"
-        elif [ "$MAALI_PYTHON_TOOL" == 1 -o "$MAALI_R_TOOL" == 1 ]; then
-          MAALI_INSTALL_TOOLDIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME"
-        else
-          MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME"
-        fi
+          # remove the previously installed version
+          removedir "$MAALI_INSTALL_DIR"
+    
+          if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
+            # create a fresh directory
+            makedir "$MAALI_INSTALL_DIR"
   
-        MAALI_INSTALL_DIR="$MAALI_INSTALL_TOOLDIR/$MAALI_TOOL_VERSION"
-  
-        # remove the previously installed version
-        removedir "$MAALI_INSTALL_DIR"
-  
-        if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
-          # create a fresh directory
-          makedir "$MAALI_INSTALL_DIR"
-  
-          if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
-            if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
-              maali_run "chmod 750 $MAALI_INSTALL_TOOLDIR"
-              maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_TOOLDIR"
-              maali_run "chmod 750 $MAALI_INSTALL_DIR"
-              maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_DIR"
+            if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+              if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
+                maali_run "chmod 750 $MAALI_INSTALL_TOOLDIR"
+                maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_TOOLDIR"
+                maali_run "chmod 750 $MAALI_INSTALL_DIR"
+                maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_DIR"
+              fi
             fi
-          fi
   
-          maali_wiki "  .. compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-          if [ $MAALI_PYTHON_TOOL ]; then
-            maali_python_build
-          elif [ $MAALI_R_TOOL ]; then
-            maali_r_build
-          elif [ $MAALI_CMAKE_TOOL ]; then
-            maali_cmake_build
-          else
-            maali_build
-          fi
+            maali_wiki "  .. compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+            if [ $MAALI_PYTHON_TOOL ]; then
+              maali_python_build
+            elif [ $MAALI_R_TOOL ]; then
+              maali_r_build
+            elif [ $MAALI_CMAKE_TOOL ]; then
+              maali_cmake_build
+            else
+              maali_build
+            fi
   
-          # auto-generate pkgconfig file
-          if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
-            maali_genpkgconfig
-          fi
+            # auto-generate pkgconfig file
+            if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
+              maali_genpkgconfig
+            fi
   
-          if [ ! $DEBUG ]; then
-            removedir "$MAALI_TOOL_BUILD_DIR"
-          fi
+            if [ ! $DEBUG ]; then
+              removedir "$MAALI_TOOL_BUILD_DIR"
+            fi
 
-        fi # if [ ! $MAALI_UNINSTALL_REMOVE ] then
+          fi # if [ ! $MAALI_UNINSTALL_REMOVE ] then
   
-        # unload build pre-requisite modules
-        MAALI_TOOL_BUILD_PREREQ_REV=`echo $MAALI_TOOL_BUILD_PREREQ | tac -s' '`
-        for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ_REV; do
-          maali_wiki "  .. unloading $MAALI_BUILD_PREREQ_MODULE"
-          module unload "$MAALI_BUILD_PREREQ_MODULE"
-        done
+          # unload build pre-requisite modules
+          MAALI_TOOL_BUILD_PREREQ_REV=`echo $MAALI_TOOL_BUILD_PREREQ | tac -s' '`
+          for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ_REV; do
+            maali_wiki "  .. unloading $MAALI_BUILD_PREREQ_MODULE"
+            module unload "$MAALI_BUILD_PREREQ_MODULE"
+          done
 
-        # unload pre-requisite modules
-        MAALI_TOOL_PREREQ_REV=`echo $MAALI_TOOL_PREREQ | tac -s' '`
-        for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ_REV; do
-          maali_wiki "  .. unloading $MAALI_PREREQ_MODULE"
-          module unload $MAALI_PREREQ_MODULE
-        done
+          # unload pre-requisite modules
+          MAALI_TOOL_PREREQ_REV=`echo $MAALI_TOOL_PREREQ | tac -s' '`
+          for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ_REV; do
+            maali_wiki "  .. unloading $MAALI_PREREQ_MODULE"
+            module unload $MAALI_PREREQ_MODULE
+          done
+
+        done # for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
   
         if [ "$MAALI_CRAY_CPU_TARGET" != "na" ]; then
           # unload the Cray Parallel Environment for cpu target
