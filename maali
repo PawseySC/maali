@@ -416,7 +416,31 @@ EOF
     fi # if [ "$MAALI_COMPILER_TYPE" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
   fi
 
-  # need cuda conflict
+  # CUDA conflict
+  if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+    MAALI_SYSTEM_CUDA_LIST=`module avail cuda/ -t 2>&1 | grep cuda/ | sed -e 's/(default)//g'`
+
+    for MAALI_SYSTEM_CUDA_VERSION in $MAALI_SYSTEM_CUDA_LIST; do
+
+      # need to see if the system cuda is anywhere in the list
+      MAALI_SYSTEM_CUDA_VERSION_MATCH=0
+
+      for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
+        if [ "$MAALI_SYSTEM_CUDA_VERSION" == "$MAALI_TOOL_CUDA_COMPILER" ]; then
+            MAALI_CRAY_CPU_TARGET_FOUND_MATCH=1
+        fi
+      done
+
+      # if not found in list, force conflict
+      if [ $MAALI_CRAY_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_SYSTEM_CUDA_VERSION
+EOF
+      fi
+
+    done
+
+  fi
 
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
