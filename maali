@@ -228,41 +228,37 @@ function maali_load_module {
 
 function maali_module {
 
+  # determine the default versions of a number of tools
+  MAALI_SYSTEM_DEFAULT_PYTHON=`module display python 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
+  MAALI_SYSTEM_DEFAULT_R=`module display r 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
+  MAALI_SYSTEM_DEFAULT_CUDA=`module display cuda 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
+
+  MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   if [ $MAALI_PYTHON_TOOL ]; then
     MAALI_APP_HOME="$MAALI_ROOT/python/\$env(PYTHON_VERSION)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-    MAALI_SYSTEM_DEFAULT_PYTHON=`module display python 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
-    MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   elif [ $MAALI_R_TOOL ]; then
     MAALI_APP_HOME="$MAALI_ROOT/r/\$env(R_VERSION)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-    MAALI_SYSTEM_DEFAULT_R=`module display r 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
-    MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
-  elif [ $MAALI_CUDA_BUILD -eq 1 ]; then
-    MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-    MAALI_SYSTEM_DEFAULT_CUDA=`module display cda 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
-    MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   else
-    if [ $MAALI_COMPILER_NUMBER -eq 1 ]; then
-
-      if [ $MAALI_SYSTEM_CYGNET_FILE -eq 1 ]; then
-        # system-intel sets this, others may as well
-        MAALI_APP_HOME="$MAALI_INSTALL_DIR"
-      else
-        # copied from the main loop to defeat the spaghetti code
-        if [ "$MAALI_PYTHON_TOOL" == 1 -o "$MAALI_R_TOOL" == 1 ]; then
-          MAALI_APP_HOME="$MAALI_ROOT/$MAALI_TOOL_COMPILERS/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-        else
-          MAALI_APP_HOME="$MAALI_APPS_DIR/$MAALI_TOOL_COMPILERS/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-        fi
-      fi
-
+    if [ $MAALI_SYSTEM_CYGNET_FILE -eq 1 ]; then
+      # system-intel sets this, others may as well
+      MAALI_APP_HOME="$MAALI_INSTALL_DIR"
+    elif [ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+      MAALI_APP_HOME="$MAALI_APPS_DIR/$MAALI_TOOL_COMPILERS/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
     else
       if [ $MAALI_CRAY -eq 1 ]; then
-        MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(MAALI_LOADED_PRGENV)/\$env(CRAYOS_VERSION)/\$env(COMPILER)/\$env(COMPILER_VER)/\$env(CRAY_CPU_TARGET)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+        if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+          MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(MAALI_LOADED_PRGENV)/\$env(CRAYOS_VERSION)/\$env(COMPILER)/\$env(COMPILER_VER)/\$env(CRAY_CPU_TARGET)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+        else
+          MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(MAALI_LOADED_PRGENV)/\$env(CRAYOS_VERSION)/\$env(COMPILER)/\$env(COMPILER_VER)/\$env(CRAY_CPU_TARGET)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+        fi
       else
-        MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+        if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+          MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+        else
+          MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+        fi
       fi
     fi
-    MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   fi
 
   # used to make the module look pretty
@@ -729,16 +725,16 @@ function makedir {
     fi
 
     if [ ! -d "$MAALI_DIR_PATH" ]; then
-      if [ -f "$MAALI_TOOL_LOG" ]; then
-        echo "-- Making directory $MAALI_DIR_PATH" >> $MAALI_TOOL_LOG
+      if [[ "$MAALI_TOOL_LOG" != "" ]] && [[ -f "$MAALI_TOOL_LOG" ]]; then
+        echo "-- Making directory $MAALI_DIR_PATH" >> "$MAALI_TOOL_LOG"
       fi
 
       mkdir "$MAALI_DIR_PATH"
 
       if [ "$IVEC_PROJECT" != "" ]; then
         if [[ ! "$MAALI_DIR_PATH" =~ "/home" ]]; then
-          if [ -f "$MAALI_TOOL_LOG" ]; then
-            echo "-- Changind group ownership to $IVEC_PROJECT and setting sticky bit" >> $MAALI_TOOL_LOG
+          if [[ "$MAALI_TOOL_LOG" != "" ]] && [[ -f "$MAALI_TOOL_LOG" ]]; then
+            echo "-- Changind group ownership to $IVEC_PROJECT and setting sticky bit" >> "$MAALI_TOOL_LOG"
           fi
 
           chgrp $IVEC_PROJECT "$MAALI_DIR_PATH"
@@ -1397,7 +1393,11 @@ else
 fi
 
 # make sure we have a directory to log
-MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.log"
+if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+  MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-gpu-$MAALI_TOOL_VERSION.log"
+else
+  MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.log"
+fi
 
 if [[ $MAALI_REMODULE -eq 1 ]] || [[ $MAALI_UNINSTALL_REMOVE -eq 1 ]] ; then
   if [[ $MAALI_UNINSTALL_HIDE -eq 1 ]] || [[ $MAALI_UNINSTALL_REMOVE -eq 1 ]]; then
@@ -1513,6 +1513,8 @@ if [ $MAALI_REMODULE -eq 0 ]; then
   
         fi # if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
 
+        echo "MAALI_TOOL_CUDA_COMPILERS = $MAALI_TOOL_CUDA_COMPILERS"
+
         for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
 
           if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
@@ -1564,7 +1566,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
           elif [ "$MAALI_PYTHON_TOOL" == 1 -o "$MAALI_R_TOOL" == 1 ]; then
             MAALI_INSTALL_TOOLDIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME"
           elif [ $MAALI_CUDA_BUILD -eq 1 ]; then
-            MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME-gpu"
+            MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_CUDA_COMPILER/$MAALI_TOOL_NAME-gpu"
           else
             MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME"
           fi
@@ -1573,7 +1575,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
   
           # remove the previously installed version
           removedir "$MAALI_INSTALL_DIR"
-    
+
           if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
             # create a fresh directory
             makedir "$MAALI_INSTALL_DIR"
