@@ -760,7 +760,11 @@ function maali_unpack {
   elif [ "$MAALI_TYPE" = "POSIX tar archive (GNU)" ]; then
     tar xf $MAALI_DST
   elif [ "$MAALI_TYPE" = "Zip archive data" ]; then
-    unzip -qq $MAALI_DST
+    if [ "$MAALI_UNZIP_EXCLUDE" == "" ]; then
+      unzip -qq $MAALI_DST
+    else
+      unzip -qq $MAALI_DST -x $MAALI_UNZIP_EXCLUDE
+    fi
   else
     echo "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please e-mail help@ivec.org and lodge a feature request"
     exit 1
