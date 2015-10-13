@@ -212,6 +212,7 @@ function maali_load_module {
     MAALI_TMP_FILE="/tmp/maali.$$.out"
     module load $1 >$MAALI_TMP_FILE 2>&1
     MAALI_MODULE_CONFLICT_CHECK=`grep 'conflicts with the currently loaded module' $MAALI_TMP_FILE | wc -l`
+    cat $MAALI_TMP_FILE
     rm -f $MAALI_TMP_FILE
     if [ $MAALI_MODULE_CONFLICT_CHECK -eq 1 ]; then
       echo "  .. modulefile $1 conflicts with an already loaded module"
@@ -342,7 +343,7 @@ if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
 
 EOF
 
-  if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]]; then
+  if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 if { [is-loaded PrgEnv-cray] } {
   setenv MAALI_LOADED_PRGENV PrgEnv-cray
@@ -365,8 +366,73 @@ if { [is-loaded PrgEnv-intel] } {
 EOF
   fi
 
+  for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+    # this is to allow us to compile python software with a Cray environment
+    MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
+    if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
+
+      MAALI_SYSTEM_COMPILER_LIST=`module avail gcc/ -t 2>&1 | grep gcc/ | sed -e 's/(default)//g'`
+
+      if [ "$MAALI_SYSTEM_COMPILER_LIST" != "" ]; then
+        for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
+
+          if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+            # never conflict with the system compiler
+
+            # need to see if the system compiler is anywhere in the list
+            MAALI_COMPILER_FOUND_MATCH=0
+
+            if [ "$MAALI_SYSTEM_COMPILER" == "$MAALI_PREREQ_MODULE" ]; then
+              MAALI_COMPILER_FOUND_MATCH=1
+            fi
+
+            # if not found in list, force conflict
+            if [ $MAALI_COMPILER_FOUND_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_SYSTEM_COMPILER
+EOF
+            fi
+
+          fi # if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+
+        done # for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
+
+      fi # if [ $MAALI_SYSTEM_COMPILER_LIST != "" ]; then
+
+    elif [ "$MAALI_PREREQ_MODULE_NAME" == "PrgEnv-gnu" ]; then
+
+      MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray"
+
+      for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
+        MAALI_SYSTEM_CRAY_PRGENV_LIST=`module avail $MAALI_CRAY_PRGENV_TYPE -t 2>&1 | grep $MAALI_CRAY_PRGENV_TYPE | sed -e 's/(default)//g'`
+        for MAALI_SYSTEM_CRAY_PRGENV in $MAALI_SYSTEM_CRAY_PRGENV_LIST; do
+
+          # need to see if the system PrgEnv is anywhere in the list
+          MAALI_CRAY_PRGENV_FOUND_MATCH=0
+
+          if [ "$MAALI_SYSTEM_CRAY_PRGENV" == "$MAALI_PREREQ_MODULE" ]; then
+            MAALI_CRAY_PRGENV_FOUND_MATCH=1
+          fi
+
+          # if not found in list, force conflict
+          if [ $MAALI_CRAY_PRGENV_FOUND_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_SYSTEM_CRAY_PRGENV
+EOF
+          fi
+        done
+      done
+
+    elif [[ "$MAALI_PREREQ_MODULE_NAME" =~ "craype-" ]]; then
+
+      MAALI_TOOL_CRAY_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
+
+    fi # if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
+   done
+
+
   # conflict for PrgEnv
-  if [ "$MAALI_CRAY_PRGENV" != "na" -a "$MAALI_TOOL_COMPILERS" != "binary" ]; then
+  if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
     MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray"
 
     for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
@@ -1467,7 +1533,7 @@ fi
 MAALI_COMPILER_NUMBER=`echo "$MAALI_TOOL_COMPILERS" | wc -w`
 
 if [ "$MAALI_TOOL_CRAY_PRGENV" == "" ]; then
-  if [ $MAALI_CRAY -eq 1 -a "$MAALI_COMPILER" != "binary" ]; then
+  if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_COMPILER" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]] ; then
     echo "You are compiling on a cray, you need to define MAALI_TOOL_CRAY_PRGENV"
     exit
   else 
@@ -1581,6 +1647,17 @@ if [ $MAALI_REMODULE -eq 0 ]; then
           fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
   
           for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+
+            # this is to allow us to compile python software with a Cray environment
+            MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
+            if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
+              # check to see if the PrgEnv loaded the wrong compiler
+              MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep $MAALI_PREREQ_MODULE_NAME | wc -l`
+              if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
+                module unload $MAALI_PREREQ_MODULE_NAME
+              fi # if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
+            fi # if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
+
             maali_load_module "$MAALI_PREREQ_MODULE"
           done # for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
   
