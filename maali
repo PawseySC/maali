@@ -12,21 +12,24 @@ MAALI_VERSION="tip"
 # by default we are not a cray
 MAALI_CRAY=0
 
-if [ -f "/etc/SuSE-release" ]; then
-  if [ ! $CRAYOS_VERSION ]; then
-    # We are running SLES
-    MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
-    MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
-
-    MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
-  else
-    # We are a Cray
+if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
+  # We are a Cray
+  if [[ $CRAYOS_VERSION ]]; then
     MAALI_OS_VERSION=`echo $CRAYOS_VERSION | cut -d '.' -f 1,2 | sed -e 's/\.//g'`
-
-    MAALI_OS="cle$MAALI_OS_VERSION"
-
-    MAALI_CRAY=1
+  else
+    # Should be "grep CLERELEASE /etc/opt/cray/release/CLEinfo | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]"
+    MAALI_OS_VERSION=`grep CLERELEASE /etc/opt/cray/release/CLEinfo  | cut -d '=' -f 2 | cut -d '.' -f 1,2 | sed -e 's/\.//g'`
   fi
+
+  MAALI_OS="cle$MAALI_OS_VERSION"
+
+  MAALI_CRAY=1
+elif [ -f "/etc/SuSE-release" ]; then
+  # We are running SLES
+  MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
+  MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
+
+  MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
 elif [ -f "/etc/centos-release" ]; then
   MAALI_OS_VERSION=`cat /etc/centos-release  | cut -d ' ' -f 3 | cut -d '.' -f 1`
 
@@ -209,7 +212,7 @@ function maali_load_module {
     echo "  .. Unable to locate a modulefile $1"
     exit
   else
-    MAALI_TMP_FILE="/tmp/maali.$$.out"
+    MAALI_TMP_FILE="$TMPDIR/maali.$$.out"
     module load $1 >$MAALI_TMP_FILE 2>&1
     MAALI_MODULE_CONFLICT_CHECK=`grep 'conflicts with the currently loaded module' $MAALI_TMP_FILE | wc -l`
     cat $MAALI_TMP_FILE
@@ -1016,6 +1019,11 @@ do
      esac
 done
 
+## if [[ $MAALI_CRAY -eq 1 ]] && [[ SLURM_JOB_NODELIST != "" ]]; then
+##   # Native SLURM
+##   export TMPDIR=$MYSCRATCH/tmp
+## fi
+
 # user and group builds derive the following through MAALI_ROOT
 MAALI_BUILD_DIR="$MAALI_ROOT/build"
 MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
@@ -1542,13 +1550,50 @@ if [ "$MAALI_TOOL_CRAY_PRGENV" == "" ]; then
   fi
 fi
 
+# Save the MAALI_TOOL_COMPILERS for the cray builds
+MAALI_CRAY_TOOL_COMPILERS="$MAALI_TOOL_COMPILERS"
+
 if [ $MAALI_REMODULE -eq 0 ]; then
   # need to build for every PrgENV that we support
   for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
   
     if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
       # load the Cray Programming Environment
-  
+
+      # need to set MAALI_TOOL_COMPILERS to the compilers which match the PrgEnv
+      MAALI_CRAY_PRGENV_NAME=`echo "$MAALI_CRAY_PRGENV" | cut -d '/' -f 1`
+
+      if [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-gnu" ]; then
+        MAALI_CRAY_COMPILER_MATCH="gcc"
+      elif [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-intel" ]; then
+        MAALI_CRAY_COMPILER_MATCH="intel"
+      elif [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-cray" ]; then
+        MAALI_CRAY_COMPILER_MATCH="cce"
+      fi
+
+      MAALI_TOOL_COMPILERS=""
+
+      for MAALI_CRAY_TOOL_COMPILER in $MAALI_CRAY_TOOL_COMPILERS; do
+        MAALI_CRAY_TOOL_COMPILER_NAME=`echo "$MAALI_CRAY_TOOL_COMPILER" | cut -d '/' -f 1`
+        if [ "$MAALI_CRAY_TOOL_COMPILER_NAME" == "$MAALI_CRAY_COMPILER_MATCH" ]; then
+          if [ "$MAALI_TOOL_COMPILERS" == "" ]; then
+            MAALI_TOOL_COMPILERS="$MAALI_CRAY_TOOL_COMPILER"
+          else
+            MAALI_TOOL_COMPILERS="$MAALI_TOOL_COMPILERS $MAALI_CRAY_TOOL_COMPILER"
+          fi
+        fi
+      done
+
+      # defaults for the Cray environment
+      export CC=cc
+      export CXX=CC
+      export FC=ftn
+      export CRAYPE_LINK_TYPE=dynamic
+
+      if [ $DEBUG ]; then
+        maali_wiki "MAALI_TOOL_COMPILERS set to $MAALI_TOOL_COMPILERS"
+      fi
+
       if [ $DEBUG ]; then
         maali_wiki " .. before module load \$MAALI_CRAY_PRGENV"
         module list
@@ -1776,6 +1821,9 @@ if [ $MAALI_REMODULE -eq 0 ]; then
   
   done # for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
 fi # if [ ! $MAALI_REMODULE ]; then
+
+# Reset MAALI_TOOL_COMPILERS
+MAALI_TOOL_COMPILERS="$MAALI_CRAY_TOOL_COMPILERS"
 
 if [ $MAALI_UNINSTALL_REMOVE -eq 1 ]; then
   # move to remodule mode
