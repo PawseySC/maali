@@ -796,55 +796,63 @@ function maali_r_build {
 function maali_unpack {
   cd $MAALI_BUILD_DIR
 
-  if [ ! -f "$MAALI_DST" ]; then
-    echo "$MAALI_DST does not exit"
-    exit 1
-  fi
+  for MAALI_INDIVIDUAL_DST in $MAALI_DST; do
 
-  MAALI_DST_FILESIZE=$(stat -c%s "$MAALI_DST")
-  if [ $MAALI_DST_FILESIZE -eq 0 ]; then
-    echo "$MAALI_DST is 0 bytes big"
-    exit 1
-  fi
-
-  if [ $MAALI_UNPACK_MKDIR ]; then
-    maali_makedir "$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION"
-    cd "$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION"
-  fi
-
-  MAALI_TYPE=`file -b $MAALI_DST | cut -d ',' -f 1`
-
-  if [ "$MAALI_TYPE" = "bzip2 compressed data" ]; then
-    tar jxf $MAALI_DST
-  elif [ "$MAALI_TYPE" = "compress'd data 16 bits" ]; then
-    tar zxf $MAALI_DST
-  elif [ "$MAALI_TYPE" = "xz compressed data" -o "$MAALI_TYPE" = "XZ compressed data" ]; then
-    tar Jxf $MAALI_DST
-  elif [ "$MAALI_TYPE" = "gzip compressed data" ]; then
-    tar zxf $MAALI_DST
-
-    if [ $? -ne 0 ]; then
-      gzip -dc $MAALI_DST | tar zxf -
+    if [ ! -f "$MAALI_INDIVIDUAL_DST" ]; then
+      echo "$MAALI_INDIVIDUAL_DST does not exit"
+      exit 1
     fi
-  elif [ "$MAALI_TYPE" = "POSIX tar archive (GNU)" ]; then
-    tar xf $MAALI_DST
-  elif [ "$MAALI_TYPE" = "Zip archive data" ]; then
-    if [ "$MAALI_UNZIP_EXCLUDE" == "" ]; then
-      unzip -qq $MAALI_DST
+
+    MAALI_DST_FILESIZE=$(stat -c%s "$MAALI_INDIVIDUAL_DST")
+    if [ $MAALI_DST_FILESIZE -eq 0 ]; then
+      echo "$MAALI_INDIVIDUAL_DST is 0 bytes big"
+      exit 1
+    fi
+
+    if [ $MAALI_UNPACK_MKDIR ]; then
+      maali_makedir "$MAALI_TOOL_BUILD_DIR"
+      cd "$MAALI_TOOL_BUILD_DIR"
+    fi
+
+    MAALI_TYPE=`file -b $MAALI_INDIVIDUAL_DST | cut -d ',' -f 1`
+
+    if [ "$MAALI_TYPE" = "bzip2 compressed data" ]; then
+      tar jxf $MAALI_INDIVIDUAL_DST
+    elif [ "$MAALI_TYPE" = "compress'd data 16 bits" ]; then
+      tar zxf $MAALI_INDIVIDUAL_DST
+    elif [ "$MAALI_TYPE" = "xz compressed data" -o "$MAALI_TYPE" = "XZ compressed data" ]; then
+      tar Jxf $MAALI_INDIVIDUAL_DST
+    elif [ "$MAALI_TYPE" = "gzip compressed data" ]; then
+      if [ $MAALI_UNPACK_MKDIR ]; then
+        tar zxf $MAALI_INDIVIDUAL_DST --strip-components=1
+      else
+        tar zxf $MAALI_INDIVIDUAL_DST
+      fi
+
+      if [ $? -ne 0 ]; then
+        gzip -dc $MAALI_INDIVIDUAL_DST | tar zxf -
+      fi
+    elif [ "$MAALI_TYPE" = "POSIX tar archive (GNU)" ]; then
+      tar xf $MAALI_INDIVIDUAL_DST
+    elif [ "$MAALI_TYPE" = "Zip archive data" ]; then
+      if [ "$MAALI_UNZIP_EXCLUDE" == "" ]; then
+        unzip -qq $MAALI_INDIVIDUAL_DST
+      else
+        unzip -qq $MAALI_INDIVIDUAL_DST -x $MAALI_UNZIP_EXCLUDE
+      fi
     else
-      unzip -qq $MAALI_DST -x $MAALI_UNZIP_EXCLUDE
+      echo "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please e-mail help@ivec.org and lodge a feature request"
+      exit 1
     fi
-  else
-    echo "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please e-mail help@ivec.org and lodge a feature request"
-    exit 1
-  fi
 
-  if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
-    if [ "$IVEC_PROJECT" != "" ]; then
-      # this is only needed for /group
-      find $MAALI_TOOL_BUILD_DIR -type d -exec chmod g+s {} \;
+    if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
+      if [ "$IVEC_PROJECT" != "" ]; then
+        # this is only needed for /group
+        find $MAALI_TOOL_BUILD_DIR -type d -exec chmod g+s {} \;
+      fi
     fi
-  fi
+
+  done
 }
 
 ##############################################################################
@@ -1639,7 +1647,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
           maali_wiki " .. before module load \$MAALI_COMPILER"
           module list
         fi # if [ $DEBUG ]; then
-  
+
         if [ $MAALI_CRAY -eq 1 ]; then
           # check to see if the PrgEnv loaded the wrong compiler
           MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep $MAALI_COMPILER_NAME | wc -l`
