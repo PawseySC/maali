@@ -1132,7 +1132,7 @@ if [ "$MAALI_CONFIG" != "" ]; then
   fi
 fi
 
-# system builds require MAALI_USER_MAP and MAALI_BUILDER_UID to be defined
+# system builds require MAALI_BUILDER_UID to be defined
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   if [ -z $MAALI_BUILDER_UID ]; then
     echo "Please set MAALI_BUILDER_UID your uid so we can track who is building software on $MAALI_SYSTEM"
@@ -1146,13 +1146,26 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
     exit 1
   fi
 
-  echo "Running System build - checking user map file"
+  # attempt to derive the information from ldap
+  MAALI_BUILDER_BUILD_CN=`ldapsearch -LLL -x '(uid=$MAALI_BUILDER_UID)' cn | grep cn:`
+  MAALI_BUILDER_BUILD_MAIL=`ldapsearch -LLL -x '(uid=$MAALI_BUILDER_UID)'mail | grep mail:`
 
-  . "$MAALI_USER_MAP"  
+  if [[ "$MAALI_BUILDER_BUILD_CN" == "" ]] || [[ "$MAALI_BUILDER_BUILD_MAIL" = "" ]]; then
+    # use the MAALI_USER_MAP file
 
-  if [[ -z $MAALI_BUILDER_BUILD_CN ]] || [[ -z $MAALI_BUILDER_BUILD_MAIL ]]; then
-    echo "$MAALI_BUILDER_UID is not in the user map file"
-    exit 1
+    if [ -z $MAALI_USER_MAP ]; then
+      echo "MAALI_USER_MAP is undefined, exiting ..."
+      exit 1
+    fi
+
+    echo "Running System build - checking user map file"
+
+    . "$MAALI_USER_MAP"  
+
+    if [[ "$MAALI_BUILDER_BUILD_CN" == "" ]] || [[ "$MAALI_BUILDER_BUILD_MAIL" = "" ]]; then
+      echo "$MAALI_BUILDER_UID is not in the user map file"
+      exit 1
+    fi
   fi
 fi
 
