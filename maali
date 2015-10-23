@@ -1141,14 +1141,9 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
 
   maali_makedir "$HOME/.maali/$MAALI_OS/wiki"
 
-  if [ -z $MAALI_USER_MAP ]; then
-    echo "MAALI_USER_MAP is undefined, exiting ..."
-    exit 1
-  fi
-
   # attempt to derive the information from ldap
-  MAALI_BUILDER_BUILD_CN=`ldapsearch -LLL -x '(uid=$MAALI_BUILDER_UID)' cn | grep cn:`
-  MAALI_BUILDER_BUILD_MAIL=`ldapsearch -LLL -x '(uid=$MAALI_BUILDER_UID)'mail | grep mail:`
+  MAALI_BUILDER_BUILD_CN=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' cn | grep cn: | cut -d ' ' -f 2`
+  MAALI_BUILDER_BUILD_MAIL=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' mail | grep mail: | cut -d ' ' -f 2`
 
   if [[ "$MAALI_BUILDER_BUILD_CN" == "" ]] || [[ "$MAALI_BUILDER_BUILD_MAIL" = "" ]]; then
     # use the MAALI_USER_MAP file
