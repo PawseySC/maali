@@ -832,7 +832,7 @@ function maali_unpack {
       if [ $? -ne 0 ]; then
         gzip -dc $MAALI_INDIVIDUAL_DST | tar zxf -
       fi
-    elif [ "$MAALI_TYPE" = "POSIX tar archive (GNU)" ]; then
+    elif [[ "$MAALI_TYPE" = "POSIX tar archive (GNU)" ]] || [[ "$MAALI_TYPE" = "POSIX tar archive" ]] ; then
       tar xf $MAALI_INDIVIDUAL_DST
     elif [ "$MAALI_TYPE" = "Zip archive data" ]; then
       if [ "$MAALI_UNZIP_EXCLUDE" == "" ]; then
@@ -908,6 +908,7 @@ OPTIONS:
    -d      run in debug mode
    -c      maali configuration file
    -m      just create the module file
+   -l      use the options from the last run
    -r      build with the specified compiler (and no others)
    -b      build the tool, but don't create a module file
    -g      group build in /group/$PAWSEY_PROJECT/software
