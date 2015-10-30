@@ -841,7 +841,7 @@ function maali_unpack {
         unzip -qq $MAALI_INDIVIDUAL_DST -x $MAALI_UNZIP_EXCLUDE
       fi
     else
-      echo "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please e-mail help@ivec.org and lodge a feature request"
+      echo "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please please lodge a ticket at https://github/Pawseyops/maali."
       exit 1
     fi
 
@@ -1333,6 +1333,9 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
 
   MAALI_CYGNET_FILEPATH="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
   MAALI_FILES_PATH="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME"
+
+  echo "Downloading cygnet file from $MAALI_CYGNET_FILES_URL to $MAALI_CYGNET_FILEPATH"
+
 
   maali_git_download "$MAALI_FILES_PATH" "$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
 
