@@ -718,8 +718,6 @@ EOF
     if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
       maali_run "chmod 750 $MAALI_TOOL_MODULE_DIR"
       maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE_DIR"
-      maali_run "chmod 640 $MAALI_TOOL_MODULE_DIR/.version"
-      maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE_DIR/.version"
       maali_run "chmod 640 $MAALI_TOOL_MODULE"
       maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE"
 
@@ -1910,6 +1908,19 @@ else
 ##
 set ModulesVersion "$MAALI_TOOL_VERSION"
 EOF
+
+      if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+        if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
+          maali_run "chmod 640 $MAALI_TOOL_MODULE_DIR/.version"
+          maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE_DIR/.version"
+
+          if [ -f "$MAALI_TOOL_MODULE_DIR/.version~" ]; then
+            maali_run "chmod 640 $MAALI_TOOL_MODULE_DIR/.version~"
+            maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE_DIR/.version~"
+          fi
+        fi
+      fi
+
 
       if [ $DEBUG ]; then
         if [ -f "$MAALI_TOOL_MODULE_DIR/.version~" ]; then
