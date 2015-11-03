@@ -89,7 +89,7 @@ function maali_cmake_build {
 function maali_download {
 
   if [[ "$MAALI_URL" == "" ]] && [[ ! -f $MAALI_DST ]]; then
-    echo "There is no URL defined for ${MAALI_TOOL_NAME}, you will need to copy the source to $MAALI_DST before compling"
+    echo "There is no URL defined for ${MAALI_TOOL_NAME}, you will need to copy the source to $MAALI_DST before compiling ${MAALI_TOOL_NAME}"
     exit 1
   fi
 
@@ -545,12 +545,12 @@ EOF
 
       for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
         if [ "$MAALI_SYSTEM_CUDA_VERSION" == "$MAALI_TOOL_CUDA_COMPILER" ]; then
-            MAALI_CRAY_CPU_TARGET_FOUND_MATCH=1
+            MAALI_SYSTEM_CUDA_VERSION_MATCH=1
         fi
       done
 
       # if not found in list, force conflict
-      if [ $MAALI_CRAY_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
+      if [ $MAALI_SYSTEM_CUDA_VERSION_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
 conflict $MAALI_SYSTEM_CUDA_VERSION
 EOF
@@ -823,11 +823,7 @@ function maali_unpack {
     elif [ "$MAALI_TYPE" = "xz compressed data" -o "$MAALI_TYPE" = "XZ compressed data" ]; then
       tar Jxf $MAALI_INDIVIDUAL_DST
     elif [ "$MAALI_TYPE" = "gzip compressed data" ]; then
-      if [ $MAALI_UNPACK_MKDIR ]; then
-        tar zxf $MAALI_INDIVIDUAL_DST --strip-components=1
-      else
-        tar zxf $MAALI_INDIVIDUAL_DST
-      fi
+      tar zxf $MAALI_INDIVIDUAL_DST
 
       if [ $? -ne 0 ]; then
         gzip -dc $MAALI_INDIVIDUAL_DST | tar zxf -
