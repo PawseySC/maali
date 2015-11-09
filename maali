@@ -1402,9 +1402,12 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
 
   # make the -p redundant
   if [ "$MAALI_COMPILER_NAME" == "python" ]; then
-    echo ".. detected python compiler, setting MAALI_PYTHON_TOOL and MAALI_TOOL_TYPE to python"
+    echo ".. detected python compiler, setting MAALI_PYTHON_TOOL"
     MAALI_PYTHON_TOOL=1
-    MAALI_TOOL_TYPE="python"
+    if [ $MAALI_TOOL_TYPE == "" ]; then
+      echo "  .. and MAALI_TOOL_TYPE to python"
+      MAALI_TOOL_TYPE="python"
+    fi
 
     if [ "$MAALI_MODULE_SET_PYTHONPATH" == "" ]; then
       MAALI_MODULE_SET_PYTHONPATH=1
