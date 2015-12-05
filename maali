@@ -1657,7 +1657,8 @@ if [ $MAALI_REMODULE -eq 0 ]; then
 
         if [ $MAALI_CRAY -eq 1 ]; then
           # check to see if the PrgEnv loaded the wrong compiler
-          MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep $MAALI_COMPILER_NAME | wc -l`
+          MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep -v PrgEnv | grep $MAALI_COMPILER_NAME | wc -l`
+          
           if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
             module unload $MAALI_COMPILER_NAME
           fi # if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
