@@ -1978,7 +1978,7 @@ EOF
   fi
 fi
 
-echo "Complete - Built $MAALI_TOOL_NAME version $MAALI_TOOL_VERION with MAALI v$MAALI_VERSION"
+echo "Complete - Built $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION with MAALI v$MAALI_VERSION"
 
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   # create a list of software that has been built
