@@ -17,8 +17,7 @@ if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
   if [[ $CRAYOS_VERSION ]]; then
     MAALI_OS_VERSION=`echo $CRAYOS_VERSION | cut -d '.' -f 1,2 | sed -e 's/\.//g'`
   else
-    # Should be "grep CLERELEASE /etc/opt/cray/release/CLEinfo | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]"
-    MAALI_OS_VERSION=`grep CLERELEASE /etc/opt/cray/release/CLEinfo  | cut -d '=' -f 2 | cut -d '.' -f 1,2 | sed -e 's/\.//g'`
+    MAALI_OS_VERSION=`grep CLERELEASE /etc/opt/cray/release/CLEinfo | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]`
   fi
 
   MAALI_OS="cle$MAALI_OS_VERSION"
@@ -670,7 +669,7 @@ EOF
         CPATH | C_INCLUDE_PATH | CPLUS_INCLUDE_PATH | FPATH | FCPATH | INCLUDE_PATH | INTEL_INC_PATH )
           MAALI_MODULE_VARIABLE_DIR="include"
           ;;
-        PKG_CONFIG_PATH)
+        PKG_CONFIG_PATH | PKGCONFIG )
           MAALI_MODULE_VARIABLE_DIR="lib/pkgconfig"
           ;;
         MANPATH)
