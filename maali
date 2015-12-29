@@ -14,11 +14,7 @@ MAALI_CRAY=0
 
 if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
   # We are a Cray
-  if [[ $CRAYOS_VERSION ]]; then
-    MAALI_OS_VERSION=`echo $CRAYOS_VERSION | cut -d '.' -f 1,2 | sed -e 's/\.//g'`
-  else
-    MAALI_OS_VERSION=`grep CLERELEASE /etc/opt/cray/release/CLEinfo | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]`
-  fi
+  MAALI_OS_VERSION=`grep CLERELEASE /etc/opt/cray/release/CLEinfo | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]`
 
   MAALI_OS="cle$MAALI_OS_VERSION"
 
@@ -1255,10 +1251,6 @@ for MAALI_MODULE in $MAALI_REQUIRED_SYSTEM_MODULES; do
   module load $MAALI_MODULE
 done
 
-if [ -z $MAALI_TOOL_TYPE ]; then
-  MAALI_TOOL_TYPE="apps"
-fi
-
 # make sure we have a directory to download our source code
 maali_makedir "$MAALI_SRC"
 
@@ -1403,7 +1395,7 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
   if [ "$MAALI_COMPILER_NAME" == "python" ]; then
     echo ".. detected python compiler, setting MAALI_PYTHON_TOOL"
     MAALI_PYTHON_TOOL=1
-    if [ $MAALI_TOOL_TYPE == "" ]; then
+    if [ -z $MAALI_TOOL_TYPE ]; then
       echo "  .. and MAALI_TOOL_TYPE to python"
       MAALI_TOOL_TYPE="python"
     fi
@@ -1425,6 +1417,10 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
     break
   fi
 done
+
+if [ -z $MAALI_TOOL_TYPE ]; then
+  MAALI_TOOL_TYPE="apps"
+fi
 
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   # create a wiki page to help David
@@ -1451,7 +1447,7 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
         elif [ $MAALI_R_TOOL ]; then
           MAALI_COMPILER_VERSION=`R --version | grep 'R version' 2>&1`
         else
-          if [ $CRAYOS_VERSION ]; then
+          if [ $MAALI_CRAY ]; then
             MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
 
             if [ "$MAALI_COMPILER_NAME" == "PrgEnv-cray" ]; then
