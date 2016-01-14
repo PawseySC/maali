@@ -83,11 +83,6 @@ function maali_cmake_build {
 
 function maali_download {
 
-  if [[ "$MAALI_URL" == "" ]] && [[ ! -f $MAALI_DST ]]; then
-    echo "There is no URL defined for ${MAALI_TOOL_NAME}, you will need to copy the source to $MAALI_DST before compiling ${MAALI_TOOL_NAME}"
-    exit 1
-  fi
-
   i=0;
   for MAALI_TMP_URL in $MAALI_URL ; do
      MAALI_URL_ARRAY[$i]=$MAALI_TMP_URL
@@ -99,6 +94,19 @@ function maali_download {
      MAALI_DST_ARRAY[$i]=$MAALI_TMP_DST
     (( i++ ))
   done
+
+  if [[ "$MAALI_URL" == "" ]]; then
+    MAALI_DST_COUNT=${#MAALI_DST_ARRAY[@]}
+    echo $MAALI_DST_COUNT
+    for (( i=0; i<$MAALI_DST_COUNT; i++ ))
+    do
+      MAALI_TMP_DST=${MAALI_DST_ARRAY[$i]}
+      if [[ ! -f $MAALI_TMP_DST ]]; then
+        echo "There is no URL defined for ${MAALI_TOOL_NAME}, you will need to copy the source to $MAALI_TMP_DST before compiling ${MAALI_TOOL_NAME}"
+        exit 1
+      fi
+    done
+  fi
 
   if [[ $MAALI_URL =~ .python.org ]] ; then
     MAALI_WGET_CMD="wget --no-check-certificate"
@@ -254,13 +262,13 @@ function maali_makedir {
 
       mkdir "$MAALI_DIR_PATH"
 
-      if [ "$IVEC_PROJECT" != "" ]; then
+      if [ "$PAWSEY_PROJECT" != "" ]; then
         if [[ ! "$MAALI_DIR_PATH" =~ "/home" ]]; then
           if [[ "$MAALI_TOOL_LOG" != "" ]] && [[ -f "$MAALI_TOOL_LOG" ]]; then
-            echo "-- Changing group ownership to $IVEC_PROJECT and setting sticky bit" >> "$MAALI_TOOL_LOG"
+            echo "-- Changing group ownership to $PAWSEY_PROJECT and setting sticky bit" >> "$MAALI_TOOL_LOG"
           fi
 
-          chgrp $IVEC_PROJECT "$MAALI_DIR_PATH"
+          chgrp $PAWSEY_PROJECT "$MAALI_DIR_PATH"
           chmod g+s "$MAALI_DIR_PATH"
         fi
       fi
@@ -457,7 +465,7 @@ EOF
   fi
 
   # conflict for craype
-  if [ "$MAALI_CRAY_CPU_TARGET" != "na" ]; then
+  if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
     MAALI_SUPPORTED_CRAY_CPU_TARGETS="sandybridge ivybridge haswell"
 
     for MAALI_CRAY_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CRAY_CPU_TARGETS; do
@@ -835,7 +843,7 @@ function maali_unpack {
     fi
 
     if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
-      if [ "$IVEC_PROJECT" != "" ]; then
+      if [ "$PAWSEY_PROJECT" != "" ]; then
         # this is only needed for /group
         find $MAALI_TOOL_BUILD_DIR -type d -exec chmod g+s {} \;
       fi
@@ -869,6 +877,8 @@ function log {
 
 function removedir {
   if [ -d "$1" ]; then
+    # make sure permissions on everything is correct
+    find $1 -exec chmod 700 {} \;
     rm -fr "$1"
   fi
 }
@@ -1688,17 +1698,17 @@ if [ $MAALI_REMODULE -eq 0 ]; then
         for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
 
           if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
-             # load the CUDA environment
+            # load the CUDA environment
 
-             if [ $DEBUG ]; then
-               maali_wiki " .. before module load \$MAALI_TOOL_CUDA_COMPILER"
-               module list
-             fi # if [ $DEBUG ]; then
-             maali_load_module "$MAALI_TOOL_CUDA_COMPILER"
-             if [ $DEBUG ]; then
-               maali_wiki " .. after module load \$MAALI_TOOL_CUDA_COMPILER"
-               module list
-             fi # 
+            if [ $DEBUG ]; then
+              maali_wiki " .. before module load \$MAALI_TOOL_CUDA_COMPILER"
+              module list
+            fi # if [ $DEBUG ]; then
+            maali_load_module "$MAALI_TOOL_CUDA_COMPILER"
+            if [ $DEBUG ]; then
+              maali_wiki " .. after module load \$MAALI_TOOL_CUDA_COMPILER"
+              module list
+            fi # if [ $DEBUG ]; then 
 
           fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
   
@@ -1805,6 +1815,12 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             maali_wiki "  .. unloading $MAALI_PREREQ_MODULE"
             module unload $MAALI_PREREQ_MODULE
           done
+
+          if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
+            # unload the CUDA environment
+
+            module unload "$MAALI_TOOL_CUDA_COMPILER"
+          fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
 
         done # for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
   
