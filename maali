@@ -936,9 +936,9 @@ OPTIONS:
    -l      use the options from the last run
    -r      build with the specified compiler (and no others)
    -b      build the tool, but don't create a module file
-   -g      group build in /group/$PAWSEY_PROJECT/software
+   -g      group build in /group/$PAWSEY_PROJECT/software/$MAALI_OS
    -s      activate system build
-   -w      workstation build in $HOME/software
+   -w      workstation build in $HOME/software/$MAALI_OS
    -a      activate this version as the default version
    -f      force download from github
    -u      unistall by hiding the module
@@ -1016,7 +1016,7 @@ do
              MAALI_REBUILD=1
              ;;
          g)
-             MAALI_ROOT="/group/$PAWSEY_PROJECT/software"
+             MAALI_ROOT="/group/$PAWSEY_PROJECT/software/$MAALI_OS"
              MAALI_GROUP_BUILD="YES"
              ;;
          s)
@@ -1025,7 +1025,7 @@ do
              MAALI_SYSTEM_BUILD="YES"
              ;;
          w)
-             MAALI_ROOT="$HOME/software"
+             MAALI_ROOT="$HOME/software/$MAALI_OS"
              ;;
          a)
              MAALI_MAKE_VERSION_DEFAULT=1
