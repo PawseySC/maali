@@ -863,6 +863,8 @@ function maali_unpack {
       else
         unzip -qq $MAALI_INDIVIDUAL_DST -x $MAALI_UNZIP_EXCLUDE
       fi
+    elif [ "$MAALI_TYPE" = "ASCII C program text" ]; then
+      cp "$MAALI_INDIVIDUAL_DST" "$MAALI_TOOL_BUILD_DIR"
     else
       echo "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please please lodge a ticket at https://github/Pawseyops/maali."
       exit 1
