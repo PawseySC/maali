@@ -43,7 +43,6 @@ elif [ -f "/etc/os-release" ]; then
 elif [ -f "/etc/redhat-release" ]; then
   MAALI_OS_VERSION=`cat /etc/redhat-release | awk '{print $4;}'`
   MAALI_OS="scientific_linux$MAALI_OS_VERSION"
-elif [ -f "/etc
 else
   echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
   exit 1
