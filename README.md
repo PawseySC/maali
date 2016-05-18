@@ -54,8 +54,7 @@ for example
 /$MAALI_ROOT/$MAALI_OS/src - This is where we save all the src packages that 
                              are downloaded for each build.
 /$MAALI_ROOT/$MAALI_OS/tools - This is where on maali is installed
-/$MAALI_ROOT/$MAALI_OS/modulefiles - the environment module files are located he
-re.
+/$MAALI_ROOT/$MAALI_OS/modulefiles - the environment module files are located here.
 
 In the application directory (/$MAALI_ROOT/$MAALI_OS/apps) we create the main 
 branches for different compilers 
