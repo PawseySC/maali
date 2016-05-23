@@ -2086,9 +2086,9 @@ else
     if [ -f "$MAALI_TOOL_MODULE" ]; then
       cp $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
     fi
-echo " call maali_module echo $PATH - line 2080" 
+
     maali_module
-echo " exit maali_ module - line 2082" 
+
     # make this version the default if there is no other
     if [ ! -f "$MAALI_TOOL_MODULE_DIR/.version" -o $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then
 
