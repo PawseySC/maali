@@ -6,6 +6,19 @@
 MAALI_VERSION="tip"
 
 ##############################################################################
+function maali_wiki {
+  # echo to screen and add to wiki
+  echo $1
+
+  if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+    if [ $MAALI_REMODULE -eq 0 ]; then
+      echo $1 >> $MAALI_WIKI_SRC
+    fi
+  fi
+}
+
+
+##############################################################################
 # Rudimentary Operating System detecting which can be overriden by setting
 # MAALI_OS to a value of your choosing
 
@@ -30,7 +43,6 @@ elif [ -f "/etc/centos-release" ]; then
 
 elif [[ -f "/etc/os-release" ]]; then
   # This works for ubuntu, fedora and debian linux images
-  echo "wtf!"
   NAME=`grep -w ID /etc/os-release | cut -d '=' -f 2`
   MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
   if [[ "${NAME}" == "ubuntu" ]]; then
@@ -51,7 +63,7 @@ else
   echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
   exit 1
 fi
-echo "MAALI_OS is $MAALI_OS"
+maali_wiki "MAALI_OS is $MAALI_OS"
 ##############################################################################
 # these are global
 
@@ -61,8 +73,8 @@ MAALI_CYGNET_DIR_NAME='cygnet_files'
 MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 
 if [ ! $MYGROUP ]; then
-   echo " MYGROUP is not defined this is not on the Pawsey HPC file system line "
-   echo " root is $MAALI_ROOT as set by system.config "
+   maali_wiki " MYGROUP is not defined this is not on the Pawsey HPC file system line "
+   maali_wiki " root is $MAALI_ROOT as set by a system.config file"
 else 
 # At the Pawsey Supercomputing Center MYGROUP is a custom system variable
 # /group/projectID where /group is parallel filesystem for storing job outputs
@@ -177,7 +189,7 @@ function maali_genpkgconfig {
     if [ ! -f "$MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc" ]; then
       cat <<EOF > $MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc
 Name: $MAALI_TOOL_NAME
-Description: $MAALI_TOOL_NAME's library ${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}
+Description: $MAALI_TOOL_NAME library ${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}
 Version: $MAALI_TOOL_VERSION
 
 prefix=$MAALI_INSTALL_DIR
@@ -909,18 +921,6 @@ function maali_unpack {
 
 ##############################################################################
 
-function maali_wiki {
-  # echo to screen and add to wiki
-  echo $1
-
-  if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
-    if [ $MAALI_REMODULE -eq 0 ]; then
-      echo $1 >> $MAALI_WIKI_SRC
-    fi
-  fi
-}
-
-##############################################################################
 
 function log {
   echo "#####################################################################" >>$MAALI_TOOL_LOG
@@ -1023,7 +1023,7 @@ proc ModulesHelp { } {
   puts stderr "\tThe following env variables are set:"
   puts stderr "\t\t\$COMPILER, \$COMPILER_VER, \$CC, \$FC"
   puts stderr "\t The following env variables are modified:"
-  puts stderr "\t\t\$PATH, \$MANPATH, \$LD_LIBRARY_PATH
+  puts stderr "\t\t\$PATH, \$MANPATH, \$LD_LIBRARY_PATH"
 }
 
 # conflict compilers
@@ -1062,7 +1062,7 @@ OPTIONS:
    -m      just create the module file
    -l      use the options from the last run
    -r      build with the specified compiler (and no others)
-   -b      build the tool, but don't create a module file
+   -b      build the tool, but do not create a module file
    -g      group build in /group/$PAWSEY_PROJECT/software/$MAALI_OS
    -s      activate system build
    -w      workstation build in $HOME/software/$MAALI_OS
@@ -2048,7 +2048,7 @@ else
   elif [ $MAALI_UNINSTALL_HIDE -eq 1 ]; then
     echo "hiding the module in $MAALI_TOOL_MODULE_DIR"
   else
-    echo "creating module in $MAALI_TOOL_MODULE_DIR"
+    echo "creating module in $MAALI_TOOL_MODULE_DIR line 2050 "
   fi
 fi
 
