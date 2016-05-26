@@ -9,20 +9,20 @@ Reference guide to what is happening under the hood with Maali.
 ### function maali_cmake_build
    starts on line 88
    this th
-* function maali_download
-* function maali_genpkgconfig
-* function maali_git_download
-* function maali_load_module
-* function maali_makedir
-* function maali_module
-* function maali_python_build
-* function maali_run
-* function maali_r_build
-* function maali_unpack
-* function maali_wiki
-* function log
-* function removedir
-* function removefile
+### function maali_download
+### function maali_genpkgconfig
+### function maali_git_download
+### function maali_load_module
+### function maali_makedir
+### function maali_module
+### function maali_python_build
+### function maali_run
+### function maali_r_build
+### function maali_unpack
+### function maali_wiki
+### function log
+### function removedir
+### function removefile
 
 ## what is happening when maali is installing itself
 
@@ -256,3 +256,15 @@ loop over MAALI_TOOL_COMPILERS
        define MAALI_TOOL_TYPE is **python**
     if MAALI_MODULE_SET_PYTHONPATH is and empty string ""
        set MAALI_MODULE_SET_PYTHONPATH 1
+
+
+
+
+
+
+### How are environment modules are created in MAALI?
+
+
+
+
+Line 2048 creating module using  $MAALI_TOOL_MODULE_DIR
