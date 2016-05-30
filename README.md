@@ -12,15 +12,15 @@ where `gcc/4.8.3` and `intel/15.0.0` are modulefiles for GCC 4.8.3 and the Intel
 For Cray Systems we use something like:
 
 ```
-MAALI_MODULE_SET_MAALI_DEFAULT_CRAY_PRGENVS='PrgEnv-cray/5.2.25 PrgEnv-gnu/5.2.25 PrgEnv-intel/5.2.25' \
-MAALI_MODULE_SET_MAALI_DEFAULT_CRAY_PES='craype-sandybridge craype-ivybridge craype-haswell' \
-MAALI_MODULE_SET_MAALI_DEFAULT_COMPILERS='gcc/4.8.2 gcc/4.9.2 intel/14.0.1.106 cce/8.3.0 cce/8.3.12' \
-MAALI_MODULE_SET_MAALI_DEFAULT_PYTHON='python/2.6.9 python/2.7.10' \
+MAALI_DEFAULT_CRAY_PRGENVS='PrgEnv-cray/5.2.25 PrgEnv-gnu/5.2.25 PrgEnv-intel/5.2.25' \
+MAALI_DEFAULT_CRAY_PES='craype-sandybridge craype-ivybridge craype-haswell' \
+MAALI_DEFAULT_COMPILERS='gcc/4.8.2 gcc/4.9.2 intel/14.0.1.106 cce/8.3.0 cce/8.3.12' \
+MAALI_DEFAULT_PYTHON='python/2.6.9 python/2.7.10' \
 ./maali -t maali -v 1.0b1
 ```
 
 ##  Maali instructions 
-Maali is used to automate the make/cmake builds and the creation of  environment modules.
+Maali is used to automate the make/cmake builds and the creation of environment modules.
 The build scripts are called by maali to configure, compile and install software for HPC systems.
 Maali is the result of efforts led by Chris Bording, Christopher Harris and  David Schibeci
 
