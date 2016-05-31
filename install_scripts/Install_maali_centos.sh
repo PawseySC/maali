@@ -15,10 +15,13 @@ sudo yum -y install emacs emacs-common emacs-goodies-el
 sudo yum -y install bc wget make environment-modules
 
 # install the default gnu compilers
-# to find the the version number "gcc -V"
+# to find the the version number "gcc -v"
 sudo yum -y install gcc gcc-gfortran gcc-c++ libgomp
 
 
-
+if [ -d "/nectar" ]; then
+  sudo mkdir /nectar
+  sudo chown -R ec2-user /nectar
+fi 
 
 
