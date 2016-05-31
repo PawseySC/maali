@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # update your current image from the repo 
-# This is will ensure that the yum installs will work!
-sudo yum update
+# This is will ensure that the following package managment installs will work!
+sudo yum -y update
 
 # install to allow x11 forwarding of gui interfaces
 sudo yum -y install xorg-x11-xauth xorg-x11-apps 
@@ -16,7 +16,7 @@ sudo yum -y install bc wget make environment-modules
 
 # install the default gnu compilers
 # to find the the version number "gcc -V"
-sudo yum -y install gcc gcc-gfortran gcc-c++ 
+sudo yum -y install gcc gcc-gfortran gcc-c++ libgomp
 
 
 
