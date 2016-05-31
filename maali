@@ -42,13 +42,14 @@ elif [ -f "/etc/centos-release" ]; then
   MAALI_OS="centos$MAALI_OS_VERSION"
 
 elif [ -f "/etc/debian_version" ]; then
-  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cud -d '=' -f 2 | sed -e's/"//g'`
+  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
   MAALI_OS="debian$MAALI_OS_VESION"
 
 elif [[ -f "/etc/os-release" ]]; then
   # This works for ubuntu, fedora and debian linux images
   NAME=`grep -w ID /etc/os-release | cut -d '=' -f 2`
   MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
+
   if [[ "${NAME}" == "ubuntu" ]]; then
     MAALI_OS="ubuntu$MAALI_OS_VERSION"
 
@@ -59,12 +60,11 @@ elif [[ -f "/etc/os-release" ]]; then
 #   elif [[ "$NAME" == "debian" ]]; then
 #    MAALI_OS="debian$MAALI_OS_VERSION"
 #  fi
-
 #elif [ -f "/etc/redhat-release" ]; then
 #  MAALI_OS_VERSION=`cat /etc/redhat-release | awk '{print $4;}'`
 #  MAALI_OS="scientific_linux$MAALI_OS_VERSION"
 #fi    
-else
+elif [ -z "${MAALI_OS}" ]; then
   echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
   exit 1
 fi
