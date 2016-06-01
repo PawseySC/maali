@@ -19,7 +19,7 @@ sudo yum -y install bc wget make environment-modules
 sudo yum -y install gcc gcc-gfortran gcc-c++ libgomp
 
 
-if [ -d "/nectar" ]; then
+if [ ! -d "/nectar" ]; then
   sudo mkdir /nectar
   sudo chown -R ec2-user /nectar
 fi 
