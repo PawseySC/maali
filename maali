@@ -1022,11 +1022,18 @@ function install_default_compiler_modules {
 function create_gcc_compiler_module {
     echo "create gnu module ${1}"
  
-    COMPILER_MODULE=$MAALI_MODULE_DIR/devel/${1}
     COMP_NAME=`echo $1 | cut -d '/' -f 1`
     COMP_VER=`echo $1 | cut -d '/' -f 2`
 #    echo " name $COMP_NAME ver $COMP_VER"
-    echo "${COMPILER_MODULE}  $MAALI_MODULE_DIR/devel/${COMP_NAME}"
+    CHECK_VER=`gcc -v &> tmp; grep -E "gcc version" tmp | awk '{print $3;}'`
+    if [[ "${CHECK_VER}" != "${COMP_VER}" ]]; then
+      COMP_VER=${CHECK_VER}
+    fi
+    rm tmp
+
+    echo " will install $COMP_NAME ver $COMP_VER"
+    echo " in  $MAALI_MODULE_DIR/devel/${COMP_NAME}"
+
     maali_makedir "$MAALI_MODULE_DIR/devel/${COMP_NAME}"
     
     if [ -d "${MAALI_MODULE_DIR}/devel/${COMP_NAME}" ]; then
@@ -1034,7 +1041,7 @@ function create_gcc_compiler_module {
     fi
     echo ""
 
-    cat <<EOF >>$COMPILER_MODULE
+    cat <<EOF >>${MAALI_MODULE_DIR}/devel/${COMP_NAME}/${COMP_VER}
 #%Module1.0######################################################################
 #
 # $MAALI_TOOL_NAME modulefile
