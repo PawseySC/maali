@@ -37,26 +37,33 @@ elif [ -f "/etc/SuSE-release" ]; then
   MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
   MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
 
-elif [ -f "/etc/centos-release" ]; then
-  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
-  MAALI_OS="centos$MAALI_OS_VERSION"
+#elif [ -f "/etc/centos-release" ]; then
+#  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
+#  MAALI_OS="centos$MAALI_OS_VERSION"
 
 elif [[ -f "/etc/os-release" ]]; then
   # This works for ubuntu, fedora and debian linux images
   NAME=`grep -w ID /etc/os-release | cut -d '=' -f 2`
-  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
-
+ 
   if [[ "${NAME}" == "ubuntu" ]]; then
-    MAALI_OS="ubuntu$MAALI_OS_VERSION"
+      MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
+      MAALI_OS="ubuntu$MAALI_OS_VERSION"
 
   elif [[ "$NAME" == "fedora" ]]; then
-    MAALI_OS_VERSION=`grep -w VERSION_ID /etc/os-release | cut -d '=' -f 2`
-    MAALI_OS="fedora$MAALI_OS_VERSION"
+      MAALI_OS_VERSION=`grep -w VERSION_ID /etc/os-release | cut -d '=' -f 2`
+      MAALI_OS="fedora$MAALI_OS_VERSION"
 
   elif [[ "$NAME" == "debian" ]]; then
-    MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
-    MAALI_OS="debian$MAALI_OS_VESION"   
+      MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
+      MAALI_OS="debian$MAALI_OS_VESION"   
+    
+  elif [[ "$NAME" == "centos" ]]; then
+      MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
+      MAALI_OS="centos$MAALI_OS_VERSION"
   fi
+  
+#  elif [[ "$NAME" == "centos" ]]; then
+
 
 #elif [ -f "/etc/redhat-release" ]; then
 #  MAALI_OS_VERSION=`cat /etc/redhat-release | awk '{print $4;}'`
@@ -1051,7 +1058,7 @@ module-whatis "Loads the [module-info name] environment"
 set     prefix                  /usr/bin
 prepend-path MANPATH 		/usr/share/man
 setenv 	COMPILER 		$COMP_NAME
-setenv	COMPILER_VERSION  	$COMP_VER
+setenv	COMPILER_VER  	        $COMP_VER
 setenv  CC			\$prefix/gcc
 setenv  FC			\$prefix/gfortran
 setenv  CXX			\$prefix/g++
@@ -1571,7 +1578,7 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   MAALI_FOUND_CYGENT=1
 
 fi
-echo " exit test and download cygnet files line 1524 "
+echo " exit test and download cygnet files line 1574 "
 
 # source the cygnet file
 . $MAALI_CYGNET_FILEPATH
@@ -1667,7 +1674,7 @@ if [ -z $MAALI_TOOL_TYPE ]; then
   MAALI_TOOL_TYPE="apps"
 fi
 echo " "
-echo " set tool type to apps line-1619 "
+echo " set tool type to apps line-1670 "
 echo " "
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   # create a wiki page to help David
@@ -1781,9 +1788,9 @@ elif [[ ${MAALI_WS_BUILD} -eq 1 ]]; then
     # This being set during the intial maali install so all the paths come out right"
     if [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then         
 	MAALI_TOOL_TYPE="tools"
-        MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
-        MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_TYPE/$MAALI_TOOL_NAME"
-    fi 
+    fi
+    MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
+    MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_TYPE/$MAALI_TOOL_NAME" 
   fi
 else
   echo "Warning: non-system build detected, overriding MAALI_TOOL_TYPE (currently $MAALI_TOOL_TYPE) "
