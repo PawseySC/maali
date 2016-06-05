@@ -1045,7 +1045,7 @@ function create_gcc_compiler_module {
 proc ModulesHelp { } {
   puts stderr "\t[module-info name] - Loads the compiler env variables"
   puts stderr "\tThe following env variables are set:"
-  puts stderr "\t\t\$COMPILER, \$COMPILER_VER, \$CC, \$FC"
+  puts stderr "\t\$COMPILER, \$COMPILER_VER, \$CC, \$FC, \$F77, \$F90, \$F95 and \$F9X"
   puts stderr "\t The following env variables are modified:"
   puts stderr "\t\t\$PATH, \$MANPATH, \$LD_LIBRARY_PATH"
 }
@@ -1056,13 +1056,18 @@ module-whatis "Loads the [module-info name] environment"
 
 # Tcl script use only
 set     prefix                  /usr/bin
+
 prepend-path MANPATH 		/usr/share/man
+setenv  MAALI_SYSTEMGCC_HOME    /usr
 setenv 	COMPILER 		$COMP_NAME
 setenv	COMPILER_VER  	        $COMP_VER
 setenv  CC			\$prefix/gcc
 setenv  FC			\$prefix/gfortran
 setenv  CXX			\$prefix/g++
 setenv  F77			\$prefix/gfortran
+setenv  F90                     \$prefix/gfortran
+setenv  F95                     \$prefix/gfortran
+setenv  F9X                     \$prefix/gfortran
 
 EOF
 }

@@ -20,7 +20,7 @@ sudo apt-get -y install bc wget make environment-modules
 sudo apt-get -y install gcc-4.8 gfortran-4.8 g++-4.8 libgomp1
 
 
-if [ -d "/nectar" ]; then
+if [ ! -d "/nectar" ]; then
   sudo mkdir /nectar
   sudo chown -R debian /nectar
 fi
