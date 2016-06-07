@@ -6,6 +6,18 @@
 MAALI_VERSION="tip"
 
 ##############################################################################
+function maali_wiki {
+  # echo to screen and add to wiki
+  echo $1
+
+  if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+    if [ $MAALI_REMODULE -eq 0 ]; then
+      echo $1 >> $MAALI_WIKI_SRC
+    fi
+  fi
+}
+
+##############################################################################
 # Rudimentary Operating System detecting which can be overriden by setting
 # MAALI_OS to a value of your choosing
 
@@ -23,30 +35,38 @@ elif [ -f "/etc/SuSE-release" ]; then
   # We are running SLES
   MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
   MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
-
   MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
-elif [ -f "/etc/centos-release" ]; then
-  MAALI_OS_VERSION=`cat /etc/centos-release  | cut -d ' ' -f 3 | cut -d '.' -f 1`
 
-  MAALI_OS="centos$MAALI_OS_VERSION"
-#elif [ -f "/etc/os-release" ]; then
-  # This works for ubuntu, fedora and debian linux images
-#  NAME=`grep ID /etc/os-release | cut -d '=' -f 2`
-#  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
-#  if [[ "${NAME}" == "ubuntu" ]]; then
-#    MAALI_OS="ubuntu$MAALI_OS_VERSION"
-#  elif [[ "$NAME" == "fedora" ]]; then
-#    MAALI_OS="fedora$MAALI_OS_VERSION"
-#  elif [[ "$NAME" == "debian" ]]; then
-#    MAALI_OS="debian$MAALI_OS_VERSION"
-#  fi
+elif [ -f "/etc/os-release" ]; then
+ # This works for centos, debian, fedora and  ubuntu linux images
+    NAME=`grep ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g' ` 
+
+    if [[ "${NAME}" == "ubuntu" ]]; then
+	MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
+	MAALI_OS="ubuntu$MAALI_OS_VERSION"
+
+    elif [[ "$NAME" == "fedora" ]]; then
+	MAALI_OS_VERSION=`grep -w VERSION_ID /etc/os-release | cut -d '=' -f 2 `
+	MAALI_OS="fedora$MAALI_OS_VERSION"
+
+    elif [[ "$NAME" == "debian" ]]; then
+	MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
+	MAALI_OS="debian$MAALI_OS_VERSION"
+
+    elif [[ "$NAME" == "centos" ]]; then
+	MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
+        MAALI_OS="centos$MAALI_OS_VERSION"
+    fi
+
 #elif [ -f "/etc/redhat-release" ]; then
 #  MAALI_OS_VERSION=`cat /etc/redhat-release | awk '{print $4;}'`
 #  MAALI_OS="scientific_linux$MAALI_OS_VERSION"
-else
+elif [[ -z "${MAALI_OS}" ]]; then
   echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
   exit 1
 fi
+
+maali_wiki "The operating system is $MAALI_OS"
 
 ##############################################################################
 # these are global
@@ -894,18 +914,6 @@ function maali_unpack {
   done
 }
 
-##############################################################################
-
-function maali_wiki {
-  # echo to screen and add to wiki
-  echo $1
-
-  if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
-    if [ $MAALI_REMODULE -eq 0 ]; then
-      echo $1 >> $MAALI_WIKI_SRC
-    fi
-  fi
-}
 
 ##############################################################################
 
