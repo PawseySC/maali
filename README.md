@@ -13,11 +13,13 @@ For Cray Systems we use something like:
 
 ```
 MAALI_DEFAULT_CRAY_PRGENVS='PrgEnv-cray/5.2.25 PrgEnv-gnu/5.2.25 PrgEnv-intel/5.2.25' \
-MAALI_DEFAULT_CRAY_PES='craype-sandybridge craype-ivybridge craype-haswell' \
+MAALI_DEFAULT_CRAY_PES='sandybridge ivybridge haswell' \
 MAALI_DEFAULT_COMPILERS='gcc/4.8.2 gcc/4.9.2 intel/14.0.1.106 cce/8.3.0 cce/8.3.12' \
 MAALI_DEFAULT_PYTHON='python/2.6.9 python/2.7.10' \
 ./maali -t maali -v 1.0b1
 ```
+
+
 
 These variable match up to this way in cygnet files.
 ```
