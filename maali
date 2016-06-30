@@ -696,6 +696,9 @@ EOF
         PKG_CONFIG_PATH | PKGCONFIG )
           MAALI_MODULE_VARIABLE_DIR="lib/pkgconfig"
           ;;
+        CMAKE_MODULE_PATH )
+          MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
+          ;;
         MANPATH)
           MAALI_MODULE_VARIABLE_DIR="share/man"
           ;;
