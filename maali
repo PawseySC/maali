@@ -800,7 +800,7 @@ EOF
       diff $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
     fi
   fi
-}
+}  # end function maali_module
 
 ##############################################################################
 
