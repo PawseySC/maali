@@ -190,7 +190,7 @@ includedir=\${prefix}/include
 libdir=\${prefix}/lib
 
 Cflags: -I\${includedir} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_CFLAGS[$indx]}`
-Lmaali: -L\${libdir} -l${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_LMAALI[$indx]}`
+Lmaali: -L\${libdir} -l${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_LIBS[$indx]}`
 EOF
     fi
   done
@@ -776,7 +776,7 @@ EOF
   if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
     lmaali=`echo ${MAALI_MODULE_PE_PKGCONFIG_NAME[*]} | sed -e 's/ \+$//' -e 's/ \+/:/g'`
     cat <<EOF >> $MAALI_TOOL_MODULE
-prepend-path PE_PKGCONFIG_LMAALI    $lmaali
+prepend-path PE_PKGCONFIG_LIBS    $lmaali
 EOF
   fi
 
@@ -850,7 +850,7 @@ function maali_run {
 
 function maali_r_build {
 
-  export R_LMAALI="$MAALI_INSTALL_DIR:$R_LMAALI"
+  export R_LIBS="$MAALI_INSTALL_DIR:$R_LIBS"
   maali_run "R CMD INSTALL $MAALI_DST"
 
 }
@@ -1011,7 +1011,7 @@ MAALI_MODULE_SET_PERLLIB=
 MAALI_MODULE_SET_CRAY_LD_LIBRARY_PATH=
 MAALI_MODULE_PE_PKGCONFIG_NAME=
 MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
-MAALI_MODULE_PE_PKGCONFIG_LMAALI=
+MAALI_MODULE_PE_PKGCONFIG_LIBS=
 
 while getopts "ht:v:pdc:mr:bgswafuxn" OPTION
 do
@@ -1473,8 +1473,8 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
     MAALI_R_TOOL=1
     MAALI_TOOL_TYPE="r"
 
-    if [ "$MAALI_MODULE_SET_R_LMAALI" == "" ]; then
-      MAALI_MODULE_SET_R_LMAALI=1
+    if [ "$MAALI_MODULE_SET_R_LIBS" == "" ]; then
+      MAALI_MODULE_SET_R_LIBS=1
     fi
 
     break
