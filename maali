@@ -182,7 +182,7 @@ function maali_genpkgconfig {
     if [ ! -f "$MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc" ]; then
       cat <<EOF > $MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc
 Name: $MAALI_TOOL_NAME
-Description: $MAALI_TOOL_NAME's library ${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}
+Description: $MAALI_TOOL_NAME\'s library ${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}
 Version: $MAALI_TOOL_VERSION
 
 prefix=$MAALI_INSTALL_DIR
@@ -312,7 +312,7 @@ function maali_makedir {
 
   # reset IFS
   IFS=$MAALI_IFS
-}
+} 
 
 ##############################################################################
 
@@ -819,7 +819,7 @@ function maali_python_build {
   maali_run "python setup.py install --prefix=$MAALI_INSTALL_DIR"
 
   export PYTHONPATH=$MAALI_OLD_PYTHONPATH
-}
+} # end function maali_python_build
 
 ##############################################################################
 
@@ -844,7 +844,7 @@ function maali_run {
     echo "failed to run $@, exiting"
     exit $MAALI_EXIT_STATUS
   fi
-}
+} # end function maali_run
 
 ##############################################################################
 
@@ -853,7 +853,7 @@ function maali_r_build {
   export R_LIBS="$MAALI_INSTALL_DIR:$R_LIBS"
   maali_run "R CMD INSTALL $MAALI_DST"
 
-}
+}  # end function maali_r_build
 
 ##############################################################################
 
@@ -915,7 +915,7 @@ function maali_unpack {
     fi
 
   done
-}
+}  # end function maali_unpack
 
 
 ##############################################################################
@@ -924,17 +924,17 @@ function log {
   echo "#####################################################################" >>$MAALI_TOOL_LOG
   echo "$1" >>$MAALI_TOOL_LOG
   echo "#####################################################################" >>$MAALI_TOOL_LOG
-}
+} # end function log
 
 ##############################################################################
 
-function removedir {
+function removedir { 
   if [ -d "$1" ]; then
     # make sure permissions on everything is correct
     find $1 -exec chmod 700 {} \;
     rm -fr "$1"
   fi
-}
+} # end function removedir
 
 ##############################################################################
 
@@ -942,7 +942,7 @@ function removefile {
   if [ -f "$1" ]; then
     rm -f "$1"
   fi
-}
+}  # end function removefile
 
 ##############################################################################
 

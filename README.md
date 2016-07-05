@@ -33,6 +33,25 @@ MAALI_TOOL_CRAY_CPU_TARGET="$MAALI_DEFAULT_CRAY_PES"
 MAALI_TOOL_COMPILERS="$MAALI_DEFAULT_COMPILERS"
 ```
 
+## list of maali functions
+
+function maali_wiki {         line 9-18
+function maali_build {        line 83-93
+function maali_cmake_build {  line 97-114
+function maali_download {     line 118-174
+function maali_genpkgconfig { line 178-197
+function maali_git_download { line 201-237
+function maali_load_module {  line 241-269
+function maali_makedir {      line 273-315
+function maali_module {       line 319-803
+function maali_python_build { line 807-822
+function maali_run {          line 826-847
+function maali_r_build {      line 851-856 
+function maali_unpack {       line 860-918
+function log {                line 923-927
+function removedir {          line 931-937
+function removefile {         line 941-945
+
 
 ##  Definitions
 Definitions of the ~250 variables used in maail.
@@ -45,32 +64,51 @@ MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
   base directory path using the compiler/compiler version hierarchy
   for include, bin, manpath etc..
 MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-MAALI_APP_HOME_NAME
-MAALI_APP_HOME_DIR
 
-MAALI_LOADED_PRGENV
-MAALI_TOOL_NAME
-MAALI_TOOL_VERSION
-MAALI_APP_HOME
-MAALI_APPS_DIR
-MAALI_LOADED_PRGENV
-MAALI_TOOL_NAME
-MAALI_TOOL_VERSION
-MAALI_APP_HOME_NAME
-MAALI_BUILDER_BUILD_CN
-MAALI_BUILDER_BUILD_MAIL
-MAALI_BUILDER_UID
-MAALI_BUILDONLY
-MAALI_BUILD_DATE
-MAALI_BUILD_DIR
-MAALI_BUILD_PREREQ_MODULE
-MAALI_BUILD_PREREQ_MODULE_NAME
-MAALI_CMAKE_PATH
-MAALI_CMAKE_TOOL
-MAALI_CMDLINE
-MAALI_COMPILER
-MAALI_TOOL_COMPILERS
-MAALI_COMPILER
+# MAALI_APP_HOME_NAME - Used in the maali_module function to create a environment variable for the module 
+MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
+
+# MAALI_LOADED_PRGENV - Used in the maali_module function when setting the variable MAALI_APP_HOME path variable and set as an evironment module variable for use with Cray systems.
+setenv MAALI_LOADED_PRGENV PrgEnv-cray
+
+# MAALI_TOOL_NAME - input variable for the maali command, name of the tool/application being installed ( -t flag )
+
+# MAALI_TOOL_VERSION - input variable for the maali command, version of the tool/application being installed ( -v flag )
+
+# MAALI_BUILDER_BUILD_CN - for system build define ldap details cn
+MAALI_BUILDER_BUILD_CN=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' cn | grep cn: | sed -e 's/cn: //g'`
+
+# MAALI_BUILDER_BUILD_MAIL - for system build define ldap details email
+MAALI_BUILDER_BUILD_MAIL=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' mail | grep mail: | sed -e 's/mail: //g'`
+
+# MAALI_BUILDER_UID - input variable for the maali command, for system builds, envivironment variable that maali checks.
+
+# MAALI_BUILDONLY - input variable for the maali command, skips the module file creation.
+
+# MAALI_BUILD_DATE - timestamp of when system build was done.
+
+# MAALI_BUILD_DIR - default build directory
+MAALI_BUILD_DIR="$MAALI_ROOT/build"
+
+# MAALI_BUILD_PREREQ_MODULE - loop index name 
+ for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
+
+# MAALI_BUILD_PREREQ_MODULE_NAME - name of module used with version cut off
+MAALI_BUILD_PREREQ_MODULE_NAME=`echo $MAALI_BUILD_PREREQ_MODULE | cut -d '/' -f 1`
+
+MAALI_CMAKE_PATH - defines path where cmake command will be run.
+MAALI_CMAKE_PATH=".."
+
+MAALI_CMAKE_TOOL - boolean environment variable indicating that the build will use cmake instead of make.
+
+MAALI_CMDLINE - captures the maali command line input arguments
+MAALI_CMDLINE=$*
+
+MAALI_COMPILER - used as an index counter in a for loop listing.
+ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
+
+# MAALI_TOOL_COMPILERS
+
 MAALI_COMPILER_FOUND_MATCH
 MAALI_COMPILER_NAME
 MAALI_COMPILER_NUMBER
