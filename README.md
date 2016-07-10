@@ -56,44 +56,44 @@ function removefile {         line 941-945
 ##  Definitions
 Definitions of the ~250 variables used in maail.
 
-# MAALI_APPS_DIR Directory where the software is installed is based 
+### MAALI_APPS_DIR Directory where the software is installed is based 
  on the tool type
 MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
 
-# MAALI_APP_HOME Used in function maali_module to define application 
+### MAALI_APP_HOME Used in function maali_module to define application 
   base directory path using the compiler/compiler version hierarchy
   for include, bin, manpath etc..
 MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
 
-# MAALI_APP_HOME_NAME - Used in the maali_module function to create a environment variable for the module 
+### MAALI_APP_HOME_NAME - Used in the maali_module function to create a environment variable for the module 
 MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
 
-# MAALI_LOADED_PRGENV - Used in the maali_module function when setting the variable MAALI_APP_HOME path variable and set as an evironment module variable for use with Cray systems.
+### MAALI_LOADED_PRGENV - Used in the maali_module function when setting the variable MAALI_APP_HOME path variable and set as an evironment module variable for use with Cray systems.
 setenv MAALI_LOADED_PRGENV PrgEnv-cray
 
-# MAALI_TOOL_NAME - input variable for the maali command, name of the tool/application being installed ( -t flag )
+### MAALI_TOOL_NAME - input variable for the maali command, name of the tool/application being installed ( -t flag )
 
-# MAALI_TOOL_VERSION - input variable for the maali command, version of the tool/application being installed ( -v flag )
+### MAALI_TOOL_VERSION - input variable for the maali command, version of the tool/application being installed ( -v flag )
 
-# MAALI_BUILDER_BUILD_CN - for system build define ldap details cn
+### MAALI_BUILDER_BUILD_CN - for system build define ldap details cn
 MAALI_BUILDER_BUILD_CN=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' cn | grep cn: | sed -e 's/cn: //g'`
 
-# MAALI_BUILDER_BUILD_MAIL - for system build define ldap details email
+### MAALI_BUILDER_BUILD_MAIL - for system build define ldap details email
 MAALI_BUILDER_BUILD_MAIL=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' mail | grep mail: | sed -e 's/mail: //g'`
 
-# MAALI_BUILDER_UID - input variable for the maali command, for system builds, envivironment variable that maali checks.
+### MAALI_BUILDER_UID - input variable for the maali command, for system builds, envivironment variable that maali checks.
 
-# MAALI_BUILDONLY - input variable for the maali command, skips the module file creation.
+### MAALI_BUILDONLY - input variable for the maali command, skips the module file creation.
 
-# MAALI_BUILD_DATE - timestamp of when system build was done.
+### MAALI_BUILD_DATE - timestamp of when system build was done.
 
-# MAALI_BUILD_DIR - default build directory
+### MAALI_BUILD_DIR - default build directory
 MAALI_BUILD_DIR="$MAALI_ROOT/build"
 
-# MAALI_BUILD_PREREQ_MODULE - loop index name 
+### MAALI_BUILD_PREREQ_MODULE - loop index name 
  for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
 
-# MAALI_BUILD_PREREQ_MODULE_NAME - name of module used with version cut off
+### MAALI_BUILD_PREREQ_MODULE_NAME - name of module used with version cut off
 MAALI_BUILD_PREREQ_MODULE_NAME=`echo $MAALI_BUILD_PREREQ_MODULE | cut -d '/' -f 1`
 
 MAALI_CMAKE_PATH - defines path where cmake command will be run.
@@ -107,84 +107,84 @@ MAALI_CMDLINE=$*
 MAALI_COMPILER - used as an index counter in a for loop listing.
  for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
 
-# MAALI_TOOL_COMPILERS defined as the list of compiler to build against and part of the installation path.
+### MAALI_TOOL_COMPILERS defined as the list of compiler to build against and part of the installation path.
 
-# MAALI_COMPILER_FOUND_MATCH - used in the maali_module function boolean value
+### MAALI_COMPILER_FOUND_MATCH - used in the maali_module function boolean value
 
-# MAALI_COMPILER_NAME - module name of compiler with the version truncated.
+### MAALI_COMPILER_NAME - module name of compiler with the version truncated.
 
-# MAALI_COMPILER_NUMBER - is the number of compilers listed in the MAALI_TOOL_COMPILERS variables.  ( looks unused? )
+### MAALI_COMPILER_NUMBER - is the number of compilers listed in the MAALI_TOOL_COMPILERS variables.  ( looks unused? )
 MAALI_COMPILER_NUMBER=`echo "$MAALI_TOOL_COMPILERS" | wc -w`
 
-# MAALI_COMPILER_TYPE - used as a loop variable in maali_module function part of the MAALI_SUPPORTED_COMPILERS list
+### MAALI_COMPILER_TYPE - used as a loop variable in maali_module function part of the MAALI_SUPPORTED_COMPILERS list
 for MAALI_COMPILER_TYPE in $MAALI_SUPPORTED_COMPILERS; do
 
-# MAALI_COMPILER_VERSION - is the compiler version number it is obtained different way depending on they compiler.
+### MAALI_COMPILER_VERSION - is the compiler version number it is obtained different way depending on they compiler.
 MAALI_COMPILER_VERSION=`cc -V | head -1` 
  
-# MAALI_COMPILER - is the variable used in loops
+### MAALI_COMPILER - is the variable used in loops
 for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
 
-# MAALI_CONFIG - is the variable used to define the maali config file name.
+### MAALI_CONFIG - is the variable used to define the maali config file name.
 MAALI_CONFIG=$OPTARG
 
-# MAALI_CORES - for use in parallel make -j $MAALI_CORES
+### MAALI_CORES - for use in parallel make -j $MAALI_CORES
 
-# MAALI_CRAY - boolean variable to set if this is a cray system.
+### MAALI_CRAY - boolean variable to set if this is a cray system.
 
-# MAALI_CRAY_COMPILER_MATCH - string variable to set to the different cray compiler types - gcc, intel, cce
+### MAALI_CRAY_COMPILER_MATCH - string variable to set to the different cray compiler types - gcc, intel, cce
 
-# MAALI_CRAY_CPU_TARGET - string variable defines cpu target used
+### MAALI_CRAY_CPU_TARGET - string variable defines cpu target used
    maali_load_module "craype-$MAALI_CRAY_CPU_TARGET"
 (NEEDS to be standardize!!)
 
-# MAALI_CRAY_CPU_TARGET_FOUND_MATCH - boolean variable in maali_module function
+### MAALI_CRAY_CPU_TARGET_FOUND_MATCH - boolean variable in maali_module function
 
-# MAALI_CRAY_CPU_TARGET_TYPE is the loop variable in the maali_module function
+### MAALI_CRAY_CPU_TARGET_TYPE is the loop variable in the maali_module function
 for MAALI_CRAY_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CRAY_CPU_TARGETS; do
 
 
-# MAALI_CRAY_MODULE is a loop variable used in the maali main script 
+### MAALI_CRAY_MODULE is a loop variable used in the maali main script 
 for MAALI_CRAY_MODULE in $MAALI_EXTRA_CRAY; do
 for MAALI_CRAY_MODULE in $MAALI_PREREQ_MODULE; do
 
-# MAALI_EXTRA_CRAY is string variable that is a list of ???
+### MAALI_EXTRA_CRAY is string variable that is a list of ???
 for MAALI_CRAY_MODULE in $MAALI_EXTRA_CRAY; do
 
-# MAALI_CRAY_PRGENV is a string variable that represents the variable in for loop list used in the maali_module function and the main maali scrtip.
+### MAALI_CRAY_PRGENV is a string variable that represents the variable in for loop list used in the maali_module function and the main maali scrtip.
 for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
 
-# MAALI_CRAY_PRGENV_FOUND_MATCH is a boolean variable used in the maali module function
+### MAALI_CRAY_PRGENV_FOUND_MATCH is a boolean variable used in the maali module function
  if [ $MAALI_CRAY_PRGENV_FOUND_MATCH -eq 0 ]; then
 
-# MAALI_CRAY_PRGENV_NAME - String variable to used to test which PrgEnv is set
+### MAALI_CRAY_PRGENV_NAME - String variable to used to test which PrgEnv is set
 MAALI_CRAY_PRGENV_NAME=`echo "$MAALI_CRAY_PRGENV" | cut -d '/' -f 1`
 
 
-# MAALI_CRAY_PRGENV_TYPE - a string variable set in loop used in the maali_module function
+### MAALI_CRAY_PRGENV_TYPE - a string variable set in loop used in the maali_module function
 for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
 
-# MAALI_CRAY_TOOL_COMPILER - a string variable using the a loop in the maali main function.
+### MAALI_CRAY_TOOL_COMPILER - a string variable using the a loop in the maali main function.
 for MAALI_CRAY_TOOL_COMPILER in $MAALI_CRAY_TOOL_COMPILERS; do
  
-# MAALI_CRAY_TOOL_COMPILERS - is a list of Compilers used
+### MAALI_CRAY_TOOL_COMPILERS - is a list of Compilers used
 MAALI_CRAY_TOOL_COMPILERS="$MAALI_TOOL_COMPILERS"
 
-# MAALI_CRAY_TOOL_COMPILER_NAME - is a string variable of the environment module with the version truncated.
+### MAALI_CRAY_TOOL_COMPILER_NAME - is a string variable of the environment module with the version truncated.
 MAALI_CRAY_TOOL_COMPILER_NAME=`echo "$MAALI_CRAY_TOOL_COMPILER" | cut -d '/' -f 1`
 
-# MAALI_CUDA_BUILD - is a boolean variable for using the CUDA libs set in the cygnet files.
+### MAALI_CUDA_BUILD - is a boolean variable for using the CUDA libs set in the cygnet files.
 
-# MAALI_CUDA_SUPPORT - is a boolean variable used to test for CUDA support
+### MAALI_CUDA_SUPPORT - is a boolean variable used to test for CUDA support
 MAALI_CUDA_SUPPORT=0  ( could you not use MAALI_CUDA_BUILD )
 
-# MAALI_CYGNET_BUILD_FILE_EXT - a string variable for cygnet file extension
+### MAALI_CYGNET_BUILD_FILE_EXT - a string variable for cygnet file extension
 MAALI_CYGNET_BUILD_FILE_EXT='cyg'
  
-# MAALI_CYGNET_DIR_NAME - string variable use to define directory for the cygnet files
+### MAALI_CYGNET_DIR_NAME - string variable use to define directory for the cygnet files
 MAALI_CYGNET_DIR_NAME='cygnet_files'
 
-# MAALI_CYGNET_FILEPATH - installation path of cygnet file 
+### MAALI_CYGNET_FILEPATH - installation path of cygnet file 
 MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.$MAALI_CYGNET_BUILD_FILE_EXT"
 
 MAALI_CYGNET_FILESIZE - boolean variable test to that file exists
