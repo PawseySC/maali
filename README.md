@@ -187,18 +187,24 @@ MAALI_CYGNET_DIR_NAME='cygnet_files'
 ### MAALI_CYGNET_FILEPATH - installation path of cygnet file 
 MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.$MAALI_CYGNET_BUILD_FILE_EXT"
 
-MAALI_CYGNET_FILESIZE - boolean variable test to that file exists
+### MAALI_CYGNET_FILESIZE - boolean variable test to that file exists
 MAALI_CYGNET_FILESIZE=$(stat -c%s "$MAALI_CYGNET_FILEPATH")
 
-MAALI_CYGNET_FILES_URL - string variable defined the url for the maali-cygnet files
+### MAALI_CYGNET_FILES_URL - string variable defined the url for the maali-cygnet files
 MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet/master"
 
-MAALI_DEFAULT_26_PYTHON
-MAALI_DEFAULT_27_PYTHON
-MAALI_DEFAULT_CCE_COMPILERS
-MAALI_DEFAULT_COMPILER
-MAALI_DEFAULT_COMPILERS
-MAALI_DEFAULT_COMPILER_NAME
+### MAALI_DEFAULT_26_PYTHON
+### MAALI_DEFAULT_27_PYTHON
+### MAALI_DEFAULT_CCE_COMPILERS
+
+### MAALI_DEFAULT_COMPILER - string variable used in loop in maali main
+for MAALI_DEFAULT_COMPILER in $MAALI_DEFAULT_COMPILERS; do
+### MAALI_DEFAULT_COMPILERS - list variable using in loop in maali main
+for MAALI_DEFAULT_COMPILER in $MAALI_DEFAULT_COMPILERS; do
+
+### MAALI_DEFAULT_COMPILER_NAME - the compiler environment module name with version truncated.
+MAALI_DEFAULT_COMPILER_NAME=`echo "$MAALI_DEFAULT_COMPILER" | cut -d '/' -f 1`
+
 MAALI_DEFAULT_CRAY_CCE_PRGENV
 MAALI_DEFAULT_CRAY_CRAY_PRGENV
 MAALI_DEFAULT_CRAY_GCC_PRGENV
