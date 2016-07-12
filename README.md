@@ -207,18 +207,41 @@ MAALI_DEFAULT_COMPILER_NAME=`echo "$MAALI_DEFAULT_COMPILER" | cut -d '/' -f 1`
 
 ### MAALI_DEFAULT_CRAY_CCE_PRGENV - not used set in comment
 
-MAALI_DEFAULT_CRAY_CRAY_PRGENV
-MAALI_DEFAULT_CRAY_GCC_PRGENV
-MAALI_DEFAULT_CRAY_INTEL_PRGENV
-MAALI_DEFAULT_CRAY_PRGENVS
-MAALI_DEFAULT_GCC_COMPILERS
-MAALI_DEFAULT_INTEL_COMPILERS
-MAALI_DEFAULT_PRGENV
-MAALI_DEFAULT_PRGENV_NAME
-MAALI_DEFAULT_PYTHON
-MAALI_DEFAULT_PYTHON_COMPILER
-MAALI_DEFAULT_PYTHON_COMPILER_MAJOR_MINOR_VERSION
-MAALI_DEFAULT_PYTHON_COMPILER_VERSION
+### MAALI_DEFAULT_CRAY_CRAY_PRGENV - string variable defined in the main maali script
+Does not appear to be used...???
+
+### MAALI_DEFAULT_CRAY_GCC_PRGENV - string variable defined in the main maali script.
+Does not appear to be used...???
+### MAALI_DEFAULT_CRAY_INTEL_PRGENV - string variable defined in the main maali script.
+Does not appear to be used...???
+
+### MAALI_DEFAULT_CRAY_PRGENVS - list of cray prgenv using in a for loop in main maali script
+
+### MAALI_DEFAULT_GCC_COMPILERS - string variable defined in the main maali script.
+Does not appear to be used...???
+### MAALI_DEFAULT_INTEL_COMPILERS - string variable defined in the main maali script.
+Does not appear to be used...???
+
+### MAALI_DEFAULT_PRGENV - string variable defined in the main maali function in a for loop.
+ for MAALI_DEFAULT_PRGENV in $MAALI_DEFAULT_CRAY_PRGENVS; do
+
+
+### MAALI_DEFAULT_PRGENV_NAME - module name with the version truncated used in the main maali script
+  MAALI_DEFAULT_PRGENV_NAME=`echo "$MAALI_DEFAULT_PRGENV" | cut -d '/' -f 1` 
+
+### MAALI_DEFAULT_PYTHON - list of the python versions set in the cygnet files used in a for loop in the main maali script.
+for MAALI_DEFAULT_PYTHON_COMPILER in $MAALI_DEFAULT_PYTHON; do
+
+
+### MAALI_DEFAULT_PYTHON_COMPILER - string variable used as the index value in a for loop set in the main maali script.
+for MAALI_DEFAULT_PYTHON_COMPILER in $MAALI_DEFAULT_PYTHON; do
+
+### MAALI_DEFAULT_PYTHON_COMPILER_VERSION - 
+MAALI_DEFAULT_PYTHON_COMPILER_VERSION=`echo "$MAALI_DEFAULT_PYTHON_COMPILER" | cut -d '/' -f 2`
+### MAALI_DEFAULT_PYTHON_COMPILER_MAJOR_MINOR_VERSION
+
+MAALI_DEFAULT_PYTHON_COMPILER_MAJOR_MINOR_VERSION=`echo "$MAALI_DEFAULT_PYTHON_COMPILER_VERSION" | cut -d '.' -f 1,2`
+
 MAALI_DEFAULT_SYSTEM_GCC
 MAALI_DIR
 MAALI_DIR_PATH

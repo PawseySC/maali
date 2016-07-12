@@ -962,7 +962,7 @@ OPTIONS:
    -m      just create the module file
    -l      use the options from the last run
    -r      build with the specified compiler (and no others)
-   -b      build the tool, but don't create a module file
+   -b      build the tool, but do not create a module file
    -g      group build in /group/$PAWSEY_PROJECT/software/$MAALI_OS
    -s      activate system build
    -w      workstation build in $HOME/software/$MAALI_OS
