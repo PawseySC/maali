@@ -14,80 +14,11 @@ function maali_wiki {
     if [ $MAALI_REMODULE -eq 0 ]; then
       echo $1 >> $MAALI_WIKI_SRC
     fi
+  elif [ "$MAALI_TEST_INSTALL" == "YES" ]; then
+     echo $1 >> maali_test_install.log
   fi
 }
 
-##############################################################################
-#
-# Rudimentary Operating System detecting which can be overriden by setting
-# MAALI_OS to a value of your choosing
-
-# by default we are not a cray
-MAALI_CRAY=0
-
-if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
-  # We are a Cray
-  MAALI_OS_VERSION=`grep CLERELEASE /etc/opt/cray/release/CLEinfo | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]`
-  MAALI_OS="cle$MAALI_OS_VERSION"
-  MAALI_CRAY=1
-
-elif [ -f "/etc/SuSE-release" ]; then
-  # We are running SLES
-  MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
-  MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
-  MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
-
-elif [ -f "/etc/centos-release" ]; then
-  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
-  MAALI_OS="centos$MAALI_OS_VERSION"
-
-elif [[ -f "/etc/os-release" ]]; then
-  # This works for ubuntu, fedora and debian linux images
-  NAME=`grep -w ID /etc/os-release | cut -d '=' -f 2`
-  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
-
-  if [[ "${NAME}" == "ubuntu" ]]; then
-    MAALI_OS="ubuntu$MAALI_OS_VERSION"
-
-  elif [[ "$NAME" == "fedora" ]]; then
-    MAALI_OS_VERSION=`grep -w VERSION_ID /etc/os-release | cut -d '=' -f 2`
-    MAALI_OS="fedora$MAALI_OS_VERSION"
-
-  elif [[ "$NAME" == "debian" ]]; then
-    MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
-    MAALI_OS="debian$MAALI_OS_VESION"   
-  fi
-
-#elif [ -f "/etc/redhat-release" ]; then
-#  MAALI_OS_VERSION=`cat /etc/redhat-release | awk '{print $4;}'`
-#  MAALI_OS="scientific_linux$MAALI_OS_VERSION"
-#fi    
-elif [[ -z "${MAALI_OS}" ]]; then
-  echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
-  exit 1
-fi
-maali_wiki "MAALI_OS is $MAALI_OS"
-##############################################################################
-# these are global
-
-#MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet/master"
-MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/chrisbpawsey/maali-cygnet/master"
-MAALI_CYGNET_DIR_NAME='cygnet_files'
-MAALI_CYGNET_BUILD_FILE_EXT='cyg'
-
-if [ ! $MYGROUP ]; then
-   maali_wiki " MYGROUP is not defined! "
-   maali_wiki " This is not on the Pawsey HPC file system"
-   maali_wiki " The Maali root directory is $MAALI_ROOT as set by ${MAALI_CONFIG}.config file"
-else 
-# At the Pawsey Supercomputing Center MYGROUP is a custom system variable
-# /group/projectID where /group is parallel filesystem for storing job outputs
-# This allows users to install applications in their own group directory
-   echo "This is for Pawsey HPC systems the environment variable MYGROUP is set!"
-   MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
-fi
-
-MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
 
 ##############################################################################
 
@@ -305,8 +236,12 @@ function maali_makedir {
         echo "-- Making directory $MAALI_DIR_PATH" >> "$MAALI_TOOL_LOG"
       fi
 
-      mkdir "$MAALI_DIR_PATH"
-
+      if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
+	  echo " $MAALI_DIR_PATH " >> maali_test_install.log
+      else 
+	  mkdir "$MAALI_DIR_PATH"
+      fi 
+	  
       if [ "$PAWSEY_PROJECT" != "" ]; then
         if [[ ! "$MAALI_DIR_PATH" =~ "/home" ]]; then
           if [[ "$MAALI_TOOL_LOG" != "" ]] && [[ -f "$MAALI_TOOL_LOG" ]]; then
@@ -1030,6 +965,10 @@ function create_gcc_compiler_module {
     fi
     echo ""
 
+    if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
+       COMPILER_MODULE=maali_test_install.log
+    fi
+
     cat <<EOF >>$COMPILER_MODULE
 #%Module1.0######################################################################
 #
@@ -1066,7 +1005,7 @@ EOF
 usage()
 {
 cat << EOF
-usage: $0 -t toolname -v toolversion [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b] [-g] [-s] [-w] [-a] [-u] [-x]
+usage: $0 -t toolname -v toolversion [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b] [-g] [-s] [-w] [-a] [-u] [-x] [-T]
 
 maali - Pawsey Supercomputing Centre Build System
 
@@ -1087,6 +1026,7 @@ OPTIONS:
    -f      force download from github
    -u      unistall by hiding the module
    -x      expunge tool from history
+   -T      used for maali developement testing
    -n      NVIDIA mode; compile software with cuda support
 EOF
 }
@@ -1131,7 +1071,7 @@ MAALI_MODULE_PE_PKGCONFIG_NAME=
 MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
 MAALI_MODULE_PE_PKGCONFIG_LIBS=
 
-while getopts "ht:v:pdc:mr:bgswafuxn" OPTION
+while getopts "ht:v:pdc:mr:bgswafuxTn" OPTION
 do
      case $OPTION in
          h)
@@ -1191,6 +1131,9 @@ do
          n)
              MAALI_CUDA_BUILD=1
              ;;
+	 T)
+             MAALI_TEST_INSTALL="YES"
+             ;;
          ?)
              usage
              exit
@@ -1198,8 +1141,92 @@ do
      esac
 done
 
+##############################################################################
+#
+# Rudimentary Operating System detecting which can be overriden by setting
+# MAALI_OS to a value of your choosing
+
+# by default we are not a cray
+MAALI_CRAY=0
+
+if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
+  # We are a Cray
+  MAALI_OS_VERSION=`grep CLERELEASE /etc/opt/cray/release/CLEinfo | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]`
+  MAALI_OS="cle$MAALI_OS_VERSION"
+  MAALI_CRAY=1
+
+elif [ -f "/etc/SuSE-release" ]; then
+  # We are running SLES
+  MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
+  MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
+  MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
+
+elif [ -f "/etc/centos-release" ]; then
+  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
+  MAALI_OS="centos$MAALI_OS_VERSION"
+
+elif [[ -f "/etc/os-release" ]]; then
+  # This works for ubuntu, fedora and debian linux images
+  NAME=`grep -w ID /etc/os-release | cut -d '=' -f 2`
+  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
+
+  if [[ "${NAME}" == "ubuntu" ]]; then
+    MAALI_OS="ubuntu$MAALI_OS_VERSION"
+
+  elif [[ "$NAME" == "fedora" ]]; then
+    MAALI_OS_VERSION=`grep -w VERSION_ID /etc/os-release | cut -d '=' -f 2`
+    MAALI_OS="fedora$MAALI_OS_VERSION"
+
+  elif [[ "$NAME" == "debian" ]]; then
+    MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
+    MAALI_OS="debian$MAALI_OS_VESION"   
+  fi
+
+#elif [ -f "/etc/redhat-release" ]; then
+#  MAALI_OS_VERSION=`cat /etc/redhat-release | awk '{print $4;}'`
+#  MAALI_OS="scientific_linux$MAALI_OS_VERSION"
+#fi    
+elif [[ -z "${MAALI_OS}" ]]; then
+  echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
+  maali_wiki "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
+  exit 1
+fi
+maali_wiki "MAALI_OS is $MAALI_OS"
+
+   
+##############################################################################
+# these are global
+
+#MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet/master"
+MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/chrisbpawsey/maali-cygnet/master"
+MAALI_CYGNET_DIR_NAME='cygnet_files'
+MAALI_CYGNET_BUILD_FILE_EXT='cyg'
+
+if [ ! $MYGROUP ]; then
+   maali_wiki " MYGROUP is not defined! "
+   maali_wiki " This is not on the Pawsey HPC file system"
+   maali_wiki " The Maali root directory is $MAALI_ROOT as set by ${MAALI_CONFIG}.config file"
+else 
+# At the Pawsey Supercomputing Center MYGROUP is a custom system variable
+# /group/projectID where /group is parallel filesystem for storing job outputs
+# This allows users to install applications in their own group directory
+   maali_wiki "This is for Pawsey HPC systems the environment variable MYGROUP is set!"
+   MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
+fi
+
+MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
+
+######################################################################
+
 if [ -z $TMPDIR ]; then
   TMPDIR=/tmp
+fi
+
+if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
+  if [ -f "maali_test_install.log" ]; then
+    rm -f  maali_test_install.log
+  fi 
+  echo "maali script is running in this dir `pwd`"  >> maali_test_install.log
 fi
 
 echo "default module path here is $MODULEPATH line 1204"
@@ -1238,6 +1265,7 @@ for MAALI_MODULE in $MAALI_LOADEDMODULES; do
 
   if [ "$MAALI_MODULE_NAME" == "maali" ]; then
     MAALI_IS_LOADED=1
+    maali_wiki "!!! Found the maali module !!!"
   fi
 done
 
@@ -1322,13 +1350,14 @@ elif [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then
     if [ ! -d ${HOME}/.maali ]; then    
     # copy the MAALI_CONFIG.config file copy to user home and source
      maali_makedir "${HOME}/.maali"
+     maali_wiki " created the ${HOME}/.maali"
      cp ${MAALI_CONFIG}.config ${HOME}/.maali
      . "${HOME}/.maali/${MAALI_CONFIG}.config"
 
     # Since this is an initial install what else can we do?  
     # Try to auto generate module files for compilers!
       if [ ! -d ${MAALI_MODULE_DIR}  ]; then
- 	echo  "!! The module devel directory has been created !!"
+ 	maali_wiki "!! The module devel directory has been created $MAALI_MODULE_DIR"
         install_default_compiler_modules 
       else
  	echo " $MAALI_MODULE_DIR does not exist line 1318"
