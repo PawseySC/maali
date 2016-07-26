@@ -2263,6 +2263,7 @@ fi
 
 if [ $MAALI_BUILDONLY ]; then
   echo "skipping module creation"
+  maali_wiki "build application only skipping module creation"
 else
 
   # make the module
@@ -2295,7 +2296,7 @@ else
     if [ -f "$MAALI_TOOL_MODULE" ]; then
       cp $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
     fi
-
+    # call the maali_module function 
     maali_module
 
     # make this version the default if there is no other
