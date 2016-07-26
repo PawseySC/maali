@@ -948,9 +948,14 @@ function maali_unpack {
 
 
 function log {
-  echo "#####################################################################" >>$MAALI_TOOL_LOG
-  echo "$1" >>$MAALI_TOOL_LOG
-  echo "#####################################################################" >>$MAALI_TOOL_LOG
+    if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
+	maali_wiki " log data line -- $1 "
+    else
+	
+	echo "#####################################################################" >>$MAALI_TOOL_LOG
+	echo "$1" >>$MAALI_TOOL_LOG
+	echo "#####################################################################" >>$MAALI_TOOL_LOG
+    fi
 }
 
 ##############################################################################
@@ -1322,10 +1327,10 @@ if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
   if [ -f "maali_test_install.log" ]; then
     rm -f  maali_test_install.log
   fi 
-  echo "maali script is running in this dir `pwd`"  >> maali_test_install.log
+  maali_wiki "The maali script is running in this dir `pwd`"
 fi
 
-echo "default module path here is $MODULEPATH line 1204"
+maali_wiki "default module path here is $MODULEPATH"
 
 # user and group builds derive the following through MAALI_ROOT
 MAALI_BUILD_DIR="$MAALI_ROOT/build"
