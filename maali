@@ -8,7 +8,7 @@ MAALI_VERSION="tip"
 ##############################################################################
 function maali_wiki {
   # echo to screen and add to wiki
-  echo $1
+#  echo $1
 
   if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
     if [ $MAALI_REMODULE -eq 0 ]; then
@@ -16,6 +16,7 @@ function maali_wiki {
     fi
   elif [ "$MAALI_TEST_INSTALL" == "YES" ]; then
      echo $1 >> maali_test_install.log
+     echo " " >> maali_test_install.log
   fi
 }
 
@@ -103,11 +104,17 @@ function maali_build {
 
   # allows late evaluation
   MAALI_TOOL_CONFIGURE_EVAL=`eval echo "$MAALI_TOOL_CONFIGURE"`
-
-  cd "$MAALI_TOOL_BUILD_DIR"
-  maali_run "./configure --prefix=$MAALI_INSTALL_DIR $MAALI_TOOL_CONFIGURE_EVAL"
-  maali_run "make"
-  maali_run "make install"
+  if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
+      maali_wiki "The configure flags used ${MAALI_TOOL_CONFIGURE_EVAL}"
+      maali_wiki "The default prefix install dir ${MAALI_INSTALL_DIR}"
+      maali_wiki "The defined build directory is ${MAALI_TOOL_BUILD_DIR}"
+  else
+      
+      cd "$MAALI_TOOL_BUILD_DIR"
+      maali_run "./configure --prefix=$MAALI_INSTALL_DIR $MAALI_TOOL_CONFIGURE_EVAL"
+      maali_run "make"
+      maali_run "make install"
+  fi
 }
 
 ##############################################################################
@@ -995,11 +1002,10 @@ function install_default_compiler_modules {
   
   if [ ! -z "$MAALI_DEFAULT_COMPILERS" ]; then
     echo " "
-    echo "list of default compilers to install $MAALI_DEFAULT_COMPILERS"    
+    maali_wiki "list of default compilers to install $MAALI_DEFAULT_COMPILERS"    
     echo " "
     maali_makedir "$MAALI_MODULE_DIR/devel"
-    echo " call maali_modify_modulepath - line 990 "
-    echo " maali module directory is $MAALI_MODULE_DIR "
+    maali_wiki " call maali_modify_modulepath - from install_default_compiler_modules function"
     maali_modify_modulepath 
     for COMP_ID in $MAALI_DEFAULT_COMPILERS; do 
     # create a loop here 
@@ -1017,17 +1023,18 @@ function install_default_compiler_modules {
          echo "compiler module already exists "
        fi
     done
-    echo "function create gcc compiler modules return "
+    maali_wiki" function install_default_compiler_modules "
+    maali_wiki " installed ${MAALI_DEFAULT_COMPILERS} "
   else
-    echo " no default compiler set"
-    echo " exit install defautlcompiler modules "
+    maali_wiki " no default compiler set"
+    maali_wiki " exit install default compiler modules "
   fi
 }
 
 ##############################################################################
 
 function create_gcc_compiler_module {
-    echo "create gnu module ${1}"
+    maali_wiki "create gnu module ${1}"
  
     COMP_NAME=`echo $1 | cut -d '/' -f 1`
     COMP_VER=`echo $1 | cut -d '/' -f 2`
@@ -1413,12 +1420,12 @@ MAALI_PYTHON_FIRSTLETTER=`echo "$MAALI_TOOL_NAME_ORIG" | cut -b 1`
 # or it will be it the users $HOME/.maali directory.
 #
 
-echo "!!  test for maali config file $MAALI_CONFIG maali module is $MAALI_IS_LOADED"
+maali_wiki "!!  test for maali config file $MAALI_CONFIG maali module is $MAALI_IS_LOADED"
 
 if [ ${MAALI_IS_LOADED} -eq 1 ]; then
-  echo "maali module is loaded"
+  maali_wiki "maali module is loaded"
 else 
-  echo "maali module is not loaded "
+  maali_wiki "maali module is not loaded "
 fi 
 
 if [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" != "maali" ]]; then
@@ -1433,8 +1440,8 @@ if [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" != "maali" ]]; then
   fi  
 
 elif [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then 
-    echo " using config file in current directory to do a custom "
-    echo " we are installing maali in the workstation  "  
+    maali_wiki " using config file in current directory to do a custom installation of maali!"
+    maali_wiki " we are installing maali in the workstation ${MAALI_OS} "  
  
     if [ ! -d ${HOME}/.maali ]; then    
     # copy the MAALI_CONFIG.config file copy to user home and source
@@ -1477,7 +1484,7 @@ elif [[ -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then
       install_default_compiler_modules 
   fi
 fi
-echo " exit test for maali.config file" 
+maali_wiki " exit test for maali.config file" 
 
 
 
@@ -1512,8 +1519,8 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
     fi
   fi
 fi
-echo " exit test for system_build to set MAALI_BUILDER_UID - line 1377" 
-echo " "
+maali_wiki " exit test for system_build to set MAALI_BUILDER_UID - line 1522" 
+
 # need to set MAALI_DEFAULT_CRAY_GCC_PRGENV, MAALI_DEFAULT_CRAY_INTEL_PRGENV and MAALI_DEFAULT_CRAY_CCE_PRGENV
 if [ "$MAALI_DEFAULT_CRAY_PRGENVS" != "" ]; then
   for MAALI_DEFAULT_PRGENV in $MAALI_DEFAULT_CRAY_PRGENVS; do
@@ -1656,7 +1663,7 @@ if [ $MAALI_FORCE_DOWNLOAD_FROM_GITHUB -eq 0 ]; then
         break
       fi
     elif [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT" ]; then
-      echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT for tool configuration information"
+      maali_wiki "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT for tool configuration information"
       MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
       MAALI_CYGNET_FILESIZE=$(stat -c%s "$MAALI_CYGNET_FILEPATH")
       if [ $MAALI_CYGNET_FILESIZE -eq 0 ]; then
@@ -1681,7 +1688,7 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   MAALI_CYGNET_FILEPATH="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
   MAALI_FILES_PATH="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME"
 
-  echo "Downloading cygnet file from $MAALI_CYGNET_FILES_URL to $MAALI_CYGNET_FILEPATH"
+  maali_wiki "Downloading cygnet file from $MAALI_CYGNET_FILES_URL to $MAALI_CYGNET_FILEPATH"
 
 
   maali_git_download "$MAALI_FILES_PATH" "$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
@@ -1689,7 +1696,7 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   MAALI_FOUND_CYGENT=1
 
 fi
-echo " exit test and download cygnet files line 1574 "
+maali_wiki " exit test and download cygnet files line 1699 "
 
 # source the cygnet file
 . $MAALI_CYGNET_FILEPATH
@@ -1784,9 +1791,9 @@ done
 if [ -z $MAALI_TOOL_TYPE ]; then
   MAALI_TOOL_TYPE="apps"
 fi
-echo " "
-echo " set tool type to apps line-1670 "
-echo " "
+
+maali_wiki " set tool type to apps line-1795 "
+
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   # create a wiki page to help David
   MAALI_WIKI_SRC="$HOME/.maali/$MAALI_OS/wiki/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.wiki"
@@ -1870,7 +1877,7 @@ $ maali $MAALI_CMDLINE
 Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT for tool configuration information
 EOF
   fi
-echo " setup maali app dir and module dir line 1704 "
+  maali_wiki " setup maali app dir and module dir line 1880 "
   # where the software is installed is based on the tool type
   MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
 
@@ -1887,10 +1894,10 @@ elif [[ ${MAALI_WS_BUILD} -eq 1 ]]; then
    # where the software is installed is based on the tool type
    # 
   MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
-  echo " " 
-  echo " !!!!!!   This is a workstation build install the maali module "
-  echo " Maali will install $MAALI_TOOL_NAME in ${MAALI_APPS_DIR} directory! " 
-  echo " " 
+  maali_wiki " " 
+  maali_wiki " !!!!!!   This is a workstation build install the maali module "
+  maali_wiki " Maali will install $MAALI_TOOL_NAME in ${MAALI_APPS_DIR} directory! " 
+  maali_wiki " " 
  # this is now based on tool type
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
     MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_TYPE/$MAALI_TOOL_NAME-gpu"
@@ -1904,9 +1911,9 @@ elif [[ ${MAALI_WS_BUILD} -eq 1 ]]; then
     MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_TYPE/$MAALI_TOOL_NAME" 
   fi
 else
-  echo "Warning: non-system build detected, overriding MAALI_TOOL_TYPE (currently $MAALI_TOOL_TYPE) "
-  echo "and setting to tool type to 'apps'"
-  echo " "
+  maali_wiki "Warning: non-system build detected, overriding MAALI_TOOL_TYPE (currently $MAALI_TOOL_TYPE) "
+  maali_wiki "and setting to tool type to 'apps'"
+  maali_wiki " "
   # for user builds we want them to be able to include a single module path from $MYGROUP/
   MAALI_TOOL_TYPE="apps"
   MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
@@ -1941,7 +1948,7 @@ else
 fi
 
 MAALI_COMPILER_NUMBER=`echo "$MAALI_TOOL_COMPILERS" | wc -w`
-echo " at line 1810 " 
+
 if [ "$MAALI_TOOL_CRAY_PRGENV" == "" ]; then
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_COMPILER" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]] ; then
     echo "You are compiling on a cray, you need to define MAALI_TOOL_CRAY_PRGENV"
