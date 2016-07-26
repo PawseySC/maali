@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# update your current image from the repo 
+# update your current image from the default repo 
 # This is will ensure that the remaining package management installs will work!
 sudo apt-get -y update
 
@@ -21,7 +21,7 @@ sudo apt-get -y install gcc-4.8 gfortran-4.8 g++-4.8 libgomp1
 
 
 if [ ! -d "/nectar" ]; then
-  sudo mkdir /nectar
-  sudo chown -R debian /nectar
+  sudo mkdir /nectar  
+  sudo chown -R ubuntu /nectar
 fi
  
