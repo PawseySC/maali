@@ -1028,7 +1028,7 @@ function install_default_compiler_modules {
          echo "compiler module already exists "
        fi
     done
-    maali_wiki" function install_default_compiler_modules "
+    maali_wiki " function install_default_compiler_modules "
     maali_wiki " installed ${MAALI_DEFAULT_COMPILERS} "
   else
     maali_wiki " no default compiler set"
@@ -1053,7 +1053,7 @@ function create_gcc_compiler_module {
     echo " will install $COMP_NAME ver $COMP_VER"
     echo " in  $MAALI_MODULE_DIR/devel/${COMP_NAME}"
 
-    maali_makedir "$MAALI_MODULE_DIR/devel/${COMP_NAME}"
+    maali_makedir "${MAALI_MODULE_DIR}/devel/${COMP_NAME}"
     
     if [ -d "${MAALI_MODULE_DIR}/devel/${COMP_NAME}" ]; then
       echo "compiler director was created "
@@ -1065,7 +1065,6 @@ function create_gcc_compiler_module {
     fi
 
     cat <<EOF >>${MAALI_MODULE_DIR}/devel/${COMP_NAME}/${COMP_VER}
-
 #%Module1.0######################################################################
 #
 # $MAALI_TOOL_NAME modulefile
