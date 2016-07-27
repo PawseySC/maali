@@ -12,3 +12,5 @@ sudo apt-get -y install r-bioc-biocinstaller
 sudo apt-get -y install r-bioc-biocparallel
 sudo apt-get -y install r-bioc-biomart
 sudo apt-get -y install r-bioc-biostrings
+
+#R CMD BATCH R-installer.R
