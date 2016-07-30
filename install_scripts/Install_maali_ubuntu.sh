@@ -5,7 +5,7 @@
 sudo apt-get -y update
 
 # install to allow x11 fowarding of gui interfaces
-sudo apt-get -y install xauth x11-apps 
+sudo apt-get -y install xauth x11-apps libxt-dev 
 
 # install nano xemacs emacs editors
 sudo apt-get -y install nano xemacs21 xemacs21-bin xemacs21-supportel xemacs21-basesupport-el
