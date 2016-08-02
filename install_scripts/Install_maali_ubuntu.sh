@@ -17,7 +17,7 @@ sudo apt-get -y install bc wget make environment-modules
 
 # install the default gnu compilers
 # to find the the version number "gcc -v"
-sudo apt-get -y install gcc-4.8 gfortran-4.8 g++-4.8 libgomp1
+sudo apt-get -y install gcc gfortran g++ libgomp1
 
 
 if [ ! -d "/nectar" ]; then
