@@ -13,7 +13,7 @@ sudo apt-get -y install nano xemacs21 xemacs21-bin xemacs21-supportel xemacs21-b
 sudo apt-get -y install emacs emacs24 emacs24-common emacs-goodies-el 
 
 # install tools that are needed for maali to work
-sudo apt-get -y install bc wget make environment-modules
+sudo apt-get -y install bc wget make environment-modules libtool
 
 # install the default gnu compilers
 # to find the the version number "gcc -v"

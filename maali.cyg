@@ -28,7 +28,8 @@ function maali_unpack {
 # This function tests to see if the correct version of the maali source in is 
 # the local source repo that maali creates as it installs any package.
   if [ ! -f "$MAALI_SRC/$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.tar.gz" ]; then
-    wget --no-check-certificate -O $MAALI_SRC/$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.tar.gz -q https://github.com/Pawseyops/$MAALI_TOOL_NAME/archive/$MAALI_TOOL_VERSION.tar.gz
+#    wget --no-check-certificate -O $MAALI_SRC/$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.tar.gz -q https://github.com/Pawseyops/$MAALI_TOOL_NAME/archive/$MAALI_TOOL_VERSION.tar.gz
+wget --no-check-certificate -O $MAALI_SRC/$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.tar.gz -q https://github.com/chrisbpawsey/$MAALI_TOOL_NAME/archive/$MAALI_TOOL_VERSION.tar.gz
   fi
 
   cd $MAALI_BUILD_DIR
