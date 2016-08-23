@@ -55,7 +55,7 @@ if ! md5sum --status -c nt.gz.md5; then
   echo " nt is bad " >> check_file.log
 else
   echo " md5 test OK " 
-  swift upload ${CONTAINER} nt.gz
+  swift upload ${CONTAINER} -S 4294967296 nt.gz
   swift upload ${CONTAINER} nt.gz.md5 
   echo " kick ASS!! "
 fi 
