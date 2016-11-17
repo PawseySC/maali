@@ -113,6 +113,9 @@ function maali_build {
       cd "$MAALI_TOOL_BUILD_DIR"
       maali_run "./configure --prefix=$MAALI_INSTALL_DIR $MAALI_TOOL_CONFIGURE_EVAL"
       maali_run "make"
+      if [ "$MAALI_MAKE_TEST" == "YES" ]; then
+	  maali_run "make test"
+      fi
       maali_run "make install"
   fi
 }
@@ -1092,7 +1095,6 @@ setenv  CC			\$prefix/gcc
 setenv  FC			\$prefix/gfortran
 setenv  CXX			\$prefix/g++
 setenv  F77			\$prefix/gfortran
-setenv  F90                     \$prefix/gfortran
 setenv  F95                     \$prefix/gfortran
 setenv  F9X                     \$prefix/gfortran
 
@@ -1105,7 +1107,7 @@ EOF
 usage()
 {
 cat << EOF
-usage: $0 -t toolname -v toolversion [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b] [-g] [-s] [-w] [-a] [-u] [-x] [-T]
+usage: $0 -t toolname -v toolversion [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b] [-g] [-s] [-w] [-a] [-u] [-x] [-T] [-V]
 
 maali - Pawsey Supercomputing Centre Build System
 
@@ -1126,7 +1128,8 @@ OPTIONS:
    -f      force download from github
    -u      unistall by hiding the module
    -x      expunge tool from history
-   -T      used for maali developement testing
+   -T      used for maali installation developement and testing
+   -V      flag to run make test or make check prior to make install
    -n      NVIDIA mode; compile software with cuda support
 EOF
 }
@@ -1171,7 +1174,7 @@ MAALI_MODULE_PE_PKGCONFIG_NAME=
 MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
 MAALI_MODULE_PE_PKGCONFIG_LIBS=
 
-while getopts "ht:v:pdc:mr:bgswafuxTn" OPTION
+while getopts "ht:v:pdc:mr:bgswafuxTn:V" OPTION
 do
      case $OPTION in
          h)
@@ -1232,8 +1235,13 @@ do
              MAALI_CUDA_BUILD=1
              ;;
 	 T)
+	     # This is for testing the default system installation of maali
              MAALI_TEST_INSTALL="YES"
              ;;
+	 V) 
+	     # This is to run either make check  or make test as prior to the make install
+             MAALI_MAKE_TEST="YES"
+	     ;;
          ?)
              usage
              exit
@@ -1433,7 +1441,8 @@ else
 fi 
 
 if [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" != "maali" ]]; then
-   echo " !! Using a config file in home directory and maali is not being installed" 
+   echo " ! Using a local maali configuration file in the user's home directory .maali "
+   echo "   to install ${MAALI_TOOL_NAME} " 
   # allow us to override the config
 # Test to see if it in the users directory this means maali is installed!
   if [ -f "$HOME/.maali/$MAALI_CONFIG.config" ]; then
@@ -1792,11 +1801,12 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
   fi
 done
 
+# Default MAALI_TOOL_TYPE to apps if not set in cygnet files
 if [ -z $MAALI_TOOL_TYPE ]; then
   MAALI_TOOL_TYPE="apps"
 fi
 
-maali_wiki " set tool type to apps line-1795 "
+maali_wiki " set tool type to ${MAALI_TOOL_TYPE} line-1810"
 
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   # create a wiki page to help David
