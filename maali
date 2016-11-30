@@ -3,7 +3,7 @@
 # Pawsey Supercomputing Centre Build System
 ##############################################################################
 # needs to be set by the install script
-MAALI_VERSION="tip"
+MAALI_VERSION="1.01"
 
 ##############################################################################
 # Rudimentary Operating System detecting which can be overriden by setting
@@ -653,7 +653,16 @@ EOF
     MAALI_MODULE_VARIABLE_NAME=`echo $MAALI_MODULE_VARIABLE | sed -e 's/MAALI_MODULE_SET_//g'`
     MAALI_MODULE_VARIABLE_DIR=""
     MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
-    MAALI_MODULE_VARIABLE_TCL="prepend-path"
+    #MAALI_MODULE_VARIABLE_TCL="prepend-path"
+
+	#Shift MAALI_MODULE_VARIABLE_TCL, need to set delimiter / fileseperator to ; for LUA_CPATH / LUA_PATH
+    if [  "$MAALI_MODULE_VARIABLE" == "MAALI_MODULE_SET_LUA_PATH" ]; then
+      MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
+	elif [  "$MAALI_MODULE_VARIABLE" == "MAALI_MODULE_SET_LUA_CPATH" ]; then
+	  MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
+    else
+      MAALI_MODULE_VARIABLE_TCL='prepend-path'
+    fi
 
     MAALI_MODULE_VARIABLE_PREPREND_OFF="MAALI_MODULE_PREPEND_${MAALI_MODULE_VARIABLE_NAME}"
     MAALI_MODULE_VARIABLE_PREPREND_OFF_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_PREPREND_OFF}"`
@@ -706,35 +715,72 @@ EOF
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
           MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
+        LUA_CPATH)
+		  MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
+          MAALI_MODULE_VARIABLE_DIR="lib/lua/${MAALI_LUA_LIB_VERSION}/?.so"
+          ;;
+        LUA_CPATH_APPEND)
+          MAALI_MODULE_VARIABLE_NAME='LUA_CPATH'
+          MAALI_MODULE_VARIABLE_TCL="append-path"
+          ;;
+        LUA_PATH)
+		  MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
+		  MAALI_MODULE_VARIABLE_DIR="share/lua/${MAALI_LUA_LIB_VERSION}/init.lua;;"
+          ;;
+        LUA_PATH_APPEND)
+		  MAALI_MODULE_VARIABLE_NAME='LUA_PATH'
+		  MAALI_MODULE_VARIABLE_TCL="append-path"
+          ;;
+		
         *)
           # the default is to setenv
           MAALI_MODULE_VARIABLE_TCL="setenv"
           MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
         esac
-
         # don't treat value as a list
         if [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "off" ]; then
           MAALI_MODULE_VARIABLE_WORDS="1"
         else
           MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
         fi
-        
+	    
         if [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_DEFAULT_' ]]; then
           printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
         elif [ $MAALI_MODULE_VARIABLE_WORDS -gt 1 ]; then
           for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
             MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
-            printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
+            #When LUA_CPATH or LUA_PATH is set, $MAALI_MODULE_VARIABLE_TCL variable has a space in it
+						if [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_CPATH' ]] || [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_PATH' ]]; then
+							printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
+						else
+							printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
+						fi
           done
         elif [[ ${!MAALI_MODULE_VARIABLE} == "1" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
-          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
+					#When LUA_CPATH or LUA_PATH is set, $MAALI_MODULE_VARIABLE_TCL variable has a space in it
+          if [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_CPATH' ]] || [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_PATH' ]]; then
+						printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
+          else
+						printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
+          fi
         elif [[ ${!MAALI_MODULE_VARIABLE} == "toplevel" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
-          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
+					#When LUA_CPATH or LUA_PATH is set, $MAALI_MODULE_VARIABLE_TCL variable has a space in it
+          if [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_CPATH' ]] || [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_PATH' ]]; then
+						printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
+          else
+						printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
+          fi
         else
           # this is the same as 2
           MAALI_MODULE_VARIABLE_EVAL=`eval echo "${!MAALI_MODULE_VARIABLE}"`
-          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
+					#When LUA_CPATH or LUA_PATH is set, $MAALI_MODULE_VARIABLE_TCL variable has a space in it
+          if [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_CPATH' ]] || [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_PATH' ]]; then
+						printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
+          else
+						printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
+          fi
+
         fi
     fi
   done
@@ -2042,3 +2088,4 @@ fi
 EOF
 
 fi
+maali@zeus:/pawsey/sles11sp4/modulefiles/bio-apps/interproscan> 
