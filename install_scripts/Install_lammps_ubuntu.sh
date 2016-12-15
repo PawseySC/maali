@@ -1,5 +1,8 @@
 #!/bin/bash 
 
+# make sure /mnt is owned by ubuntu
+sudo chown -R ubuntu /mnt
+
 #additional packages to install
 sudo apt install -y libjpeg-dev 
 sudo apt install -y libpng12-dev
