@@ -1,5 +1,5 @@
 #on a new ubuntu16.04 instance 
-#you have to installed "ninja"maali
+#you have to installed "ninja" maali
 
 #prerequisites
 sudo apt-get update
@@ -32,8 +32,8 @@ MAALI_CORES=4
 #log out and log back in to your instance
 #this is to pick up all the environment changes for environment modules
 
-# to install gromacs
+# to install lammps
 cd ~/maali/install_scripts
 # run this script to install lammps!
-./Install_gromacs_lammps.s
+./Install_lammps_ubuntu.sh
  
