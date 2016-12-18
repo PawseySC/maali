@@ -26,4 +26,5 @@ maali -t fftw-parallel -v 3.3.5 -c nectar -w
 
 maali -t lammps -v 18Oct16 -c nectar -w
 
+cp Run_lammps $HOME/.
 
