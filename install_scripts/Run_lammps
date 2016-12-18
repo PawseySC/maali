@@ -1,6 +1,6 @@
  module load gnu/5.4.0 lammps/18Oct16
 
- cp -r ${MMALI_LAMMPS_HOME}/examples/accelerate /mnt/.
+ cp -r ${MAALI_LAMMPS_HOME}/examples/accelerate /mnt/.
 
  cd /mnt/accelerate
 # to run openmp 
