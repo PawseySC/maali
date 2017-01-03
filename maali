@@ -190,7 +190,7 @@ includedir=\${prefix}/include
 libdir=\${prefix}/lib
 
 Cflags: -I\${includedir} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_CFLAGS[$indx]}`
-Lmaali: -L\${libdir} -l${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_LIBS[$indx]}`
+Libs: -L\${libdir} -l${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_LIBS[$indx]}`
 EOF
     fi
   done
@@ -774,9 +774,9 @@ EOF
   done
 
   if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
-    lmaali=`echo ${MAALI_MODULE_PE_PKGCONFIG_NAME[*]} | sed -e 's/ \+$//' -e 's/ \+/:/g'`
+    libs=`echo ${MAALI_MODULE_PE_PKGCONFIG_NAME[*]} | sed -e 's/ \+$//' -e 's/ \+/:/g'`
     cat <<EOF >> $MAALI_TOOL_MODULE
-prepend-path PE_PKGCONFIG_LIBS    $lmaali
+prepend-path PE_PKGCONFIG_LIBS    $libs
 EOF
   fi
 
