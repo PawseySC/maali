@@ -242,13 +242,22 @@ MAALI_DEFAULT_PYTHON_COMPILER_VERSION=`echo "$MAALI_DEFAULT_PYTHON_COMPILER" | c
 
 MAALI_DEFAULT_PYTHON_COMPILER_MAJOR_MINOR_VERSION=`echo "$MAALI_DEFAULT_PYTHON_COMPILER_VERSION" | cut -d '.' -f 1,2`
 
-MAALI_DEFAULT_SYSTEM_GCC
-MAALI_DIR
-MAALI_DIR_PATH
-MAALI_DST
-MAALI_DST_ARRAY
-MAALI_DST_FILESIZE
-MAALI_EXIT_STATUS
+### MAALI_DEFAULT_SYSTEM_GCC - string variable used to define the default version of the gnu compilers. Used in cygnet files when only compiling with the gnu compilers.
+ 
+### MAALI_DIR - string variable local to the maali_makedir function
+
+### MAALI_DIR_PATH - string variable local the maail_makedir function
+
+### MAALI_DST - used in the cygnet files as a key-pair value for the directory where the codes source repo is defined.
+
+### MAALI_DST_ARRAY - string variable local to the maali_download function. -- should be changed to DST_ARRAY
+
+### MAALI_DST_COUNT - string variable local to the maali_download function. -- should be changed to COUNT
+
+### MAALI_DST_FILESIZE - string variable local to the maali unpack function check the filesize is not zero. -- should be changed to FILESIZE
+
+### MAALI_EXIT_STATUS - string variable local to the maali run function test the exit status of the command run. -- should be changed to EXIT_STATUS
+
 MAALI_EXTRA_CRAY_REV
 MAALI_EXTRA_CRAY
 MAALI_FILES
