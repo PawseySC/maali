@@ -258,30 +258,59 @@ MAALI_DEFAULT_PYTHON_COMPILER_MAJOR_MINOR_VERSION=`echo "$MAALI_DEFAULT_PYTHON_C
 
 ### MAALI_EXIT_STATUS - string variable local to the maali run function test the exit status of the command run. -- should be changed to EXIT_STATUS
 
-MAALI_EXTRA_CRAY_REV
-MAALI_EXTRA_CRAY
-MAALI_FILES
-MAALI_FILES_DIR
-MAALI_FILES_PATH
-MAALI_FORCE_DOWNLOAD_FROM_GITHUB
-MAALI_FOUND_CYGENT
-MAALI_GIT_DOWNLOAD_DIR
-MAALI_GIT_DOWNLOAD_FILE
-MAALI_GIT_DOWNLOAD_FILEPATH
-MAALI_GIT_DOWNLOAD_FILESIZE
-MAALI_GROUP_BUILD
-MAALI_IFS
-MAALI_INDIVIDUAL_DST
-MAALI_INSTALL_DATE
-MAALI_INSTALL_DIR
-MAALI_INSTALL_TOOLDIR
-MAALI_IS_LOADED
-MAALI_LOADEDMODULES
-MAALI_LOADED_CRAY_COMPILER
-MAALI_PREREQ_MODULE_NAME
-MAALI_LOADED_PRGENV
-MAALI_LOG_DIR
-MAALI_LOG_PREFIX
+## MAALI_EXTRA_CRAY_REV - string variable in maali - is unused needs to be removed.
+
+## MAALI_EXTRA_CRAY - string variable used only in the gts.cyg file and checked in main maali on system builds.
+in gts.cyg:MAALI_EXTRA_CRAY="craype-sandybridge"
+
+## MAALI_FILES - string variable is undefined an un-used variable in 
+MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME $HOME/.maali/$MAALI_CYGNET_DIR_NAME $MAALI_FILES $MAALI_DIR/$MAALI_CYGNET_DIR_NAME ."
+
+### MAALI_FILES_DIR - string variable used to defined the list of directories to search for cygnet files -- should be renamed something like CYGNET_FILE_DIR
+
+### MAALI_FILES_PATH - string variable used to for loop as the index across the MAALI_FILES_DIR list -- should be changed to something more meaningful.
+
+## MAALI_FORCE_DOWNLOAD_FROM_GITHUB - boolean variable default = 0 is not used not sure what is original purpose was or is?
+
+### MAALI_FOUND_CYGENT - booleand variable set to 1 if cygnet file is found on system otherwise maali will try to download cygnet files from github.
+
+### MAALI_GIT_DOWNLOAD_DIR - string variable that is set the github repo path used in the maali_git_download function.
+
+### MAALI_GIT_DOWNLOAD_FILE  - string variable that is set the file name used in the maali_git_download function.
+
+### MAALI_GIT_DOWNLOAD_FILEPATH  - string variable that is made up of the MAALI_GIT_DOWNLOAD_DIR/\ MAALI_GIT_DOWNLOAD_FILE used in the maali_git_download function.
+
+### MAALI_GIT_DOWNLOAD_FILESIZE  - string variable that is used to evaluate the if the wget was successful used in the maali_git_download function.
+
+## MAALI_GROUP_BUILD - boolean varible that is set with the -g flag on the command line, is not used!
+
+### MAALI_IFS - string variable used to store the IFS value used in the maali_makedir function
+
+### MAALI_INDIVIDUAL_DST - string variable used the maali_unpack function as a index variable in the main for loop over the MAALI_DST (what is DST?)
+
+### MAALI_INSTALL_DATE - string variable used for writing the date to the wiki files.
+
+### MAALI_INSTALL_DIR - string variable that uses "$MAALI_INSTALL_TOOLDIR/$MAALI_TOOL_VERSION" as defined in the cygnet files. This is the installation directory for the tool.
+
+### MAALI_INSTALL_TOOLDIR - string variable that uses "$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME" or "MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME", path where maali installs the tool
+
+### MAALI_IS_LOADED - string variable used to determine if maali is loaded.
+
+### MAALI_LOADEDMODULES  - string variable that is a list of the loaded environment modules.
+ 
+### MAALI_LOADED_CRAY_COMPILER - string variable that used for testing if the cray compiler PrgEnv is loaded correctly.
+
+### MAALI_PREREQ_MODULE_NAME  - string variable that lists prerequisit modules name without the version.
+MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
+
+### MAALI_LOADED_PRGENV - string variable that defines which PrgEnv module is loaded.
+
+### MAALI_LOG_DIR - string variable that defines the path for the build log files.
+ MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
+
+### MAALI_LOG_PREFIX - string variable that prepends the config file name to file. 
+ MAALI_LOG_PREFIX="$MAALI_CONFIG-"
+
 MAALI_MAKE_VERSION_DEFAULT
 MAALI_MODULE
 MAALI_MODULE_CONFLICT
