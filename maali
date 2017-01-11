@@ -664,6 +664,7 @@ EOF
   # get all the variables which start with MAALI_MODULE_SET_
   MAALI_MODULE_VARIABLES_LIST="$MAALI_MODULE_VARIABLES_LIST_MAALI $MAALI_MODULE_VARIABLES_LIST_NON_MAALI"
 
+# this is for a check that is only set in the OpenFOAM cygnet file..
   if [ "$MAALI_MODULE_VARIABLES_ORDER" != "" ]; then
     MAALI_MODULE_VARIABLES_LIST="$MAALI_MODULE_VARIABLES_ORDER"
   fi
@@ -673,7 +674,7 @@ EOF
   do
     if [ "${!MAALI_MODULE_VARIABLE}" != "" ]; then
       MAALI_MODULE_VARIABLE_WIDTH=$(expr ${#MAALI_MODULE_VARIABLE} - 15)
-      if [ $MAALI_MODULE_VARIABLE_WIDTH -gt $MAALI_MODULE_MAX_VARIABLE ]; then
+      if [[ $MAALI_MODULE_VARIABLE_WIDTH -gt $MAALI_MODULE_MAX_VARIABLE ]]; then
         MAALI_MODULE_MAX_VARIABLE=$MAALI_MODULE_VARIABLE_WIDTH
       fi
     fi
@@ -689,11 +690,11 @@ EOF
     MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
     #MAALI_MODULE_VARIABLE_TCL="prepend-path"
 
-	#Shift MAALI_MODULE_VARIABLE_TCL, need to set delimiter / fileseperator to ; for LUA_CPATH / LUA_PATH
+  #Shift MAALI_MODULE_VARIABLE_TCL, need to set delimiter / fileseperator to ; for LUA_CPATH / LUA_PATH
     if [  "$MAALI_MODULE_VARIABLE" == "MAALI_MODULE_SET_LUA_PATH" ]; then
       MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
-	elif [  "$MAALI_MODULE_VARIABLE" == "MAALI_MODULE_SET_LUA_CPATH" ]; then
-	  MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
+    elif [  "$MAALI_MODULE_VARIABLE" == "MAALI_MODULE_SET_LUA_CPATH" ]; then
+      MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
     else
       MAALI_MODULE_VARIABLE_TCL='prepend-path'
     fi
