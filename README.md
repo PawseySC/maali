@@ -311,107 +311,208 @@ MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
 ### MAALI_LOG_PREFIX - string variable that prepends the config file name to file. 
  MAALI_LOG_PREFIX="$MAALI_CONFIG-"
 
-MAALI_MAKE_VERSION_DEFAULT
-MAALI_MODULE
-MAALI_MODULE_CONFLICT
-MAALI_MODULE_CONFLICT_CHECK
-MAALI_MODULE_DIR
-MAALI_MODULE_MAX_VARIABLE
-MAALI_MODULE_MISSING
-MAALI_MODULE_NAME
-MAALI_MODULE_PE_PKGCONFIG_CFLAGS
-MAALI_MODULE_PE_PKGCONFIG_LIBS
-MAALI_MODULE_PE_PKGCONFIG_NAME
-MAALI_MODULE_PREREQ
-MAALI_MODULE_RESTRICT_GROUP
-MAALI_MODULE_RESTRICT_GROUP 
-MAALI_INSTALL_DIR
-MAALI_MODULE_RESTRICT_GROUP
-MAALI_MODULE_SET
-MAALI_MODULE_SET_
-MAALI_MODULE_SET_CPATH
-MAALI_MODULE_SET_CRAY_LD_LIBRARY_PATH
-MAALI_MODULE_SET_FCPATH
-MAALI_MODULE_SET_FPATH
-MAALI_MODULE_SET_INCLUDE_PATH
-MAALI_MODULE_SET_LD_LIBRARY_PATH
-MAALI_MODULE_SET_MAALI
-MAALI_MODULE_SET_MANPATH
-MAALI_MODULE_SET_PATH
-MAALI_MODULE_SET_PERLLIB
-MAALI_MODULE_SET_PKG_CONFIG_PATH
-MAALI_MODULE_SET_PYTHONPATH
-MAALI_MODULE_SET_R_LIBS
-MAALI_MODULE_SET_R_LMAALI
-MAALI_MODULE_VARIABLE
-MAALI_MODULE_VARIABLES_LIST
-MAALI_MODULE_VARIABLES_LIST_MAALI
-MAALI_MODULE_VARIABLES_LIST_NON_MAALI
-MAALI_MODULE_VARIABLE_DIR
-MAALI_MODULE_VARIABLE_EVAL
-MAALI_MODULE_VARIABLE_VALUE
-MAALI_MODULE_VARIABLE_NAME
-MAALI_MODULE_VARIABLE_NAME 
-MAALI_MODULE_VARIABLE_PREPREND
-MAALI_MODULE_VARIABLE_TCL
-MAALI_MODULE_VARIABLE_VALUE
-MAALI_MODULE_VARIABLE_WIDTH
-MAALI_MODULE_VARIABLE_WORDS
-MAALI_MODULE_WHATIS
-MAALI_NEWPYTHONPATH
-MAALI_OLD_PYTHONPATH
-MAALI_OS 
-MAALI_OS_PATCH_LEVEL
-MAALI_OS_VERSION
-MAALI_PATCH_NUMBER
-MAALI_PKG
-MAALI_PREREQ_MODULE
-MAALI_PREREQ_MODULE_NAME
-MAALI_PYTHON_FIRSTLETTER
-MAALI_PYTHON_LIBDIR
-MAALI_PYTHON_LIB_VERSION
-MAALI_PYTHON_TOOL
-MAALI_PYTHON_VERSION
-MAALI_REBUILD
-MAALI_REBUILD_COMPILER
-MAALI_REBUILD_COMPILER_LOG
-MAALI_REBUILD_SRC
-MAALI_REMODULE
-MAALI_REQUIRED_SYSTEM_MODULES
-MAALI_ROOT
-MAALI_R_TOOL
-MAALI_SLASH_COUNT
-MAALI_SRC
-MAALI_SUPPORTED_COMPILERS
-MAALI_SUPPORTED_CRAY_CPU_TARGETS
-MAALI_SUPPORTED_CRAY_PRGENVS
-MAALI_SYSTEM
-MAALI_SYSTEM_BUILD
-MAALI_SYSTEM_COMPILER
-MAALI_DEFAULT_SYSTEM_GCC
-MAALI_SYSTEM_COMPILER
-MAALI_DEFAULT_SYSTEM_GCC
-MAALI_SYSTEM_COMPILER
-MAALI_COMPILER
-MAALI_SYSTEM_COMPILER_LIST
-MAALI_SYSTEM_CRAY_CPU_TARGET
-MAALI_SYSTEM_CRAY_CPU_TARGET_LIST
-MAALI_SYSTEM_CRAY_PRGENV
-MAALI_SYSTEM_CRAY_PRGENV_LIST
-MAALI_SYSTEM_CUDA_LIST
-MAALI_SYSTEM_CUDA_VERSION
-MAALI_SYSTEM_CUDA_VERSION_MATCH
-MAALI_SYSTEM_CYGNET_FILE
-MAALI_SYSTEM_DEFAULT_CUDA
-MAALI_SYSTEM_DEFAULT_PYTHON
-MAALI_SYSTEM_DEFAULT_R
-MAALI_SYSTEM_PACKAGES_NAME
-MAALI_SYSTEM_PACKAGES_PREREQ
-MAALI_SYSTEM_PACKAGES_VERSION
-MAALI_TMP_DST
-MAALI_TMP_FILE
-MAALI_TMP_URL
-MAALI_TOOL_BUILD_DIR
+### MAALI_MAKE_VERSION_DEFAULT - string variable used in main maali function as a command line option -a
+
+### MAALI_MODULE - string variable using in main maali function as a loop index in test if maali is loaded.
+
+### MAALI_MODULE_CONFLICT - string variable set in maali cygnet files listing module conflicts
+
+### MAALI_MODULE_CONFLICT_CHECK - variable used in maali_load_module used to test for module conflicts
+
+### MAALI_MODULE_DIR - string variable that defines the location for the modulefiles.
+
+### MAALI_MODULE_MAX_VARIABLE - string variable used in the maali_module function.
+  MAALI_MODULE_MAX_VARIABLE=${#MAALI_APP_HOME_NAME}
+
+### MAALI_MODULE_MISSING - string variable used the maali load module function to test if the module file exists.
+
+### MAALI_MODULE_NAME - string variable used in the maali for a conditional testing for loading and unloading modules.
+
+## MAALI_MODULE_PE_PKGCONFIG_CFLAGS - string variable for module creation for the cray -- is defined but not used
+
+## MAALI_MODULE_PE_PKGCONFIG_LIBS - string variable for module creation for the cray -- is defined but not used
+
+## MAALI_MODULE_PE_PKGCONFIG_NAME - string variable for module creation for the cray -- is defined but not used
+
+## MAALI_MODULE_PREREQ - string variable used to list any prerequisite modules to be added to the module. 
+
+### MAALI_MODULE_RESTRICT_GROUP - string variable set in the maali cygnet files and used in the maali_module function
+to restrinct access to module files to a defined group using the chgrp command.
+
+### MAALI_INSTALL_DIR - string variable used to define the full installation path for an application. It is
+defined using MAALI_INSTALL_DIR="$MAALI_INSTALL_TOOLDIR/$MAALI_TOOL_VERSION"
+
+### MAALI_MODULE_SET_CPATH -string variable defined in the cygnet file to setup module environment 
+### MAALI_MODULE_SET_CRAY_LD_LIBRARY_PATH -string variable defined in the cygnet file to setup module environment 
+### MAALI_MODULE_SET_FCPATH -string variable defined in the cygnet file to setup module environment 
+### MAALI_MODULE_SET_FPATH -string variable defined in the cygnet file to setup module environment 
+### MAALI_MODULE_SET_INCLUDE_PATH -string variable defined in the cygnet file to setup module environment 
+### MAALI_MODULE_SET_LD_LIBRARY_PATH -string variable defined in the cygnet file to setup module environment 
+### MAALI_MODULE_SET_MANPATH -string variable defined in the cygnet file to setup module environment 
+### MAALI_MODULE_SET_PATH -string variable defined in the cygnet file to setup module environment 
+### MAALI_MODULE_SET_PERLLIB -string variable defined in the cygnet file to setup module environment 
+### MAALI_MODULE_SET_PKG_CONFIG_PATH - boolean variable used in the cygnet files to setup the PKG_CONFIG path in the module file.
+### MAALI_MODULE_SET_PYTHONPATH -string variable defined in the cygnet file to setup module environment 
+### MAALI_MODULE_SET_R_LIBS  -string variable defined in the cygnet file to setup module environment 
+ 
+### MAALI_MODULE_VARIABLE - string variable used in maali to as and used as a for loop index value
+
+### MAALI_MODULE_LIST_WM_CFLAGS -string variable set in the openFOAM cygnet file
+### MAALI_MODULE_LIST_WM_CXXFLAGS - string variable set in the openFOAM cygnet file
+### MAALI_MODULE_VARIABLE_LIST_OFF - string variable set in the maali module function 
+MAALI_MODULE_VARIABLE_LIST_OFF="MAALI_MODULE_LIST_${MAALI_MODULE_VARIABLE_NAME}"
+
+### MAALI_MODULE_VARIABLE_LIST_OFF_VALUE - string variable set in the maali module function 
+MAALI_MODULE_VARIABLE_LIST_OFF_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_LIST_OFF}"`
+
+### MAALI_MODULE_VARIABLES_LIST - string variable set in the maali module function lists all the variables which start with MAALI_MODULE_SET_
+MAALI_MODULE_VARIABLES_LIST="$MAALI_MODULE_VARIABLES_LIST_MAALI $MAALI_MODULE_VARIABLES_LIST_NON_MAALI
+
+### MAALI_MODULE_VARIABLES_LIST_MAALI - string variable used in the maali module function for creating the python module
+
+### MAALI_MODULE_VARIABLES_LIST_NON_MAALI - string variable used in the maali module function for creating the python module
+
+### MAALI_MODULE_VARIABLE_DIR - string variable used in maali module function used to define the different variable paths when creating the module
+
+### MAALI_MODULE_VARIABLE_EVAL - string variable using in maali module function 
+MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
+
+### MAALI_MODULE_VARIABLE_VALUE - string variable used in the maali module function as an index variable in a for loop
+
+### MAALI_MODULE_VARIABLE_NAME - string variable using the maali module function 
+MAALI_MODULE_VARIABLE_NAME=`echo $MAALI_MODULE_VARIABLE | sed -e 's/MAALI_MODULE_SET_//g'`
+
+### MAALI_MODULE_VARIABLE_PREPREND - string variable used in the maali module function to set installation path based on tool type.
+MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/" 
+
+### MAALI_MODULE_VARIABLE_TCL - string variable used in the maali module function to prepend-path in module
+
+### MAALI_MODULE_VARIABLE_WIDTH - variable used in the maali module function to find the width of name for printf statements writing the module file.
+
+## MAALI_MODULE_VARIABLE_WORDS - variable using in maali module function that does ???
+
+### MAALI_MODULE_WHATIS - string variable that is set in the maali cygnet files with a text string about what the code does.
+
+### MAALI_NEWPYTHONPATH - string variable that is set in the maali_python_build function that dening
+MAALI_NEWPYTHONPATH="$MAALI_INSTALL_DIR/$MAALI_PYTHON_LIBDIR/python$MAALI_PYTHON_LIB_VERSION/site-packages"
+
+### MAALI_OLD_PYTHONPATH - string variable that is used a temporary variable in the maali_python_build function.
+
+### MAALI_OS - a string variable that defines what the OS or linux image that is install. Detected automatically by maali by check
+contents of files in /etc. MAALI_OS is part of the path for location cygnet files.
+
+### MAALI_OS_PATCH_LEVEL - variable that set to the correct service package level for determing the MAALI_OS
+ MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
+
+### MAALI_OS_VERSION - variable that is set to ther release verion of the OS used for seting MAALI_OS
+MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
+
+### MAALI_PATCH_NUMBER - variable that is used as a loop index used in downloading patch files
+
+### MAALI_PKG - string variable that is used as a loop index for construcing various lists for writing environment modules.
+
+### MAALI_PREREQ_MODULE - string variable that is set in the cygnet files used to list any prequisite modules for writing environment modules.
+
+### MAALI_PREREQ_MODULE_NAME - string variable that is set to the name of the module without the version
+MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
+
+## MAALI_PYTHON_FIRSTLETTER - string variable that is unused 
+MAALI_PYTHON_FIRSTLETTER=`echo "$MAALI_TOOL_NAME_ORIG" | cut -b 1`
+
+### MAALI_PYTHON_LIBDIR - string variable set in the python.cyg file to defined as an environment variable for use in other python packages. 
+
+### MAALI_PYTHON_LIB_VERSION - variable that is set to the major release of the python lib ie. 2.6, 2.7, 3.2 etc.
+MAALI_PYTHON_LIB_VERSION=`echo "$MAALI_PYTHON_VERSION" | cut -d '.' -f 1,2`
+
+### MAALI_PYTHON_TOOL - variable set if we are using building with python
+
+### MAALI_PYTHON_VERSION - variable that is set to which version of python is being used
+
+### MAALI_REBUILD - boolean variable that is set when using the maali usage flags.
+
+### MAALI_REBUILD_COMPILER - string variable that is set when using the maali usage file -r allows user to specify which compiler they wish to use.
+
+## MAALI_REBUILD_COMPILER_LOG - string variable that used when write log file.
+
+### MAALI_REBUILD_SRC - string variable that shows the path for recording logs of rebuilds
+MAALI_REBUILD_SRC="$HOME/.maali/$MAALI_OS/rebuild"
+
+### MAALI_REMODULE - boolean variable that is set when using the maali usage flage to only update the module file.
+
+## MAALI_REQUIRED_SYSTEM_MODULES - string variable that is a list of required system modules but is not set anywhere and there is section dead code.
+
+### MAALI_ROOT - string variable that is the root path for detemining where things are installed using maali.
+
+### MAALI_R_TOOL - usage flag boolean variables to build R applications.  
+
+### MAALI_SLASH_COUNT - variable used to test the correctness of the compilers when doing binary package installs
+
+### MAALI_SRC - string variable set to define the full path to where the application/tool source tar ball files are saved.
+
+### MAALI_SUPPORTED_COMPILERS - string variable set in the maali_module function 
+ MAALI_SUPPORTED_COMPILERS="gcc intel cce pgi" # note it is gcc not gnu
+
+### MAALI_SUPPORTED_CRAY_CPU_TARGETS - string variable set in the maali_module function listing the cpu types
+MAALI_SUPPORTED_CRAY_CPU_TARGETS="sandybridge ivybridge haswell"
+
+### MAALI_SUPPORTED_CRAY_PRGENVS - string variable set in the maali_module function listing the different PrgEnv-*
+MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray"
+
+### MAALI_SYSTEM - string variable defined in the config file 
+
+### MAALI_SYSTEM_BUILD - Boolean variable to determine if build will be a system build otherwise it is a group/project/user build.
+
+### MAALI_SYSTEM_COMPILER - string variable used as a index variable in a for loop
+ for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
+
+### MAALI_DEFAULT_SYSTEM_GCC - string variable defined in config file and used in cygnet files when only building with the default gcc/gnu compilers
+
+### MAALI_SYSTEM_COMPILER_LIST - string variable defining list of installed compilers without versioning
+MAALI_SYSTEM_COMPILER_LIST=`module avail $MAALI_COMPILER_TYPE/ -t 2>&1 | grep $MAALI_COMPILER_TYPE/ | sed -e 's/(default)//g'`
+
+### MAALI_SYSTEM_CRAY_CPU_TARGET - string variable used as an index variable for MAALI_SYSTEM_CRAY_CPU_TARGET_LIST
+
+### MAALI_SYSTEM_CRAY_CPU_TARGET_LIST - string variable defines list of modules "craype-*"
+
+### MAALI_SYSTEM_CRAY_PRGENV - string variable using as and index variable in a bash for loop.
+
+### MAALI_SYSTEM_CRAY_PRGENV_LIST - string variable that is a list of the Cray PrgEnv modules.
+
+### MAALI_SYSTEM_CUDA_LIST - string variable that is a list of the CUDA modules.
+
+### MAALI_SYSTEM_CUDA_VERSION - string variable using as and index variable in a bash for loop.
+
+### MAALI_SYSTEM_CUDA_VERSION_MATCH - string variable used to test if CUDA is installed
+
+### MAALI_SYSTEM_CYGNET_FILE - boolean varible used to determing correct application home 
+ if [ $MAALI_SYSTEM_CYGNET_FILE -eq 1 ]; then
+
+### MAALI_SYSTEM_DEFAULT_CUDA - variable is set to determine list version of cuda installled on system.
+
+### MAALI_SYSTEM_DEFAULT_PYTHON - variable is set to determine list version of Python installed on system.
+
+### MAALI_SYSTEM_DEFAULT_R  - variable is set to determine list version of R installed on system.
+
+### MAALI_SYSTEM_PACKAGES_NAME - string variable used as a variable index in a bash for loop.
+for MAALI_SYSTEM_PACKAGES_NAME in $MAALI_SYSTEM_PACKAGES_PREREQ; do
+
+### MAALI_SYSTEM_PACKAGES_PREREQ - is an undefined string variable
+for MAALI_SYSTEM_PACKAGES_NAME in $MAALI_SYSTEM_PACKAGES_PREREQ; do
+
+### MAALI_SYSTEM_PACKAGES_VERSION
+MAALI_SYSTEM_PACKAGES_VERSION=`rpmquery --qf "%{VERSION}" ${MAALI_SYSTEM_PACKAGES_NAME}`
+
+### MAALI_TMP_DST - string variable used as an index variable in a bash for loop in the maali_download function
+  for MAALI_TMP_DST in $MAALI_DST ; do
+
+### MAALI_TMP_URL - string variable used as an index variable in a bash for loop in the maali_download function
+  for MAALI_TMP_URL in $MAALI_URL ; do
+
+### MAALI_TMP_FILE - temporary assigned string variable used in the maali_load_module function 
+ MAALI_TMP_FILE="$TMPDIR/maali.$$.out"
+
+### MAALI_TOOL_BUILD_DIR - string variable defined in the cygnet files that is the full path to where the source code is compiled
+
 MAALI_TOOL_BUILD_PREREQ
 MAALI_TOOL_BUILD_PREREQ_REV
 MAALI_TOOL_COMPILER
@@ -428,7 +529,6 @@ MAALI_TOOL_MAJOR_VERSION
 MAALI_TOOL_MODULE
 MAALI_TOOL_MODULE_DIR
 MAALI_TOOL_NAME
-MAALI_TOOL_VERSION
 MAALI_TOOL_NAME-gpu
 MAALI_TOOL_NAME_ORIG
 MAALI_TOOL_NAME_UPPERCASE
@@ -438,16 +538,31 @@ MAALI_TOOL_PREREQ_MODULE
 MAALI_TOOL_PREREQ_REV
 MAALI_TOOL_TYPE
 MAALI_TOOL_VERSION
-MAALI_TOOL_VERSION_CURRENT_DEFAULT
-MAALI_TYPE
-MAALI_UNINSTALL_HIDE
-MAALI_UNINSTALL_REMOVE
-MAALI_UNPACK_MKDIR 
-MAALI_UNZIP_EXCLUDE
-MAALI_URL
-MAALI_URL_ARRAY
-MAALI_USER_MAP
-MAALI_VERSION
+### MAALI_TOOL_VERSION_CURRENT_DEFAULT - variable used to count number of versions of a module
+ MAALI_TOOL_VERSION_CURRENT_DEFAULT=`grep \"$MAALI_TOOL_VERSION\" $MAALI_TOOL_MODULE_DIR/.version | wc -l`
+
+
+### MAALI_TYPE - string variable that represents the type of file compression used.
+MAALI_TYPE=`file -b $MAALI_INDIVIDUAL_DST | cut -d ',' -f 1`
+
+### MAALI_UNINSTALL_HIDE - boolean variable used hide the module file maali usage option -u 
+
+### MAALI_UNINSTALL_REMOVE - boolean variable used to remove file "only removes log files and modules"
+ 
+### MAALI_UNPACK_MKDIR - boolean variable defined in the libcircle.cyg cygnet file that is used in the maali_unpack function.
+
+### MAALI_UNZIP_EXCLUDE - string variable defined in the tassel.cyg cygnet file.
+MAALI_UNZIP_EXCLUDE="'*__MACOSX*' '*.DS_Store*' '*.svn*'"
+
+### MAALI_URL - string variable defined in the cygnet files that is url location for the wget command.
+
+### MAALI_URL_ARRAY - is an array of string variables that define multiple URLS for an application if needed
+MAALI_URL_ARRAY[$i]=$MAALI_TMP_URL
+
+MAALI_USER_MAP - is defined for system config files to help track system build files.
+
+MAALI_VERSION - variable that defines what version of maali is being used.
+
 MAALI_WGET_CMD
 MAALI_WGET_EXTRA
 MAALI_WIKI_CATEGORY
