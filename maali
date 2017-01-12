@@ -773,6 +773,7 @@ EOF
           MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
         esac
+
         # don't treat value as a list
         if [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "off" ]; then
           MAALI_MODULE_VARIABLE_WORDS="1"
@@ -782,6 +783,7 @@ EOF
 	    
         if [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_DEFAULT_' ]]; then
           printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
+
         elif [ $MAALI_MODULE_VARIABLE_WORDS -gt 1 ]; then
           for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
             MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
@@ -1506,7 +1508,7 @@ fi
 for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
   MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
 
-  # make the -p redundant
+  # make the -p usage flag redundant
   if [ "$MAALI_COMPILER_NAME" == "python" ]; then
     echo ".. detected python compiler, setting MAALI_PYTHON_TOOL"
     MAALI_PYTHON_TOOL=1
