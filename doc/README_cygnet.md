@@ -1,10 +1,10 @@
 
-# MAALI_TOOL_TYPE - string variable that is set in the cygnet file to the type of tool being installed 
+MAALI_TOOL_TYPE - string variable that is set in the cygnet file to the type of tool being installed 
 
-# MAALI_TOOL_VERSION - string variable that is set in the cygnet file as an input argument on the maali usage are for the -v flag..
+MAALI_TOOL_VERSION - string variable that is set in the cygnet file as an input argument on the maali usage are for the -v flag..
 
-# MAALI_DEFAULT_PYTHON - list of the python versions set in the cygnet files used in a for loop in the main maali script.
-for MAALI_DEFAULT_PYTHON_COMPILER in $MAALI_DEFAULT_PYTHON; do
+MAALI_DEFAULT_PYTHON - list of the python versions set in the cygnet files used in a for loop in the main maali script.
+<code> for MAALI_DEFAULT_PYTHON_COMPILER in $MAALI_DEFAULT_PYTHON; do </code>
 
 ### MAALI_DST - used in the cygnet files as a key-pair value for the directory where the codes source repo is defined.
 
