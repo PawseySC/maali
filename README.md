@@ -63,23 +63,23 @@ Definitions of the ~250 variables used in maail.
 *MAALI_APP_HOME* - Used in function maali_module to define application 
   base directory path using the compiler/compiler version hierarchy
   for include, bin, manpath etc..
-<pre><code>MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION" </code><pre>
+<pre><code>MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION" </code></pre>
 
 *MAALI_APP_HOME_NAME* - Used in the maali_module function to create a environment variable for the module 
-<pre><code>MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"</code><pre>
+<pre><code>MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"</code></pre>
 
 *MAALI_LOADED_PRGENV* - Used in the maali_module function when setting the variable MAALI_APP_HOME path variable and set as an evironment module variable for use with Cray systems.
-<pre><code>setenv MAALI_LOADED_PRGENV PrgEnv-cray</code><pre>
+<pre><code>setenv MAALI_LOADED_PRGENV PrgEnv-cray</code></pre>
 
 *MAALI_TOOL_NAME* - input variable for the maali command, name of the tool/application being installed ( -t flag )
 
 *MAALI_TOOL_VERSION* - input variable for the maali command, version of the tool/application being installed ( -v flag )
 
 *MAALI_BUILDER_BUILD_CN* - for system build define ldap details cn
-<pre><code>MAALI_BUILDER_BUILD_CN=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' cn | grep cn: | sed -e 's/cn: //g'` </code><pre>
+<pre><code>MAALI_BUILDER_BUILD_CN=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' cn | grep cn: | sed -e 's/cn: //g'` </code></pre>
 
 *MAALI_BUILDER_BUILD_MAIL* - for system build define ldap details email
-<pre><code>MAALI_BUILDER_BUILD_MAIL=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' mail | grep mail: | sed -e 's/mail: //g'` </code><pre>
+<pre><code>MAALI_BUILDER_BUILD_MAIL=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' mail | grep mail: | sed -e 's/mail: //g'` </code></pre>
 
 *MAALI_BUILDER_UID* - input variable for the maali command, for system builds, envivironment variable that maali checks.
 
