@@ -63,23 +63,23 @@ Definitions of the ~250 variables used in maail.
 *MAALI_APP_HOME* - Used in function maali_module to define application 
   base directory path using the compiler/compiler version hierarchy
   for include, bin, manpath etc..
-<code>MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION" </code>
+<pre><code>MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION" </code><pre>
 
 *MAALI_APP_HOME_NAME* - Used in the maali_module function to create a environment variable for the module 
-<code>MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"</code>
+<pre><code>MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"</code><pre>
 
 *MAALI_LOADED_PRGENV* - Used in the maali_module function when setting the variable MAALI_APP_HOME path variable and set as an evironment module variable for use with Cray systems.
-<code>setenv MAALI_LOADED_PRGENV PrgEnv-cray</code>
+<pre><code>setenv MAALI_LOADED_PRGENV PrgEnv-cray</code><pre>
 
 *MAALI_TOOL_NAME* - input variable for the maali command, name of the tool/application being installed ( -t flag )
 
 *MAALI_TOOL_VERSION* - input variable for the maali command, version of the tool/application being installed ( -v flag )
 
 *MAALI_BUILDER_BUILD_CN* - for system build define ldap details cn
-<code>MAALI_BUILDER_BUILD_CN=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' cn | grep cn: | sed -e 's/cn: //g'` </code>
+<pre><code>MAALI_BUILDER_BUILD_CN=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' cn | grep cn: | sed -e 's/cn: //g'` </code><pre>
 
 *MAALI_BUILDER_BUILD_MAIL* - for system build define ldap details email
-<code>MAALI_BUILDER_BUILD_MAIL=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' mail | grep mail: | sed -e 's/mail: //g'` </code>
+<pre><code>MAALI_BUILDER_BUILD_MAIL=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' mail | grep mail: | sed -e 's/mail: //g'` </code><pre>
 
 *MAALI_BUILDER_UID* - input variable for the maali command, for system builds, envivironment variable that maali checks.
 
@@ -341,15 +341,15 @@ Definitions of the ~250 variables used in maail.
 *MAALI_MODULE_VARIABLE_EVAL* - string variable using in maali module function.
 <code>MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`</code>
 
-*MAALI_MODULE_VARIABLE_VALUE* - string variable used in the maali module function as an index variable in a for loop
+*MAALI_MODULE_VARIABLE_VALUE* - string variable used in the maali module function as an index variable in a for loop.
 
-*MAALI_MODULE_VARIABLE_NAME* - string variable using the maali module function 
-<code>MAALI_MODULE_VARIABLE_NAME=`echo $MAALI_MODULE_VARIABLE | sed -e 's/MAALI_MODULE_SET_//g'`</code>
+*MAALI_MODULE_VARIABLE_NAME* - string variable using the maali module function. 
+<code> MAALI_MODULE_VARIABLE_NAME=`echo $MAALI_MODULE_VARIABLE | sed -e 's/MAALI_MODULE_SET_//g'` </code>
 
-*MAALI_MODULE_VARIABLE_PREPREND* - string variable used in the maali module function to set installation path based on tool type.
-<code>MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/" </code>
+*MAALI_MODULE_VARIABLE_PREPREND* - string variable used in the maali module function to set installation path based on tool type. 
+<code> MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/" </code>
 
-*MAALI_MODULE_VARIABLE_TCL* - string variable used in the maali module function to prepend-path in module
+*MAALI_MODULE_VARIABLE_TCL* - string variable used in the maali module function to prepend-path in module.
 
 *MAALI_MODULE_VARIABLE_WIDTH* - variable used in the maali module function to find the width of name for printf statements writing the module file.
 
