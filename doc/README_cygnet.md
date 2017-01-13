@@ -89,3 +89,6 @@ MAALI_TOOL_CONFIGURE_EVAL=`eval echo "$MAALI_TOOL_CONFIGURE"`
 
 *MAALI_UNZIP_EXCLUDE* - string variable defined in the tassel.cyg cygnet file.
 <code>MAALI_UNZIP_EXCLUDE="'*__MACOSX*' '*.DS_Store*' '*.svn*'"</code>
+
+*MAALI_EXTRA_CRAY* - string variable used only in the gts.cyg file and checked in main maali on system builds.
+<code> MAALI_EXTRA_CRAY="craype-sandybridge" </code>
