@@ -300,9 +300,6 @@ MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME $HOME/.maali/$MAA
  
 ### MAALI_LOADED_CRAY_COMPILER - string variable that used for testing if the cray compiler PrgEnv is loaded correctly.
 
-### MAALI_PREREQ_MODULE_NAME  - string variable that lists prerequisit modules name without the version.
-MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
-
 ### MAALI_LOADED_PRGENV - string variable that defines which PrgEnv module is loaded.
 
 ### MAALI_LOG_DIR - string variable that defines the path for the build log files.
@@ -513,31 +510,73 @@ MAALI_SYSTEM_PACKAGES_VERSION=`rpmquery --qf "%{VERSION}" ${MAALI_SYSTEM_PACKAGE
 
 ### MAALI_TOOL_BUILD_DIR - string variable defined in the cygnet files that is the full path to where the source code is compiled
 
-MAALI_TOOL_BUILD_PREREQ
-MAALI_TOOL_BUILD_PREREQ_REV
-MAALI_TOOL_COMPILER
-MAALI_TOOL_COMPILERS
-MAALI_TOOL_CONFIGURE
-MAALI_TOOL_CONFIGURE_EVAL
-MAALI_TOOL_CRAY_CPU_TARGET
-MAALI_TOOL_CRAY_PRGENV
-MAALI_TOOL_CUDA_COMPILER
-MAALI_TOOL_CUDA_COMPILERS
-MAALI_TOOL_LOG
-MAALI_TOOL_MAJOR_MINOR_VERSION
-MAALI_TOOL_MAJOR_VERSION
-MAALI_TOOL_MODULE
-MAALI_TOOL_MODULE_DIR
-MAALI_TOOL_NAME
-MAALI_TOOL_NAME-gpu
-MAALI_TOOL_NAME_ORIG
-MAALI_TOOL_NAME_UPPERCASE
-MAALI_TOOL_PATCHES
-MAALI_TOOL_PREREQ
-MAALI_TOOL_PREREQ_MODULE
-MAALI_TOOL_PREREQ_REV
-MAALI_TOOL_TYPE
-MAALI_TOOL_VERSION
+### MAALI_TOOL_BUILD_PREREQ - string variable defined in the cygnet files that is lists any prerequisite modules.
+
+### MAALI_TOOL_BUILD_PREREQ_REV - string variable that has a formated list of prerequisite module with a "space" as a seperator.
+MAALI_TOOL_BUILD_PREREQ_REV=`echo $MAALI_TOOL_BUILD_PREREQ | tac -s' '`
+
+### MAALI_TOOL_COMPILERS - string variable defined in the cygnet files that is the list of compilers to use to install application.
+
+### MAALI_TOOL_CONFIGURE - string variable defined in the cygnet files that is the list of configuration options used to create the Makefile.
+
+### MAALI_TOOL_CONFIGURE_EVAL - string variable defined in the cygnet files for the configure command
+MAALI_TOOL_CONFIGURE_EVAL=`eval echo "$MAALI_TOOL_CONFIGURE"`
+
+### MAALI_TOOL_CRAY_CPU_TARGET - string variable used in the maali_module function
+MAALI_TOOL_CRAY_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
+
+### MAALI_TOOL_CRAY_PRGENV - string variable that is set in the cygnet files, used to define the list of compilers that 
+MAALI_TOOL_CRAY_PRGENV="$MAALI_DEFAULT_CRAY_GCC_PRGENV"
+ 
+### MAALI_TOOL_CUDA_COMPILER - string variable that is used as the index variable in bash for loop.
+for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
+
+
+### MAALI_TOOL_CUDA_COMPILERS - string variable that is set in the cygnet files, used to define the list of CUDA compilers.
+MAALI_TOOL_CUDA_COMPILERS="$MAALI_DEFAULT_CUDA_COMPILERS"
+
+### MAALI_TOOL_LOG - string variable that defines the path and file name for build log
+MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.log"
+
+### MAALI_TOOL_MAJOR_MINOR_VERSION - variable that is set to the version number of the application
+MAALI_TOOL_MAJOR_MINOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1,2`
+
+### MAALI_TOOL_MAJOR_VERSION - variable that is set to the point release version of the application
+MAALI_TOOL_MAJOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1`
+
+### MAALI_TOOL_NAME - string variable that is set to the name of the application/lib in the cygnet file
+
+## MAALI_TOOL_NAME-gpu - string variable that is set to the name of the application/lib the "-gpu" is appended to the module name if it is gpu enabled.
+variable should be \${MAALI_TOOL_NAME}-gpu for clarity and ensure consistency
+
+### MAALI_TOOL_MODULE_DIR - string variable that is set to the full path of directory 
+MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_NAME"
+
+### MAALI_TOOL_MODULE - string variable that is set to the directory and file for the module file.
+MAALI_TOOL_MODULE="$MAALI_TOOL_MODULE_DIR/$MAALI_TOOL_VERSION"
+
+### MAALI_TOOL_NAME_ORIG - string variable that holds the original name with upper case letters
+MAALI_TOOL_NAME_ORIG=$MAALI_TOOL_NAME
+
+### MAALI_TOOL_NAME_UPPERCASE - string variable with MAALI_TOOL_NAME in uppercase for use in the maali_module function 
+MAALI_TOOL_NAME_UPPERCASE=$(echo "$MAALI_TOOL_NAME" | tr '[:lower:]' '[:upper:]' | sed -e 's/-//g' | sed -e 's/+/PLUS/g' )
+
+### MAALI_TOOL_PATCHES - variable that list the tool patches numbers in the tool cygnet files.
+
+### MAALI_TOOL_PREREQ - variable that is set in the cygnet files that list the prerequist module files needed for the application or tool
+so that they are automatically loaded via the module file. 
+
+### MAALI_TOOL_PREREQ_MODULE - string variable used in the maali_module function to evaluate which compiler suite is loaded.
+MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
+
+### MAALI_TOOL_PREREQ_REV - string variable that creates a formatted list of the prerequisite modules.
+MAALI_TOOL_PREREQ_REV=`echo $MAALI_TOOL_PREREQ | tac -s' '`
+
+### MAALI_TOOL_TYPE - string variable that is set in the cygnet file to the type of tool being installed 
+so that the module file is put in the correct location.  
+
+### MAALI_TOOL_VERSION - string variable that is set in the cygnet file as an input argument on the maali usage are for the -v flag..
+
 ### MAALI_TOOL_VERSION_CURRENT_DEFAULT - variable used to count number of versions of a module
  MAALI_TOOL_VERSION_CURRENT_DEFAULT=`grep \"$MAALI_TOOL_VERSION\" $MAALI_TOOL_MODULE_DIR/.version | wc -l`
 
@@ -559,15 +598,28 @@ MAALI_UNZIP_EXCLUDE="'*__MACOSX*' '*.DS_Store*' '*.svn*'"
 ### MAALI_URL_ARRAY - is an array of string variables that define multiple URLS for an application if needed
 MAALI_URL_ARRAY[$i]=$MAALI_TMP_URL
 
-MAALI_USER_MAP - is defined for system config files to help track system build files.
+### MAALI_USER_MAP - is defined for system config files to help track system build files.
 
-MAALI_VERSION - variable that defines what version of maali is being used.
+### MAALI_VERSION - variable that defines what version of maali is being used.
 
-MAALI_WGET_CMD
-MAALI_WGET_EXTRA
-MAALI_WIKI_CATEGORY
-MAALI_WIKI_CATEGORY_ITEM
-MAALI_WIKI_COMPILER_STRING
-MAALI_WIKI_SRC
-MAALI_WIKI_SYSTEM_NAME
-MAALI_WIKI_TOOL_NAME
+### MAALI_WGET_CMD - is a string variable that determine wget flags are included to the wget command.
+
+### MAALI_WGET_EXTRA - is a string variable that defines optional flags for the wget command
+
+### MAALI_WIKI_CATEGORY - string variable defined in the cygnet files
+
+### MAALI_WIKI_CATEGORY_ITEM - string variable defined as an index variable for a bash for loop
+for MAALI_WIKI_CATEGORY_ITEM in $MAALI_WIKI_CATEGORY; do
+
+### MAALI_WIKI_COMPILER_STRING - string variable used to write out to wiki the MAALI_COMPILER_VERSION value 
+MAALI_WIKI_COMPILER_STRING="<tt>$MAALI_COMPILER_VERSION</tt>"
+
+### MAALI_WIKI_SRC - string variable that is the full path to folder with the wiki file 
+MAALI_WIKI_SRC="$HOME/.maali/$MAALI_OS/wiki/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.wiki"
+
+### MAALI_WIKI_SYSTEM_NAME - format MAALI_SYSTEM variable to use in writing wiki file.
+MAALI_WIKI_SYSTEM_NAME=`echo ${MAALI_SYSTEM:0:1} | tr  '[a-z]' '[A-Z]'`${MAALI_SYSTEM:1}
+
+### MAALI_WIKI_TOOL_NAME - string variable that is set to the MAALI_TOOL_NAME_ORIG value
+MAALI_WIKI_TOOL_NAME="$MAALI_TOOL_NAME_ORIG"
+
