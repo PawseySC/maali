@@ -128,11 +128,11 @@ Definitions of the ~250 variables used in maail.
 *MAALI_CONFIG* - is the variable used to define the maali config file name.
 <pre><code>MAALI_CONFIG=$OPTARG</code></pre>
 
-*MAALI_CORES* - for use in parallel make -j $MAALI_CORES
+*MAALI_CORES* - for use in parallel make -j $MAALI_CORES. 
 
 *MAALI_CRAY* - boolean variable to set if this is a cray system.
 
-*MAALI_CRAY_COMPILER_MATCH* - string variable to set to the different cray compiler types - gcc, intel, cce
+*MAALI_CRAY_COMPILER_MATCH* - string variable to set to the different cray compiler types - gcc, intel, cce.
 
 *MAALI_CRAY_CPU_TARGET* - string variable defines cpu target used
  <pre><code>  maali_load_module "craype-$MAALI_CRAY_CPU_TARGET"</code></pre>
@@ -145,20 +145,20 @@ Definitions of the ~250 variables used in maail.
 
 
 *MAALI_CRAY_MODULE* - is a loop variable used in the maali main script 
-<pre><code>for MAALI_CRAY_MODULE in $MAALI_EXTRA_CRAY; do</code></pre>
-<pre><code>for MAALI_CRAY_MODULE in $MAALI_PREREQ_MODULE; do</code></pre>
+<pre><code>for MAALI_CRAY_MODULE in $MAALI_EXTRA_CRAY; do </code></pre>
+<pre><code>for MAALI_CRAY_MODULE in $MAALI_PREREQ_MODULE; do </code></pre>
 
 *MAALI_EXTRA_CRAY* - is string variable that is a list of ???
-<pre><code>for MAALI_CRAY_MODULE in $MAALI_EXTRA_CRAY; do</code></pre>
+<pre><code>for MAALI_CRAY_MODULE in $MAALI_EXTRA_CRAY; do </code></pre>
 
-*MAALI_CRAY_PRGENV* - is a string variable that represents the variable in for loop list used in the maali_module function and the main maali scrtip.
-<pre><code>for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do</code></pre>
+*MAALI_CRAY_PRGENV* - is a string variable that represents the variable in for loop list used in the maali_module function and the main maali script..
+<pre><code>for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do </code></pre>
 
-*MAALI_CRAY_PRGENV_FOUND_MATCH* - is a boolean variable used in the maali module function
-<pre><code> if [ $MAALI_CRAY_PRGENV_FOUND_MATCH -eq 0 ]; then</code></pre>
+*MAALI_CRAY_PRGENV_FOUND_MATCH* - is a boolean variable used in the maali module function.
+<pre><code> if [ $MAALI_CRAY_PRGENV_FOUND_MATCH -eq 0 ]; then </code></pre>
 
 *MAALI_CRAY_PRGENV_NAME* - String variable to used to test which PrgEnv is set
-<pre><code>MAALI_CRAY_PRGENV_NAME=`echo "$MAALI_CRAY_PRGENV" | cut -d '/' -f 1`
+<pre><code>MAALI_CRAY_PRGENV_NAME=`echo "$MAALI_CRAY_PRGENV" | cut -d '/' -f 1`</code></pre>
 
 *MAALI_CRAY_PRGENV_TYPE* - a string variable set in loop used in the maali_module function
 <pre><code>for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do</code></pre>
