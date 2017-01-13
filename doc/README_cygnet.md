@@ -43,9 +43,6 @@ _MAALI_MODULE_SET_PYTHONPATH_ - string variable defined in the cygnet file to se
 
 _MAALI_MODULE_SET_R_LIBS_ - string variable defined in the cygnet file to setup module environment 
 
-_MAALI_MODULE_LIST_WM_CFLAGS_ -string variable set in the openFOAM cygnet file
-
-_MAALI_MODULE_LIST_WM_CXXFLAGS_ - string variable set in the openFOAM cygnet file
 
 _MAALI_MODULE_WHATIS_ - string variable that is set in the maali cygnet files with a text string about what the code does.
 contents of files in */etc*. MAALI_OS is part of the path for location cygnet files.
@@ -83,3 +80,7 @@ _MAALI_URL_ - string variable defined in the cygnet files that is url location f
 _MAALI_WIKI_CATEGORY_ - string variable defined in the cygnet files
 
 # _MAALI_PYTHON_LIBDIR_ - string variable set in the python.cyg file to defined as an environment variable for use in other python packages. 
+
+_MAALI_MODULE_LIST_WM_CFLAGS_ -string variable set in the openFOAM cygnet file
+
+_MAALI_MODULE_LIST_WM_CXXFLAGS_ - string variable set in the openFOAM cygnet file
