@@ -6,7 +6,7 @@
 
 *MAALI_DEFAULT_PYTHON* - list of the python versions set in the cygnet files used in a for loop in the main maali script.
 
-<code> for MAALI_DEFAULT_PYTHON_COMPILER in $MAALI_DEFAULT_PYTHON; do </code>
+<pre><code> for MAALI_DEFAULT_PYTHON_COMPILER in $MAALI_DEFAULT_PYTHON; do </code></pre>
 
 *MAALI_DST* - used in the cygnet files as a key-pair value for the directory where the codes source repo is defined.
 
@@ -62,10 +62,10 @@ contents of files in */etc*. MAALI_OS is part of the path for location cygnet fi
 MAALI_TOOL_CONFIGURE_EVAL=`eval echo "$MAALI_TOOL_CONFIGURE"`
 
 *MAALI_TOOL_CRAY_PRGENV* - string variable that is set in the cygnet files, used to define the list of compilers that 
-<code> MAALI_TOOL_CRAY_PRGENV="$MAALI_DEFAULT_CRAY_GCC_PRGENV" </code>
+<pre><code> MAALI_TOOL_CRAY_PRGENV="$MAALI_DEFAULT_CRAY_GCC_PRGENV" </code></pre>
  
 *MAALI_TOOL_CUDA_COMPILERS* - string variable that is set in the cygnet files, used to define the list of CUDA compilers.
-<code> MAALI_TOOL_CUDA_COMPILERS="$MAALI_DEFAULT_CUDA_COMPILERS" </code>
+<pre><code> MAALI_TOOL_CUDA_COMPILERS="$MAALI_DEFAULT_CUDA_COMPILERS" </code></pre>
 
 *MAALI_TOOL_NAME* - string variable that is set to the name of the application/lib in the cygnet file
 
@@ -88,7 +88,7 @@ MAALI_TOOL_CONFIGURE_EVAL=`eval echo "$MAALI_TOOL_CONFIGURE"`
 *MAALI_UNPACK_MKDIR* - boolean variable defined in the libcircle.cyg cygnet file that is used in the maali_unpack function.
 
 *MAALI_UNZIP_EXCLUDE* - string variable defined in the tassel.cyg cygnet file.
-<code>MAALI_UNZIP_EXCLUDE="'*__MACOSX*' '*.DS_Store*' '*.svn*'"</code>
+<pre><code>MAALI_UNZIP_EXCLUDE="'*__MACOSX*' '*.DS_Store*' '*.svn*'"</code></pre>
 
 *MAALI_EXTRA_CRAY* - string variable used only in the gts.cyg file and checked in main maali on system builds.
-<code> MAALI_EXTRA_CRAY="craype-sandybridge" </code>
+<pre><code> MAALI_EXTRA_CRAY="craype-sandybridge" </code></pre>
