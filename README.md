@@ -225,7 +225,7 @@ Definitions of the ~250 variables used in maail.
 <pre><code>Does not appear to be used...???</code></pre>
 
 *MAALI_DEFAULT_PRGENV* - string variable defined in the main maali function in a for loop.
-<pre><code> for MAALI_DEFAULT_PRGENV in $MAALI_DEFAULT_CRAY_PRGENVS; do
+<pre><code> for MAALI_DEFAULT_PRGENV in $MAALI_DEFAULT_CRAY_PRGENVS; do </code></pre>
 
 *MAALI_DEFAULT_PRGENV_NAME* - module name with the version truncated used in the main maali script
  <pre><code> MAALI_DEFAULT_PRGENV_NAME=`echo "$MAALI_DEFAULT_PRGENV" | cut -d '/' -f 1`</code></pre> 
