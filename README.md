@@ -520,7 +520,6 @@ variable should be \${MAALI_TOOL_NAME}-gpu for clarity and ensure consistency
 
 *MAALI_UNINSTALL_REMOVE* - boolean variable used to remove file "only removes log files and modules"
  
-
 *MAALI_URL_ARRAY* - is an array of string variables that define multiple URLS for an application if needed
 <pre><code>MAALI_URL_ARRAY[$i]=$MAALI_TMP_URL</code></pre>
 
@@ -547,3 +546,25 @@ variable should be \${MAALI_TOOL_NAME}-gpu for clarity and ensure consistency
 *MAALI_WIKI_TOOL_NAME* - string variable that is set to the MAALI_TOOL_NAME_ORIG value
 <pre><code>MAALI_WIKI_TOOL_NAME="$MAALI_TOOL_NAME_ORIG"</code></pre>
 
+
+## maali config files variables 
+MAALI_SYSTEM 
+MAALI_ROOT="/pawsey/$MAALI_OS"
+MAALI_BUILD_DIR="$MAALI_ROOT/build"
+MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
+MAALI_SRC="$MAALI_ROOT/src"
+MAALI_SYSTEM_BUILD="YES"
+
+MAALI_DEFAULT_COMPILERS
+
+MAALI_DEFAULT_GCC_COMPILERS
+MAALI_DEFAULT_INTEL_COMPILERS
+MAALI_DEFAULT_PGI_COMPILERS
+
+MAALI_DEFAULT_CRAY_GCC_PRGENV 
+MAALI_DEFAULT_CRAY_INTEL_PRGENV
+
+MAALI_DEFAULT_PYTHON
+MAALI_DEFAULT_MPI
+
+MAALI_CORES

@@ -39,8 +39,14 @@
 *MAALI_MODULE_SET_PKG_CONFIG_PATH* - boolean variable used in the cygnet files to setup the PKG_CONFIG path in the module file.
 
 *MAALI_MODULE_SET_PYTHONPATH* - string variable defined in the cygnet file to setup module environment 
+MAALI_MODULE_SET_PYTHON_DIR
+MAALI_MODULE_SET_PYTHON_VERSION
+MAALI_MODULE_SET_MAALI_PYTHON_LIBDIR
+MAALI_MODULE_SET_MAALI_PYTHON_LIB_VERSION
 
 *MAALI_MODULE_SET_R_LIBS* - string variable defined in the cygnet file to setup module environment 
+
+
 
 
 *MAALI_MODULE_WHATIS* - string variable that is set in the maali cygnet files with a text string about what the code does.
@@ -48,7 +54,7 @@ contents of files in */etc*. MAALI_OS is part of the path for location cygnet fi
 
 *MAALI_PREREQ_MODULE* - string variable that is set in the cygnet files used to list any prequisite modules for writing environment modules.
 
-*MAALI_DEFAULT_SYSTEM_GCC* - string variable defined in config file and used in cygnet files when only building with the default gcc/gnu compilers
+
 
 *MAALI_TOOL_BUILD_DIR* - string variable defined in the cygnet files that is the full path to where the source code is compiled
 
@@ -92,3 +98,51 @@ MAALI_TOOL_CONFIGURE_EVAL=`eval echo "$MAALI_TOOL_CONFIGURE"`
 
 *MAALI_EXTRA_CRAY* - string variable used only in the gts.cyg file and checked in main maali on system builds.
 <pre><code> MAALI_EXTRA_CRAY="craype-sandybridge" </code></pre>
+
+# specialize flags for cygnet files
+
+*MAALI_DEFAULT_SYSTEM_GCC* - string variable defined in config file and used in cygnet files when only building with the default gcc/gnu compilers
+
+These are set in the system-intel.cyg file.
+
+MAALI_INTEL_LICENSE_DIR
+MAALI_MODULE_SET_INTEL_INC_PATH
+MAALI_MODULE_SET_INTEL_LIB_PATH
+MAALI_MODULE_SET_INTEL_LICENSE_FILE
+MAALI_MODULE_SET_INTEL_PATH
+
+MAALI_MODULE_SET_MKL_DYNAMIC
+MAALI_MODULE_SET_MKL_HOME
+MAALI_MODULE_SET_MKL_NUM_THREADS
+MAALI_MODULE_SET_MKLROOT
+
+MAALI_MODULE_SET_COMPILER
+MAALI_MODULE_SET_COMPILER_VER
+
+MAALI_MODULE_SET_CC
+MAALI_MODULE_SET_CXX
+MAALI_MODULE_SET_F77
+MAALI_MODULE_SET_F90
+MAALI_MODULE_SET_F95
+MAALI_MODULE_SET_F9X
+MAALI_MODULE_SET_FC
+MAALI_MODULE_SET_OMP_NUM_THREADS
+MAALI_MODULE_SET_MKL_NUM_THREADS
+MAALI_MODULE_SET_MKL_DYNAMIC
+
+MAALI_MODULE_SET_CPATH
+MAALI_MODULE_SET_FPATH
+
+MAALI_MODULE_SET_MPICC_CC
+MAALI_MODULE_SET_MPICXX_CXX
+
+MAALI_MODULE_SET_CUDA_VER
+MAALI_MODULE_SET_NVIDIA_CUDA_HOME
+MAALI_MODULE_SET_NVIDIA_CUDA_TOOLKIT
+
+
+This is set to remake the module files. 
+MAALI_REMODULE
+
+#  Need to remove from cygnet files
+MAALI_GMP_DIRNAME - gmp.cyg in centos6
