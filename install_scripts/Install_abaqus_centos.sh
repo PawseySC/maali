@@ -11,7 +11,10 @@ sudo yum install -y p7zip zip unzip
 # need csh install to run installer
 sudo yum install -y tcsh
 # need libc.co.6 to run installer
-sudo yum install glibc-static
+sudo yum install glibc-static 
+# need to open html files on abaqus.civil.uwa.edu.au
+sudo yum install firefox
+
 
 #sudo yum install -y libjpeg-dev 
 #sudo yum install -y libpng12-dev
@@ -26,15 +29,10 @@ chmod 755 /mnt/pkg_src/abaqus_6.14/lnx86_64/product/UNIX/Disk1/InstData/NoVM/ins
 # abaqus will require a scratch directory to execute installation 
 mkdir -p /mnt/aba_tmp
 
+
 cd pkg_src
 
 sudo abaqus_6.14/setup 
-
-# need to install these dependent applications/libraries 
-# cmake is used to install lapack 
-# lapack is needed for fftw-parallel
-# lapack/3.6.1 openmpi/2.0.1 fftw-parallel/3.3.5  
-# assumes maali/1.0.6 is install
 
 
 
