@@ -8,7 +8,7 @@ sudo yum -y update
 sudo yum -y install xorg-x11-xauth xorg-x11-apps 
 
 # install nano xemacs emacs editors
-sudo yum -y install nano xemacs xemacs-el xemacs-devel xemacs-packages-base xemacs-packages-extra
+sudo yum -y install nano vim
 sudo yum -y install emacs emacs-common emacs-goodies-el 
 
 # install tools that are needed for maali to work
