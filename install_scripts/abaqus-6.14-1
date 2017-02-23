@@ -1,0 +1,16 @@
+#%Module1.0######################################################################
+#
+# abaqus modulefile
+#
+proc ModulesHelp { } {
+  puts stderr "Sets up the paths you need to use abaqus version 6.14-1"
+}
+set sys     [uname sysname]
+set version 6.14-1
+set tool    abaqus
+if { [is-loaded $tool] && ! [is-loaded $tool/$version] } {
+  module unload $tool
+}
+
+setenv       ABAQUS_HOME /nectar/abaqus/6.14-1
+prepend-path PATH        /nectar/abaqus/Commands

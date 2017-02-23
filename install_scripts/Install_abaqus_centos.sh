@@ -15,6 +15,8 @@ sudo yum install glibc-static
 # need to open html files on abaqus.civil.uwa.edu.au
 sudo yum install firefox
 
+sudo yum install mesa-dri-drivers
+
 
 #sudo yum install -y libjpeg-dev 
 #sudo yum install -y libpng12-dev
