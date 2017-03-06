@@ -3,7 +3,7 @@
 # Pawsey Supercomputing Centre Build System
 ##############################################################################
 # needs to be set by the install script
-MAALI_VERSION="1.01"
+MAALI_VERSION="tip"
 
 ##############################################################################
 # Rudimentary Operating System detecting which can be overriden by setting
