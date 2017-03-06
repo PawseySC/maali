@@ -653,16 +653,7 @@ EOF
     MAALI_MODULE_VARIABLE_NAME=`echo $MAALI_MODULE_VARIABLE | sed -e 's/MAALI_MODULE_SET_//g'`
     MAALI_MODULE_VARIABLE_DIR=""
     MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
-    #MAALI_MODULE_VARIABLE_TCL="prepend-path"
-
-	#Shift MAALI_MODULE_VARIABLE_TCL, need to set delimiter / fileseperator to ; for LUA_CPATH / LUA_PATH
-    if [  "$MAALI_MODULE_VARIABLE" == "MAALI_MODULE_SET_LUA_PATH" ]; then
-      MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
-	elif [  "$MAALI_MODULE_VARIABLE" == "MAALI_MODULE_SET_LUA_CPATH" ]; then
-	  MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
-    else
-      MAALI_MODULE_VARIABLE_TCL='prepend-path'
-    fi
+    MAALI_MODULE_VARIABLE_TCL="prepend-path"
 
     MAALI_MODULE_VARIABLE_PREPREND_OFF="MAALI_MODULE_PREPEND_${MAALI_MODULE_VARIABLE_NAME}"
     MAALI_MODULE_VARIABLE_PREPREND_OFF_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_PREPREND_OFF}"`
@@ -716,16 +707,18 @@ EOF
           MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
         LUA_CPATH)
-		  MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
+          MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
           MAALI_MODULE_VARIABLE_DIR="lib/lua/${MAALI_LUA_LIB_VERSION}/?.so"
+          MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
           ;;
         LUA_CPATH_APPEND)
           MAALI_MODULE_VARIABLE_NAME='LUA_CPATH'
           MAALI_MODULE_VARIABLE_TCL="append-path"
           ;;
         LUA_PATH)
-		  MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
-		  MAALI_MODULE_VARIABLE_DIR="share/lua/${MAALI_LUA_LIB_VERSION}/init.lua;;"
+          MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
+          MAALI_MODULE_VARIABLE_DIR="share/lua/${MAALI_LUA_LIB_VERSION}/init.lua;;"
+          MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
           ;;
         LUA_PATH_APPEND)
 		  MAALI_MODULE_VARIABLE_NAME='LUA_PATH'
@@ -2088,4 +2081,3 @@ fi
 EOF
 
 fi
-maali@zeus:/pawsey/sles11sp4/modulefiles/bio-apps/interproscan> 
