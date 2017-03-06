@@ -736,7 +736,7 @@ EOF
         else
           MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
         fi
-	    
+
         if [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_DEFAULT_' ]]; then
           printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
         elif [ $MAALI_MODULE_VARIABLE_WORDS -gt 1 ]; then
