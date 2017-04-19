@@ -955,7 +955,7 @@ OPTIONS:
    -d      run in debug mode
    -c      maali configuration file
    -m      just create the module file
-   -l      use the options from the last run
+   -l      create LUA modules
    -r      build with the specified compiler (and no others)
    -b      build the tool, but don't create a module file
    -g      group build in /group/$PAWSEY_PROJECT/software/$MAALI_OS
@@ -990,6 +990,7 @@ MAALI_UNINSTALL_REMOVE=0
 MAALI_SYSTEM_CYGNET_FILE=0
 MAALI_CUDA_BUILD=0
 MAALI_CUDA_SUPPORT=0
+MAALI_LUA_MODULES=0
 
 # for auto-building module files
 MAALI_MODULE_SET_PATH=
@@ -1008,7 +1009,7 @@ MAALI_MODULE_PE_PKGCONFIG_NAME=
 MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
 MAALI_MODULE_PE_PKGCONFIG_LIBS=
 
-while getopts "ht:v:pdc:mr:bgswafuxn" OPTION
+while getopts "ht:v:pdc:mr:bgswafuxnl" OPTION
 do
      case $OPTION in
          h)
@@ -1066,6 +1067,9 @@ do
              ;;
          n)
              MAALI_CUDA_BUILD=1
+             ;;
+         l)
+             MAALI_LUA_MODULES=1
              ;;
          ?)
              usage
