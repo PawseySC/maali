@@ -1087,7 +1087,13 @@ MAALI_SRC="$MAALI_ROOT/src"
 if [ -f "/etc/SuSE-release" ]; then
   # but a Cray can?
   if [ ! $CRAYOS_VERSION ]; then
-    . /etc/profile.d/modules.sh
+    if [ -f "/etc/profile.d/modules.sh" ]; then
+      # running SLES machine using environment modules
+      . /etc/profile.d/modules.sh
+    else
+      # running SLES machine using LUA modules
+      . /usr/share/lmod/lmod/init/profile
+    fi
   else
     if [ ! -f "/etc/profile.d/modules.sh" ]; then
       if [ -f "/opt/modules/default/etc/modules.sh" ]; then
