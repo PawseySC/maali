@@ -80,6 +80,15 @@ MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
 
 ##############################################################################
 
+function maali_pre_build {
+  # do any patching before compilation here.
+
+  cd "$MAALI_TOOL_BUILD_DIR"
+  #maali_run "patch bla bla bla"
+}
+
+##############################################################################
+
 function maali_build {
   # this is the core function for creating software
 
@@ -1833,6 +1842,9 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               fi
             fi
   
+            maali_wiki "  .. performing pre-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+            maali_pre_build
+
             maali_wiki "  .. compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
             if [ $MAALI_PYTHON_TOOL ]; then
               maali_python_build
