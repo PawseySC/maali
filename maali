@@ -342,6 +342,12 @@ set tool    $MAALI_TOOL_NAME
 EOF
 fi
 
+if [ "$MAALI_MODULE_WHATIS" != "" ]; then
+  cat <<EOF >> $MAALI_TOOL_MODULE
+module-whatis "$MAALI_MODULE_WHATIS"
+EOF
+fi
+
 cat <<EOF >>$MAALI_TOOL_MODULE
 if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
   module unload \$tool
@@ -609,12 +615,6 @@ EOF
 prereq $MAALI_PKG
 EOF
       done)
-  fi
-
-  if [ "$MAALI_MODULE_WHATIS" != "" ]; then
-      cat <<EOF >> $MAALI_TOOL_MODULE
-module-whatis "$MAALI_MODULE_WHATIS"
-EOF
   fi
 
   for MAALI_TOOL_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
