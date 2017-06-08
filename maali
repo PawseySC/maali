@@ -80,6 +80,15 @@ MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
 
 ##############################################################################
 
+function maali_post_build {
+  # do any work after the installation
+
+  cd "$MAALI_TOOL_BUILD_DIR"
+  #maali_run "patch bla bla bla"
+}
+
+##############################################################################
+
 function maali_build {
   # this is the core function for creating software
 
@@ -1844,6 +1853,9 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               maali_build
             fi
   
+            maali_wiki "  .. performing post-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+            maali_post_build
+
             # auto-generate pkgconfig file
             if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
               maali_genpkgconfig
