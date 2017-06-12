@@ -77,6 +77,7 @@ MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 
 MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
 MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
+MAALI_WGET_CMD="wget"
 
 ##############################################################################
 
@@ -151,10 +152,15 @@ function maali_download {
     done
   fi
 
+  # Encourage people to set MAALI_WGET_EXTRA=--no-check-certificate in cygnet file rather than rely on this hack.
   if [[ $MAALI_URL =~ .python.org ]] ; then
-    MAALI_WGET_CMD="wget --no-check-certificate"
-  else
-    MAALI_WGET_CMD="wget"
+    if [[ "$MAALI_WGET_EXTRA" != *"--no-check-certificate"* ]]; then
+      MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"MAALI_WGET_EXTRA"} --no-check-certificate"
+    fi
+  fi
+
+  if [ ! $DEBUG ]; then
+    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"MAALI_WGET_EXTRA"} -q"
   fi
 
   size=${#MAALI_URL_ARRAY[@]}
@@ -169,15 +175,11 @@ function maali_download {
 
     if [ ! -f "$MAALI_TMP_DST" ]; then
         if [ $DEBUG ]; then
-          maali_wiki " .. can't find $MAALI_TMP_DST so will run '$MAALI_WGET_CMD -O $MAALI_TMP_DST -q $MAALI_TMP_URL'"
+          maali_wiki " .. can't find $MAALI_TMP_DST so will run '$MAALI_WGET_CMD $MAALI_WGET_EXTRA -O $MAALI_TMP_DST $MAALI_TMP_URL'"
         fi
       cd $MAALI_SRC
 
-      if [ $DEBUG ]; then
-        $MAALI_WGET_CMD -O $MAALI_TMP_DST $MAALI_TMP_URL
-      else
-        $MAALI_WGET_CMD -O $MAALI_TMP_DST -q $MAALI_TMP_URL
-      fi
+      $MAALI_WGET_CMD $MAALI_WGET_EXTRA -O $MAALI_TMP_DST $MAALI_TMP_URL
     fi
   done
 }
@@ -218,12 +220,16 @@ function maali_git_download {
     mv ${MAALI_GIT_DOWNLOAD_FILEPATH} ${MAALI_GIT_DOWNLOAD_FILEPATH}~
   fi
 
-  if [ $DEBUG ]; then
-    MAALI_WGET_EXTRA=''
-  else
-    MAALI_WGET_EXTRA='-q'
+  if [ ! $DEBUG ]; then
+    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"MAALI_WGET_EXTRA"} -q"
   fi
-  wget --no-check-certificate $MAALI_WGET_EXTRA -O "$MAALI_GIT_DOWNLOAD_FILEPATH" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_GIT_DOWNLOAD_FILE"
+
+  # github.org requires --no-check-certificate
+  if [[ "$MAALI_WGET_EXTRA" != *"--no-check-certificate"* ]]; then
+    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"MAALI_WGET_EXTRA"} --no-check-certificate"
+  fi
+
+  $MAALI_WGET_CMD $MAALI_WGET_EXTRA -O "$MAALI_GIT_DOWNLOAD_FILEPATH" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_GIT_DOWNLOAD_FILE"
 
   if [ $DEBUG ]; then
     echo "Checking the size of $MAALI_GIT_DOWNLOAD_FILEPATH"
