@@ -881,19 +881,19 @@ function maali_unpack {
     MAALI_TYPE=`file -b $MAALI_INDIVIDUAL_DST | cut -d ',' -f 1`
 
     if [ "$MAALI_TYPE" = "bzip2 compressed data" ]; then
-      tar jxf $MAALI_INDIVIDUAL_DST
+      tar xj $MAALI_TAR_EXTRA -f $MAALI_INDIVIDUAL_DST
     elif [ "$MAALI_TYPE" = "compress'd data 16 bits" ]; then
-      tar zxf $MAALI_INDIVIDUAL_DST
+      tar xz $MAALI_TAR_EXTRA -f $MAALI_INDIVIDUAL_DST
     elif [ "$MAALI_TYPE" = "xz compressed data" -o "$MAALI_TYPE" = "XZ compressed data" ]; then
-      tar Jxf $MAALI_INDIVIDUAL_DST
+      tar xJ $MAALI_TAR_EXTRA -f $MAALI_INDIVIDUAL_DST
     elif [ "$MAALI_TYPE" = "gzip compressed data" ]; then
-      tar zxf $MAALI_INDIVIDUAL_DST
+      tar xz $MAALI_TAR_EXTRA -f $MAALI_INDIVIDUAL_DST
 
       if [ $? -ne 0 ]; then
         gzip -dc $MAALI_INDIVIDUAL_DST | tar zxf -
       fi
     elif [[ "$MAALI_TYPE" = "POSIX tar archive (GNU)" ]] || [[ "$MAALI_TYPE" = "POSIX tar archive" ]] ; then
-      tar xf $MAALI_INDIVIDUAL_DST
+      tar x $MAALI_TAR_EXTRA -f $MAALI_INDIVIDUAL_DST
     elif [ "$MAALI_TYPE" = "Zip archive data" ]; then
       if [ "$MAALI_UNZIP_EXCLUDE" == "" ]; then
         unzip -qq $MAALI_INDIVIDUAL_DST
