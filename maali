@@ -333,9 +333,17 @@ function maali_module {
         fi
       else
         if [ $MAALI_CUDA_BUILD -eq 1 ]; then
-          MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
+          if [ "$MAALI_CPU_TARGET" != "na" ]; then
+            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
+          else
+            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
+          fi
         else
-          MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+          if [ "$MAALI_CPU_TARGET" != "na" ]; then
+            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+          else
+            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+          fi
         fi
       fi
     fi
@@ -1777,140 +1785,171 @@ if [ $MAALI_REMODULE -eq 0 ]; then
   
         fi # if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
 
-        for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
+        # need to build for every cpu target that we support
+        for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
 
-          if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
-            # load the CUDA environment
+          if [ "$MAALI_CPU_TARGET" != "na" ]; then
+            # should we load some sort of module?
 
             if [ $DEBUG ]; then
-              maali_wiki " .. before module load \$MAALI_TOOL_CUDA_COMPILER"
+              maali_wiki " .. before module load \$MAALI_CPU_TARGET"
               module list
             fi # if [ $DEBUG ]; then
-            maali_load_module "$MAALI_TOOL_CUDA_COMPILER"
+
+            echo "MAALI_CPU_TARGET = $MAALI_CPU_TARGET"
+
             if [ $DEBUG ]; then
-              maali_wiki " .. after module load \$MAALI_TOOL_CUDA_COMPILER"
+              maali_wiki " .. after module load \$MAALI_CPU_TARGET"
               module list
-            fi # if [ $DEBUG ]; then 
+            fi # 
+          fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
 
-          fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
-  
-          for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+          for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
 
-            # this is to allow us to compile python software with a Cray environment
-            MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
-            if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
-              # check to see if the PrgEnv loaded the wrong compiler
-              MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep $MAALI_PREREQ_MODULE_NAME | wc -l`
-              if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
-                module unload $MAALI_PREREQ_MODULE_NAME
-              fi # if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
-            fi # if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
+            if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
+              # load the CUDA environment
 
-            maali_load_module "$MAALI_PREREQ_MODULE"
-          done # for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+              if [ $DEBUG ]; then
+                maali_wiki " .. before module load \$MAALI_TOOL_CUDA_COMPILER"
+                module list
+              fi # if [ $DEBUG ]; then
+              maali_load_module "$MAALI_TOOL_CUDA_COMPILER"
+              if [ $DEBUG ]; then
+                maali_wiki " .. after module load \$MAALI_TOOL_CUDA_COMPILER"
+                module list
+              fi # if [ $DEBUG ]; then 
+
+            fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
   
-          maali_wiki " .. check for build only modules"
-          for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
-            # turn on MAALI_CMAKE_TOOL
-            MAALI_BUILD_PREREQ_MODULE_NAME=`echo $MAALI_BUILD_PREREQ_MODULE | cut -d '/' -f 1`
-            if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
-              # this is using cmake
-              MAALI_CMAKE_TOOL=1
-              maali_wiki " .. you are using cmake, will use maali_cmake_build to process"
-            fi # if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
-            maali_load_module "$MAALI_BUILD_PREREQ_MODULE"
-          done # for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
+            for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+
+              # this is to allow us to compile python software with a Cray environment
+              MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
+              if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
+                # check to see if the PrgEnv loaded the wrong compiler
+                MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep $MAALI_PREREQ_MODULE_NAME | wc -l`
+                if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
+                  module unload $MAALI_PREREQ_MODULE_NAME
+                fi # if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
+              fi # if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
+
+              maali_load_module "$MAALI_PREREQ_MODULE"
+            done # for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
   
-          # remove a stale tool build directory
-          removedir "$MAALI_TOOL_BUILD_DIR"
+            maali_wiki " .. check for build only modules"
+            for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
+              # turn on MAALI_CMAKE_TOOL
+              MAALI_BUILD_PREREQ_MODULE_NAME=`echo $MAALI_BUILD_PREREQ_MODULE | cut -d '/' -f 1`
+              if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
+                # this is using cmake
+                MAALI_CMAKE_TOOL=1
+                maali_wiki " .. you are using cmake, will use maali_cmake_build to process"
+              fi # if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
+              maali_load_module "$MAALI_BUILD_PREREQ_MODULE"
+            done # for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
   
-          if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
-            if [ $MAALI_R_TOOL ]; then
-              maali_wiki "  .. R tools install from source code"
+            # remove a stale tool build directory
+            removedir "$MAALI_TOOL_BUILD_DIR"
+  
+            if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
+              if [ $MAALI_R_TOOL ]; then
+                maali_wiki "  .. R tools install from source code"
+              else
+                maali_wiki "  .. unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
+                maali_unpack
+              fi # if [ $MAALI_R_TOOL ]; then
+            fi
+
+            # where we want to install the tool
+            if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+              MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_CRAY_PRGENV/$MAALI_COMPILER/$MAALI_CRAY_CPU_TARGET/$MAALI_TOOL_NAME"
+            elif [ "$MAALI_PYTHON_TOOL" == 1 -o "$MAALI_R_TOOL" == 1 ]; then
+              MAALI_INSTALL_TOOLDIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME"
+            elif [ $MAALI_CUDA_BUILD -eq 1 ]; then
+              if [ "$MAALI_CPU_TARGET" != "na" ]; then
+                MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_CPU_TARGET/$MAALI_COMPILER/$MAALI_TOOL_CUDA_COMPILER/$MAALI_TOOL_NAME-gpu"
+              else
+                MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_CUDA_COMPILER/$MAALI_TOOL_NAME-gpu"
+              fi
             else
-              maali_wiki "  .. unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
-              maali_unpack
-            fi # if [ $MAALI_R_TOOL ]; then
-          fi
-
-          # where we want to install the tool
-          if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
-            MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_CRAY_PRGENV/$MAALI_COMPILER/$MAALI_CRAY_CPU_TARGET/$MAALI_TOOL_NAME"
-          elif [ "$MAALI_PYTHON_TOOL" == 1 -o "$MAALI_R_TOOL" == 1 ]; then
-            MAALI_INSTALL_TOOLDIR="$MAALI_ROOT/$MAALI_COMPILER/$MAALI_TOOL_NAME"
-          elif [ $MAALI_CUDA_BUILD -eq 1 ]; then
-            MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_CUDA_COMPILER/$MAALI_TOOL_NAME-gpu"
-          else
-            MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME"
-          fi
-    
-          MAALI_INSTALL_DIR="$MAALI_INSTALL_TOOLDIR/$MAALI_TOOL_VERSION"
-  
-          # remove the previously installed version
-          removedir "$MAALI_INSTALL_DIR"
-
-          if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
-            # create a fresh directory
-            maali_makedir "$MAALI_INSTALL_DIR"
-  
-            if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
-              if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
-                maali_run "chmod 750 $MAALI_INSTALL_TOOLDIR"
-                maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_TOOLDIR"
-                maali_run "chmod 750 $MAALI_INSTALL_DIR"
-                maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_DIR"
+              if [ "$MAALI_CPU_TARGET" != "na" ]; then
+                MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_CPU_TARGET/$MAALI_COMPILER/$MAALI_TOOL_NAME"
+              else
+                MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR/$MAALI_COMPILER/$MAALI_TOOL_NAME"
               fi
             fi
+    
+            MAALI_INSTALL_DIR="$MAALI_INSTALL_TOOLDIR/$MAALI_TOOL_VERSION"
   
-            maali_wiki "  .. performing pre-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-            maali_pre_build
+            # remove the previously installed version
+            removedir "$MAALI_INSTALL_DIR"
 
-            maali_wiki "  .. compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-            if [ $MAALI_PYTHON_TOOL ]; then
-              maali_python_build
-            elif [ $MAALI_R_TOOL ]; then
-              maali_r_build
-            elif [ $MAALI_CMAKE_TOOL ]; then
-              maali_cmake_build
-            else
-              maali_build
-            fi
+            if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
+              # create a fresh directory
+              maali_makedir "$MAALI_INSTALL_DIR"
   
-            maali_wiki "  .. performing post-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-            maali_post_build
-
-            # auto-generate pkgconfig file
-            if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
-              maali_genpkgconfig
-            fi
+              if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+                if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
+                  maali_run "chmod 750 $MAALI_INSTALL_TOOLDIR"
+                  maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_TOOLDIR"
+                  maali_run "chmod 750 $MAALI_INSTALL_DIR"
+                  maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_DIR"
+                fi
+              fi
   
-            if [ ! $DEBUG ]; then
-              removedir "$MAALI_TOOL_BUILD_DIR"
-            fi
+              maali_wiki "  .. performing pre-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+              maali_pre_build
 
-          fi # if [ ! $MAALI_UNINSTALL_REMOVE ] then
+              maali_wiki "  .. compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+              if [ $MAALI_PYTHON_TOOL ]; then
+                maali_python_build
+              elif [ $MAALI_R_TOOL ]; then
+                maali_r_build
+              elif [ $MAALI_CMAKE_TOOL ]; then
+                maali_cmake_build
+              else
+                maali_build
+              fi
   
-          # unload build pre-requisite modules
-          MAALI_TOOL_BUILD_PREREQ_REV=`echo $MAALI_TOOL_BUILD_PREREQ | tac -s' '`
-          for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ_REV; do
-            maali_wiki "  .. unloading $MAALI_BUILD_PREREQ_MODULE"
-            module unload "$MAALI_BUILD_PREREQ_MODULE"
-          done
+              maali_wiki "  .. performing post-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+              maali_post_build
 
-          # unload pre-requisite modules
-          MAALI_TOOL_PREREQ_REV=`echo $MAALI_TOOL_PREREQ | tac -s' '`
-          for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ_REV; do
-            maali_wiki "  .. unloading $MAALI_PREREQ_MODULE"
-            module unload $MAALI_PREREQ_MODULE
-          done
+              # auto-generate pkgconfig file
+              if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
+                maali_genpkgconfig
+              fi
+  
+              if [ ! $DEBUG ]; then
+                removedir "$MAALI_TOOL_BUILD_DIR"
+              fi
 
-          if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
-            # unload the CUDA environment
+            fi # if [ ! $MAALI_UNINSTALL_REMOVE ] then
+  
+            # unload build pre-requisite modules
+            MAALI_TOOL_BUILD_PREREQ_REV=`echo $MAALI_TOOL_BUILD_PREREQ | tac -s' '`
+            for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ_REV; do
+              maali_wiki "  .. unloading $MAALI_BUILD_PREREQ_MODULE"
+              module unload "$MAALI_BUILD_PREREQ_MODULE"
+            done
 
-            module unload "$MAALI_TOOL_CUDA_COMPILER"
-          fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
+            # unload pre-requisite modules
+            MAALI_TOOL_PREREQ_REV=`echo $MAALI_TOOL_PREREQ | tac -s' '`
+            for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ_REV; do
+              maali_wiki "  .. unloading $MAALI_PREREQ_MODULE"
+              module unload $MAALI_PREREQ_MODULE
+            done
 
-        done # for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
+            if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
+              # unload the CUDA environment
+
+              module unload "$MAALI_TOOL_CUDA_COMPILER"
+            fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
+
+          done # for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
+
+          # TODO unload module
+
+        done # for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
   
         if [ "$MAALI_CRAY_CPU_TARGET" != "na" ]; then
           # unload the Cray Parallel Environment for cpu target
