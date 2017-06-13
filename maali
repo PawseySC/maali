@@ -4,6 +4,7 @@
 ##############################################################################
 # needs to be set by the install script
 MAALI_VERSION="tip"
+MAALI_CMD_LINE="$0 $*"
 
 ##############################################################################
 # Rudimentary Operating System detecting which can be overriden by setting
@@ -1608,6 +1609,8 @@ else
   removefile "$MAALI_TOOL_LOG"
 
   log "$MAALI_TOOL_NAME $MAALI_TOOL_VERSION is being built by $MAALI_BUILDER_BUILD_CN"
+
+  log "Command line: $MAALI_CMD_LINE"
 
   maali_wiki "downloading the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
   maali_download
