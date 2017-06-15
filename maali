@@ -374,8 +374,10 @@ EOF
 fi
 
 cat <<EOF >>$MAALI_TOOL_MODULE
-if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
-  module unload \$tool
+if { [ module-info mode load ] } {
+  if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
+    module unload \$tool
+  }
 }
 
 EOF
