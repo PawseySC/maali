@@ -367,11 +367,42 @@ set tool    $MAALI_TOOL_NAME
 EOF
 fi
 
-if [ "$MAALI_MODULE_WHATIS" != "" ]; then
-  cat <<EOF >> $MAALI_TOOL_MODULE
-module-whatis "$MAALI_MODULE_WHATIS"
+#if [ "$MAALI_MODULE_WHATIS" != "" ]; then
+#  cat <<EOF >> $MAALI_TOOL_MODULE
+#module-whatis "$MAALI_MODULE_WHATIS"
+#EOF
+#fi
+   if [ "$MAALI_MODULE_WHATIS" != "" ]; then
+       cat <<EOF >> $MAALI_TOOL_MODULE
+module-whatis "$MAALI_MODULE_WHATIS
+
 EOF
-fi
+  else
+      cat <<EOF >> $MAALI_TOOL_MODULE
+module-whatis "
+EOF
+  fi
+  if [ "$MAALI_TOOL_COMPILERS" != "binary" ]; then
+    for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
+      echo "Compiled with $MAALI_COMPILER" >> $MAALI_TOOL_MODULE
+    done
+  fi
+  if [ "$MAALI_TOOL_CRAY_PRGENV" != "na" ]; then
+    for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
+      echo "Compiled under $MAALI_CRAY_PRGENV" >> $MAALI_TOOL_MODULE
+    done
+  fi
+  if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
+    for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
+      echo "Compiled for $MAALI_CRAY_CPU_TARGET" >> $MAALI_TOOL_MODULE
+    done
+  fi
+  if [ "$MAALI_TOOL_CUDA_COMPILERS" != "na" ]; then
+    for MAALI_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
+      echo "Compiled for CUDA with $MAALI_CUDA_COMPILER" >> $MAALI_TOOL_MODULE
+    done
+  fi
+  echo "\"" >> $MAALI_TOOL_MODULE
 
 cat <<EOF >>$MAALI_TOOL_MODULE
 if { [ module-info mode load ] } {
