@@ -384,22 +384,28 @@ EOF
 
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
-if { [is-loaded PrgEnv-cray] } {
-  setenv MAALI_LOADED_PRGENV PrgEnv-cray
-  setenv COMPILER            cce
-  setenv COMPILER_VER        \$env(CRAY_CC_VERSION)
+if { [ module-info mode load ] } {
+  if { [is-loaded PrgEnv-cray] } {
+    setenv MAALI_LOADED_PRGENV PrgEnv-cray
+    setenv COMPILER            cce
+    setenv COMPILER_VER        \$env(CRAY_CC_VERSION)
+  }
 }
 
-if { [is-loaded PrgEnv-gnu] } {
-  setenv MAALI_LOADED_PRGENV PrgEnv-gnu
-  setenv COMPILER            gcc
-  setenv COMPILER_VER        \$env(GCC_VERSION)
+if { [ module-info mode load ] } {
+  if { [is-loaded PrgEnv-gnu] } {
+    setenv MAALI_LOADED_PRGENV PrgEnv-gnu
+    setenv COMPILER            gcc
+    setenv COMPILER_VER        \$env(GCC_VERSION)
+  }
 }
 
-if { [is-loaded PrgEnv-intel] } {
-  setenv MAALI_LOADED_PRGENV PrgEnv-intel
-  setenv COMPILER            intel
-  setenv COMPILER_VER        \$env(INTEL_VERSION)
+if { [ module-info mode load ] } {
+  if { [is-loaded PrgEnv-intel] } {
+    setenv MAALI_LOADED_PRGENV PrgEnv-intel
+    setenv COMPILER            intel
+    setenv COMPILER_VER        \$env(INTEL_VERSION)
+  }
 }
 
 EOF
@@ -599,9 +605,11 @@ EOF
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 
-if {! [is-loaded cuda] } {
-  # this allows us support multiple cuda versions, but have a sensible default
-  module load cuda/$MAALI_SYSTEM_DEFAULT_CUDA
+if { [ module-info mode load ] } {
+  if {! [is-loaded cuda] } {
+    # this allows us support multiple cuda versions, but have a sensible default
+    module load cuda/$MAALI_SYSTEM_DEFAULT_CUDA
+  }
 }
 EOF
   fi
@@ -609,9 +617,11 @@ EOF
   if [ $MAALI_PYTHON_TOOL ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 
-if {! [is-loaded python] } {
-  # this allows us support multiple python versions, but have a sensible default
-  module load python/$MAALI_SYSTEM_DEFAULT_PYTHON
+if { [ module-info mode load ] } {
+  if {! [is-loaded python] } {
+    # this allows us support multiple python versions, but have a sensible default
+    module load python/$MAALI_SYSTEM_DEFAULT_PYTHON
+  }
 }
 EOF
   fi
@@ -619,9 +629,11 @@ EOF
   if [ $MAALI_R_TOOL ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 
-if {! [is-loaded r] } {
-  # this allows us support multiple R versions, but have a sensible default
-  module load r/$MAALI_SYSTEM_DEFAULT_R
+if { [ module-info mode load ] } {
+  if {! [is-loaded r] } {
+    # this allows us support multiple R versions, but have a sensible default
+    module load r/$MAALI_SYSTEM_DEFAULT_R
+  }
 }
 EOF
   fi
