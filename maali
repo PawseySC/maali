@@ -3,7 +3,7 @@
 # Pawsey Supercomputing Centre Build System
 ##############################################################################
 # needs to be set by the install script
-MAALI_VERSION="tip"
+MAALI_VERSION="1.0.2"
 MAALI_CMD_LINE="$0 $*"
 
 ##############################################################################
