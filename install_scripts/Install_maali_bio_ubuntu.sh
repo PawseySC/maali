@@ -19,14 +19,13 @@ sudo apt-get -y install bc wget make environment-modules libtool
 # to find the the version number "gcc -v"
 sudo apt-get -y install gcc gfortran g++ libgomp1
 
-if [ ! -d "/nectar" ]; then
-  sudo mkdir /nectar  
-  sudo chown -R ubuntu /nectar
+if [ ! -d "/cloud" ]; then
+  sudo mkdir /cloud  
+  sudo chown -R ubuntu /cloud
 fi
 
 # install additional packages needed to install R/3.3.+ with maali  
-
-sudo apt install libreadline6 libreadline6-dev
-sudo apt install libssl-dev
-
+sudo apt -y install libreadline6 libreadline6-dev
+sudo apt -y install libssl-dev
+sudo apt -y install screen
 
