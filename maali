@@ -738,6 +738,11 @@ EOF
     fi
   done
 
+# Start of setting variables
+  cat <<EOF >> $MAALI_TOOL_MODULE
+if {! [module-info mode whatis] } {
+EOF
+
   printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "setenv" $MAALI_APP_HOME_NAME $MAALI_APP_HOME >> $MAALI_TOOL_MODULE
 
   # main loop for defining environment variables
@@ -855,6 +860,11 @@ EOF
 prepend-path PE_PKGCONFIG_LIBS    $libs
 EOF
   fi
+
+# End of setting variables
+  cat <<EOF >> $MAALI_TOOL_MODULE
+}
+EOF
 
   if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
     if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
