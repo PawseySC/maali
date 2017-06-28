@@ -1006,14 +1006,8 @@ function maali_unpack {
 ##############################################################################
 
 function maali_wiki {
-  # echo to screen and add to wiki
+  # echo to screen
   echo $1
-
-  if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
-    if [ $MAALI_REMODULE -eq 0 ]; then
-      echo $1 >> $MAALI_WIKI_SRC
-    fi
-  fi
 }
 
 ##############################################################################
@@ -1597,9 +1591,6 @@ if [ -z $MAALI_TOOL_TYPE ]; then
 fi
 
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
-  # create a wiki page to help David
-  MAALI_WIKI_SRC="$HOME/.maali/$MAALI_OS/wiki/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.wiki"
-
   if [ $MAALI_REMODULE -eq 0 ]; then
     # only re-build the wiki page if we re-compile
 
@@ -1659,24 +1650,6 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
       MAALI_WIKI_TOOL_NAME="$MAALI_TOOL_NAME_ORIG"
     fi
 
-    cat <<EOF >$MAALI_WIKI_SRC
-{{NavSoftware|subsection=$MAALI_WIKI_TOOL_NAME}}
-
-
-* '''Install Date''': $MAALI_INSTALL_DATE
-* '''Compiler''': $MAALI_WIKI_COMPILER_STRING
-* '''Compile Machine''': $HOSTNAME
-* '''Pawsey Supercomputing Centre Staff''': [mailto:$MAALI_BUILDER_BUILD_MAIL $MAALI_BUILDER_BUILD_CN]
-
-
-=== Compile and Installation ===
-
-Compiled using maali $MAALI_VERSION:
-
-<pre>
-$ maali $MAALI_CMDLINE
-Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT for tool configuration information
-EOF
   fi
 
   # where the software is installed is based on the tool type
@@ -2156,45 +2129,6 @@ EOF
   fi # if [ $MAALI_UNINSTALL_HIDE ]; then 
 
 fi # if [ $MAALI_BUILDONLY ]; then
-
-if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
-  if [ $MAALI_REMODULE -eq 0 ]; then
-    cat <<EOF >>$MAALI_WIKI_SRC
-</pre>
-
-<pre>
-EOF
-
-    cat $MAALI_CYGNET_FILEPATH >> $MAALI_WIKI_SRC
-
-    cat <<EOF >>$MAALI_WIKI_SRC
-</pre>
-
-
-{{NavSoftware|subsection=$MAALI_WIKI_TOOL_NAME}}
-[[Category:Software]]
-EOF
-
-    for MAALI_WIKI_CATEGORY_ITEM in $MAALI_WIKI_CATEGORY; do
-        echo "[[Category:$MAALI_WIKI_CATEGORY_ITEM]]" >>$MAALI_WIKI_SRC
-    done
-
-    if [ "$MAALI_TOOL_TYPE" == "devel" ]; then
-        echo "[[Category:Code Development Utilities]]" >>$MAALI_WIKI_SRC
-    fi
-
-    if [ "$MAALI_TOOL_TYPE" == "python" ]; then
-        echo "[[Category:Python]]" >>$MAALI_WIKI_SRC
-    fi
-
-    if [ "$MAALI_TOOL_TYPE" == "bio-apps" ]; then
-        echo "[[Category:Bioinformatics]]" >>$MAALI_WIKI_SRC
-    fi
-
-    MAALI_WIKI_SYSTEM_NAME=`echo ${MAALI_SYSTEM:0:1} | tr  '[a-z]' '[A-Z]'`${MAALI_SYSTEM:1}
-    echo "[[Category:$MAALI_WIKI_SYSTEM_NAME]]" >>$MAALI_WIKI_SRC
-  fi
-fi
 
 echo "Complete - Built $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION with MAALI v$MAALI_VERSION"
 
