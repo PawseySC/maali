@@ -1842,7 +1842,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               module list
             fi # if [ $DEBUG ]; then
 
-            echo "MAALI_CPU_TARGET = $MAALI_CPU_TARGET"
+            maali_load_module "$MAALI_CPU_TARGET"
 
             if [ $DEBUG ]; then
               echo " .. after module load \$MAALI_CPU_TARGET"
