@@ -2000,6 +2000,13 @@ if [ $MAALI_REMODULE -eq 0 ]; then
 
           # TODO unload module
 
+          if [ "$MAALI_CPU_TARGET" != "na" ]; then
+            # should we load some sort of module?
+
+            module unload "$MAALI_CPU_TARGET"
+
+          fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
+
         done # for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
   
         if [ "$MAALI_CRAY_CPU_TARGET" != "na" ]; then
