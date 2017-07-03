@@ -420,6 +420,11 @@ EOF
       echo "Compiled for $MAALI_CRAY_CPU_TARGET" >> $MAALI_TOOL_MODULE
     done
   fi
+  if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
+    for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
+      echo "Compiled for $MAALI_CPU_TARGET" >> $MAALI_TOOL_MODULE
+    done
+  fi
   if [ "$MAALI_TOOL_CUDA_COMPILERS" != "na" ]; then
     for MAALI_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
       echo "Compiled for CUDA with $MAALI_CUDA_COMPILER" >> $MAALI_TOOL_MODULE
