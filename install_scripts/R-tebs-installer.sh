@@ -1,17 +1,17 @@
 #!/bin/bash -l
 
 # This is the path to a project wide R package library.
-R_LIBRARY="$HOME/Rlibrary/3.3.3"
+R_LIBRARY="$HOME/Rlibrary/3.4.0"
 echo ${R_LIBRARY}
 # this is name of the package you want to add 
 # note the for PACKLIST it is PACKLIST='"package_a","package_b"'
 # so keep track of the double and single quotes and commas!
 
-PACKLIST='"R2admb","pscl","lmtest","bbmle","PairedData","ggplot2","data.table"'
+PACKLIST='"R2admb","pscl","lmtest","bbmle","PairedData","ggplot2","data.table","coefplot2"'
 
 #  loads the compilers/libraries/applications into your shell environment
 
-module load gnu r/3.3.3 
+module load gnu r/3.4.0
 
 #  leave in script allows you to see what modules loaded listed in the
 #  standard SBATCH output files and error files associated with every job.
