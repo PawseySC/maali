@@ -906,6 +906,10 @@ EOF
 function maali_python_build {
   # should work with most python packages
 
+  # Call e.g. python2.7, python3.6 directly, rather than just python.
+  PYTHON_MAJOR_MINOR_VERSION=`echo "$PYTHON_VERSION" | cut -d '.' -f 1,2`
+  export PYTHON="python${PYTHON_MAJOR_MINOR_VERSION}"
+
   # need to add the python library path to PYTHONPATH temporarily
   MAALI_OLD_PYTHONPATH=$PYTHONPATH
   MAALI_NEWPYTHONPATH="$MAALI_INSTALL_DIR/$MAALI_PYTHON_LIBDIR/python$MAALI_PYTHON_LIB_VERSION/site-packages"
@@ -914,8 +918,8 @@ function maali_python_build {
   maali_makedir "$MAALI_NEWPYTHONPATH"
 
   cd "$MAALI_TOOL_BUILD_DIR"
-  maali_run "python setup.py build"
-  maali_run "python setup.py install --prefix=$MAALI_INSTALL_DIR"
+  maali_run "$PYTHON setup.py build"
+  maali_run "$PYTHON setup.py install --prefix=$MAALI_INSTALL_DIR"
 
   export PYTHONPATH=$MAALI_OLD_PYTHONPATH
 }
@@ -1618,7 +1622,8 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
         maali_load_module "$MAALI_COMPILER"
 
         if [ $MAALI_PYTHON_TOOL ]; then
-          MAALI_COMPILER_VERSION=`python --version 2>&1`
+          MAALI_PYTHON_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2 | cut -d '.' -f 1,2`
+          MAALI_COMPILER_VERSION=`python$MAALI_PYTHON_VERSION --version 2>&1`
         elif [ $MAALI_R_TOOL ]; then
           MAALI_COMPILER_VERSION=`R --version | grep 'R version' 2>&1`
         else
