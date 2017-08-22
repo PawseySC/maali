@@ -27,9 +27,13 @@ elif [ -f "/etc/SuSE-release" ]; then
 
   MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
 elif [ -f "/etc/centos-release" ]; then
-  MAALI_OS_VERSION=`cat /etc/centos-release  | cut -d ' ' -f 3 | cut -d '.' -f 1`
+  MAALI_OS_VERSION=`grep VERSION_ID= /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
 
   MAALI_OS="centos$MAALI_OS_VERSION"
+elif [ -f "/etc/redhat-release" ]; then
+  MAALI_OS_VERSION=`grep VERSION_ID= /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g' | cut -d '.' -f 1`
+
+  MAALI_OS="rhel$MAALI_OS_VERSION"
 else
   echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
   exit 1
