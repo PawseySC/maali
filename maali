@@ -35,8 +35,7 @@ elif [ -f "/etc/redhat-release" ]; then
 
   MAALI_OS="rhel$MAALI_OS_VERSION"
 else
-  echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
-  exit 1
+  maali_die "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
 fi
 
 ##############################################################################
@@ -126,8 +125,7 @@ function maali_download {
     do
       MAALI_TMP_DST=${MAALI_DST_ARRAY[$i]}
       if [[ ! -f $MAALI_TMP_DST ]]; then
-        echo "There is no URL defined for ${MAALI_TOOL_NAME}, you will need to copy the source to $MAALI_TMP_DST before compiling ${MAALI_TOOL_NAME}"
-        exit 1
+        maali_die "There is no URL defined for ${MAALI_TOOL_NAME}, you will need to copy the source to ${MAALI_TMP_DST} before compiling ${MAALI_TOOL_NAME}"
       fi
     done
   fi
@@ -217,9 +215,8 @@ function maali_git_download {
 
   MAALI_GIT_DOWNLOAD_FILESIZE=$(stat -c%s "$MAALI_GIT_DOWNLOAD_FILEPATH")
   if [ $MAALI_GIT_DOWNLOAD_FILESIZE -eq 0 ]; then
-    echo "Can't find config file for $MAALI_TOOL_NAME and could not download from github"
     rm -f $MAALI_GIT_DOWNLOAD_FILEPATH
-    exit 1
+    maali_die "Can't find config file for $MAALI_TOOL_NAME and could not download from github"
   fi
 
   if [ $DEBUG ]; then
@@ -969,14 +966,12 @@ function maali_unpack {
   for MAALI_INDIVIDUAL_DST in $MAALI_DST; do
 
     if [ ! -f "$MAALI_INDIVIDUAL_DST" ]; then
-      echo "$MAALI_INDIVIDUAL_DST does not exit"
-      exit 1
+      maali_die "$MAALI_INDIVIDUAL_DST does not exist"
     fi
 
     MAALI_DST_FILESIZE=$(stat -c%s "$MAALI_INDIVIDUAL_DST")
     if [ $MAALI_DST_FILESIZE -eq 0 ]; then
-      echo "$MAALI_INDIVIDUAL_DST is 0 bytes big"
-      exit 1
+      maali_die "$MAALI_INDIVIDUAL_DST is 0 bytes big"
     fi
 
     if [ $MAALI_UNPACK_MKDIR ]; then
@@ -1009,8 +1004,7 @@ function maali_unpack {
     elif [ "$MAALI_TYPE" = "ASCII C program text" ]; then
       cp "$MAALI_INDIVIDUAL_DST" "$MAALI_TOOL_BUILD_DIR"
     else
-      echo "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please please lodge a ticket at https://github/Pawseyops/maali."
-      exit 1
+      maali_die "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please please lodge a ticket at https://github/Pawseyops/maali."
     fi
 
     if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
@@ -1025,10 +1019,19 @@ function maali_unpack {
 
 ##############################################################################
 
+function maali_die {
+  log "$1"
+  echo
+  echo "$1"
+  exit 1
+}
+
 function log {
-  echo "#####################################################################" >>$MAALI_TOOL_LOG
-  echo "$1" >>$MAALI_TOOL_LOG
-  echo "#####################################################################" >>$MAALI_TOOL_LOG
+  if [ ! -z "${MAALI_TOOL_LOG}" ]; then
+    echo "#####################################################################" >>$MAALI_TOOL_LOG
+    echo "$1" >>$MAALI_TOOL_LOG
+    echo "#####################################################################" >>$MAALI_TOOL_LOG
+  fi
 }
 
 ##############################################################################
@@ -1243,13 +1246,13 @@ fi
 
 if [ -z $MAALI_TOOL_NAME ]; then
   usage
-  exit 1
+  maali_die "Specify a tool name"
 fi
 
 # do we need to set the version or are there other instances of it being derived?
 if [[ ! "$MAALI_TOOL_NAME" =~ "system-" ]] && [[ -z $MAALI_TOOL_VERSION ]]; then
   usage
-  exit 1
+  maali_die "Specify a tool version"
 fi
 
 # must be a better way to express this
@@ -1293,16 +1296,14 @@ if [ "$MAALI_CONFIG" != "" ]; then
      # use the name of our config file to create a different log file
      MAALI_LOG_PREFIX="$MAALI_CONFIG-"
   else
-    echo "Could not open $HOME/.maali/$MAALI_CONFIG.config!";
-    exit 1;
+    maali_die "Could not open ${HOME}/.maali/${MAALI_CONFIG}.config!";
   fi
 fi
 
 # system builds require MAALI_BUILDER_UID to be defined
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   if [ -z $MAALI_BUILDER_UID ]; then
-    echo "Please set MAALI_BUILDER_UID your uid so we can track who is building software on $MAALI_SYSTEM"
-    exit 1
+    maali_die "Please set MAALI_BUILDER_UID your uid so we can track who is building software on ${MAALI_SYSTEM}"
   fi
 
   maali_makedir "$HOME/.maali/$MAALI_OS/wiki"
@@ -1315,8 +1316,7 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
     # use the MAALI_USER_MAP file
 
     if [ -z $MAALI_USER_MAP ]; then
-      echo "MAALI_USER_MAP is undefined, exiting ..."
-      exit 1
+      maali_die "MAALI_USER_MAP is undefined, exiting ..."
     fi
 
     echo "Running System build - checking user map file"
@@ -1324,8 +1324,7 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
     . "$MAALI_USER_MAP"  
 
     if [[ "$MAALI_BUILDER_BUILD_CN" == "" ]] || [[ "$MAALI_BUILDER_BUILD_MAIL" = "" ]]; then
-      echo "$MAALI_BUILDER_UID is not in the user map file"
-      exit 1
+      maali_die "${MAALI_BUILDER_UID} is not in the user map file"
     fi
   fi
 fi
@@ -1448,8 +1447,7 @@ if [ $MAALI_FORCE_DOWNLOAD_FROM_GITHUB -eq 0 ]; then
 
     # TODO: is MAALI_SYSTEM redundant?
     # if [ -z $MAALI_SYSTEM ]; then
-    #   echo "MAALI_SYSTEM is undefined, exiting ..."
-    #   exit 1
+    #   maali_di "MAALI_SYSTEM is undefined, exiting ..."
     # fi
 
     if [ $DEBUG ]; then
@@ -1509,17 +1507,18 @@ fi
 # source the cygnet file
 . $MAALI_CYGNET_FILEPATH
 if [ $? -ne 0 ]; then
-    echo "failed to source $MAALI_CYGNET_FILEPATH exiting"
-    exit 1
+    maali_die "failed to source ${MAALI_CYGNET_FILEPATH} exiting"
 fi
 
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
   if [ $MAALI_CUDA_SUPPORT -eq 0 ]; then
-    echo "$MAALI_TOOL_NAME does not support CUDA builds"
-    exit 1
+    maali_die "${MAALI_TOOL_NAME} does not support CUDA builds"
   fi
 else
   MAALI_TOOL_CUDA_COMPILERS="na"
+fi
+if [ "$MAALI_TOOL_CUDA_COMPILERS" == "" ]; then
+  maali_die "MAALI_TOOL_CUDA_COMPILERS is not set, but asked to do a CUDA build"
 fi
 
 MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_DEFAULT_TOOL_CPU_TARGET"}
@@ -1527,6 +1526,9 @@ MAALI_TOOL_COMPILERS=${MAALI_TOOL_COMPILERS:-"$MAALI_DEFAULT_COMPILERS"}
 
 if [ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" -o "$MAALI_TOOL_COMPILERS" == "binary" ]; then
   MAALI_TOOL_CPU_TARGET="na"
+fi
+if [ "$MAALI_TOOL_CPU_TARGET" == "" ]; then
+  maali_die "MAALI_TOOL_CPU_TARGET is not set, and this is not a binary or system/gcc install"
 fi
 
 # patch files - I'm note entirely sure of the logic
@@ -1556,8 +1558,7 @@ for MAALI_SYSTEM_PACKAGES_NAME in $MAALI_SYSTEM_PACKAGES_PREREQ; do
   # This works for CentOS, SLES, Cray and Fedora, but what about Ubuntu?
   MAALI_SYSTEM_PACKAGES_VERSION=`rpmquery --qf "%{VERSION}" ${MAALI_SYSTEM_PACKAGES_NAME}`
   if [ $? -eq 1 ]; then
-    echo "$MAALI_SYSTEM_PACKAGES_NAME is not installed on this system"
-    exit 1
+    maali_die "${MAALI_SYSTEM_PACKAGES_NAME} is not installed on this system"
   fi
 done
 
@@ -1568,8 +1569,7 @@ if [ $MAALI_REBUILD ]; then
 fi
 
 if [ "$MAALI_TOOL_COMPILERS" == "" ]; then
-  echo ".. MAALI_TOOL_COMPILERS is empty! Please define at least one compiler.";
-  exit 1;
+  maali_die ".. MAALI_TOOL_COMPILERS is empty! Please define at least one compiler.";
 fi
 
 # check if we are using python
@@ -1746,6 +1746,8 @@ if [ $MAALI_REMODULE -eq 0 ]; then
         MAALI_CRAY_COMPILER_MATCH="intel"
       elif [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-cray" ]; then
         MAALI_CRAY_COMPILER_MATCH="cce"
+      else
+        maali_die "Unknown Cray Programming Environment ${MAALI_CRAY_PRGENV}"
       fi
 
       MAALI_TOOL_COMPILERS=""
@@ -1770,6 +1772,9 @@ if [ $MAALI_REMODULE -eq 0 ]; then
       if [ $DEBUG ]; then
         echo "MAALI_TOOL_COMPILERS set to $MAALI_TOOL_COMPILERS"
       fi
+      if [ "$MAALI_TOOL_COMPILERS" == "" ]; then
+        maali_die "Have no MAALI_TOOL_COMPILERS set"
+      fi
 
       if [ $DEBUG ]; then
         echo " .. before module load \$MAALI_CRAY_PRGENV"
@@ -1790,8 +1795,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
         # "binary" installs are not versioned
         MAALI_SLASH_COUNT=`echo $(echo $MAALI_COMPILER | wc -c) - $(echo $MAALI_COMPILER | tr -d '/' | wc -c) | bc`
         if [ $MAALI_SLASH_COUNT != 1 ]; then
-          echo "$MAALI_COMPILER should contain a single '/' (but contains $MAALI_SLASH_COUNT)"
-          exit 1
+          maali_die "${MAALI_COMPILER} should contain a single '/' (but contains ${MAALI_SLASH_COUNT})"
         fi # if [ $MAALI_SLASH_COUNT != 1 ]; then; then
       fi # if [ "$MAALI_COMPILER" != "binary" ]; then
   
