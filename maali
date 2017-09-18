@@ -951,28 +951,26 @@ function maali_module_lua {
 
   cat <<EOF >$MAALI_TOOL_MODULE
 help(Sets up the paths you need to use $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION)
-set sys     [uname sysname]
-set version $MAALI_TOOL_VERSION
+local version = '$MAALI_TOOL_VERSION'
 EOF
 
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
   cat <<EOF >>$MAALI_TOOL_MODULE
-set tool    $MAALI_TOOL_NAME-gpu
+local tool = '$MAALI_TOOL_NAME-gpu'
 EOF
 else
   cat <<EOF >>$MAALI_TOOL_MODULE
-set tool    $MAALI_TOOL_NAME
+local tool = '$MAALI_TOOL_NAME'
 EOF
 fi
 
   if [ "$MAALI_MODULE_WHATIS" != "" ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
-module-whatis "$MAALI_MODULE_WHATIS
-
+whatis("$MAALI_MODULE_WHATIS")
 EOF
   else
     cat <<EOF >> $MAALI_TOOL_MODULE
-module-whatis "
+whatis("
 EOF
   fi
 
@@ -1020,7 +1018,7 @@ EOF
       echo "Compiled for CUDA with $MAALI_CUDA_COMPILER" >> $MAALI_TOOL_MODULE
     done
   fi
-  echo "\"" >> $MAALI_TOOL_MODULE
+  echo "\")" >> $MAALI_TOOL_MODULE
 
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
