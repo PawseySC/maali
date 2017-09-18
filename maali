@@ -950,13 +950,7 @@ function maali_module_lua {
   MAALI_MODULE_MAX_VARIABLE=${#MAALI_APP_HOME_NAME}
 
   cat <<EOF >$MAALI_TOOL_MODULE
-#%Module######################################################################
-#
-# $MAALI_TOOL_NAME modulefile
-#
-proc ModulesHelp { } {
-  puts stderr "Sets up the paths you need to use $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION"
-}
+help(Sets up the paths you need to use $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION)
 set sys     [uname sysname]
 set version $MAALI_TOOL_VERSION
 EOF
@@ -1336,17 +1330,6 @@ EOF
     MAALI_MODULE_VARIABLES_LIST="$MAALI_MODULE_VARIABLES_ORDER"
   fi
 
-  # find the maximum variable width
-  for MAALI_MODULE_VARIABLE in $MAALI_MODULE_VARIABLES_LIST
-  do
-    if [ "${!MAALI_MODULE_VARIABLE}" != "" ]; then
-      MAALI_MODULE_VARIABLE_WIDTH=$(expr ${#MAALI_MODULE_VARIABLE} - 15)
-      if [ $MAALI_MODULE_VARIABLE_WIDTH -gt $MAALI_MODULE_MAX_VARIABLE ]; then
-        MAALI_MODULE_MAX_VARIABLE=$MAALI_MODULE_VARIABLE_WIDTH
-      fi
-    fi
-  done
-
 # Start of setting variables
   cat <<EOF >> $MAALI_TOOL_MODULE
 if {! [module-info mode whatis] } {
@@ -1360,7 +1343,7 @@ EOF
     MAALI_MODULE_VARIABLE_NAME=`echo $MAALI_MODULE_VARIABLE | sed -e 's/MAALI_MODULE_SET_//g'`
     MAALI_MODULE_VARIABLE_DIR=""
     MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
-    MAALI_MODULE_VARIABLE_TCL="prepend-path"
+    MAALI_MODULE_VARIABLE_LUA="prepend-path"
 
     MAALI_MODULE_VARIABLE_PREPREND_OFF="MAALI_MODULE_PREPEND_${MAALI_MODULE_VARIABLE_NAME}"
     MAALI_MODULE_VARIABLE_PREPREND_OFF_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_PREPREND_OFF}"`
@@ -1394,7 +1377,7 @@ EOF
           ;;
         LD_LIBRARY_PATH_APPEND)
           MAALI_MODULE_VARIABLE_NAME='LD_LIBRARY_PATH'
-          MAALI_MODULE_VARIABLE_TCL="append-path"
+          MAALI_MODULE_VARIABLE_LUA="append-path"
           MAALI_MODULE_VARIABLE_DIR="lib"
           ;;
         CPATH | C_INCLUDE_PATH | CPLUS_INCLUDE_PATH | FPATH | FCPATH | INCLUDE_PATH | INTEL_INC_PATH )
@@ -1416,7 +1399,7 @@ EOF
         LUA_CPATH)
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
           MAALI_MODULE_VARIABLE_DIR="lib/lua/${MAALI_LUA_LIB_VERSION}/?.so"
-          MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
+          MAALI_MODULE_VARIABLE_LUA='prepend-path --delim=\;'
           ;;
         LUA_CPATH_APPEND)
           MAALI_MODULE_VARIABLE_NAME='LUA_CPATH'
@@ -1425,15 +1408,15 @@ EOF
         LUA_PATH)
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
           MAALI_MODULE_VARIABLE_DIR="share/lua/${MAALI_LUA_LIB_VERSION}/init.lua;;"
-          MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
+          MAALI_MODULE_VARIABLE_LUA='prepend-path --delim=\;'
           ;;
         LUA_PATH_APPEND)
           MAALI_MODULE_VARIABLE_NAME='LUA_PATH'
-          MAALI_MODULE_VARIABLE_TCL="append-path"
+          MAALI_MODULE_VARIABLE_LUA="append-path"
           ;;
         *)
           # the default is to setenv
-          MAALI_MODULE_VARIABLE_TCL="setenv"
+          MAALI_MODULE_VARIABLE_LUA="setenv"
           MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
         esac
@@ -1445,20 +1428,20 @@ EOF
         fi
 
         if [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_DEFAULT_' ]]; then
-          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
+          printf "%s(\"%s\",\"%s\")\n" $MAALI_MODULE_VARIABLE_LUA $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
         elif [ $MAALI_MODULE_VARIABLE_WORDS -gt 1 ]; then
           for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
             MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
-            printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
+            printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
           done
         elif [[ ${!MAALI_MODULE_VARIABLE} == "1" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
-          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
+          printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
         elif [[ ${!MAALI_MODULE_VARIABLE} == "toplevel" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
-          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
+          printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
         else
           # this is the same as 2
           MAALI_MODULE_VARIABLE_EVAL=`eval echo "${!MAALI_MODULE_VARIABLE}"`
-          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
+          printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
         fi
     fi
   done
