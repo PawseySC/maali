@@ -1273,6 +1273,7 @@ if (mode() == "load") then
     load("r","$MAALI_SYSTEM_DEFAULT_R")
   end
 end
+EOF
   fi
 
   if [ "$MAALI_MODULE_CONFLICT" != "" ]; then
