@@ -968,10 +968,6 @@ fi
     cat <<EOF >> $MAALI_TOOL_MODULE
 whatis("$MAALI_MODULE_WHATIS")
 EOF
-  else
-    cat <<EOF >> $MAALI_TOOL_MODULE
-whatis("
-EOF
   fi
 
   for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
@@ -990,13 +986,13 @@ EOF
       for MAALI_CRAY_TOOL_COMPILER in $MAALI_CRAY_TOOL_COMPILERS; do
         MAALI_CRAY_TOOL_COMPILER_NAME=`echo "$MAALI_CRAY_TOOL_COMPILER" | cut -d '/' -f 1`
         if [ "$MAALI_CRAY_TOOL_COMPILER_NAME" == "$MAALI_CRAY_COMPILER_MATCH" ]; then
-          echo "Compiled with $MAALI_CRAY_TOOL_COMPILER under $MAALI_CRAY_PRGENV" >> $MAALI_TOOL_MODULE
+          echo "whatis(\"Compiled with $MAALI_CRAY_TOOL_COMPILER under $MAALI_CRAY_PRGENV\")" >> $MAALI_TOOL_MODULE
         fi
       done
     else
       if [ "$MAALI_TOOL_COMPILERS" != "binary" ]; then
         for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
-          echo "Compiled with $MAALI_COMPILER" >> $MAALI_TOOL_MODULE
+          echo "whatis(\"Compiled with $MAALI_COMPILER\")" >> $MAALI_TOOL_MODULE
         done
       fi
 
@@ -1005,20 +1001,19 @@ EOF
 
   if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
     for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
-      echo "Compiled for $MAALI_CRAY_CPU_TARGET" >> $MAALI_TOOL_MODULE
+      echo "whatis(\"Compiled for $MAALI_CRAY_CPU_TARGET\")" >> $MAALI_TOOL_MODULE
     done
   fi
   if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
     for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
-      echo "Compiled for $MAALI_CPU_TARGET" >> $MAALI_TOOL_MODULE
+      echo "whatis(\"Compiled for $MAALI_CPU_TARGET\")" >> $MAALI_TOOL_MODULE
     done
   fi
   if [ "$MAALI_TOOL_CUDA_COMPILERS" != "na" ]; then
     for MAALI_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
-      echo "Compiled for CUDA with $MAALI_CUDA_COMPILER" >> $MAALI_TOOL_MODULE
+      echo "whatis(\"Compiled for CUDA with $MAALI_CUDA_COMPILER\")" >> $MAALI_TOOL_MODULE
     done
   fi
-  echo "\")" >> $MAALI_TOOL_MODULE
 
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
