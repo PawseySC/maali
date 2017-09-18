@@ -904,6 +904,602 @@ EOF
 
 ##############################################################################
 
+function maali_module_lua {
+  # determine the default versions of a number of tools
+  MAALI_SYSTEM_DEFAULT_PYTHON=`module display python 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
+  MAALI_SYSTEM_DEFAULT_R=`module display r 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
+  MAALI_SYSTEM_DEFAULT_CUDA=`module display cuda 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
+
+  MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
+  if [ $MAALI_PYTHON_TOOL ]; then
+    MAALI_APP_HOME="$MAALI_ROOT/python/\$env(PYTHON_VERSION)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+  elif [ $MAALI_R_TOOL ]; then
+    MAALI_APP_HOME="$MAALI_ROOT/r/\$env(R_VERSION)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+  else
+    if [ $MAALI_SYSTEM_CYGNET_FILE -eq 1 ]; then
+      # system-intel sets this, others may as well
+      MAALI_APP_HOME="$MAALI_INSTALL_DIR"
+    elif [ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" -o "$MAALI_TOOL_COMPILERS" == "binary" ]; then
+      MAALI_APP_HOME="$MAALI_APPS_DIR/$MAALI_TOOL_COMPILERS/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+    else
+      if [ $MAALI_CRAY -eq 1 ]; then
+        if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+          MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(MAALI_LOADED_PRGENV)/\$env(CRAYOS_VERSION)/\$env(COMPILER)/\$env(COMPILER_VER)/\$env(CRAY_CPU_TARGET)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
+        else
+          MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(MAALI_LOADED_PRGENV)/\$env(CRAYOS_VERSION)/\$env(COMPILER)/\$env(COMPILER_VER)/\$env(CRAY_CPU_TARGET)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+        fi
+      else
+        if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+          if [ "$MAALI_CPU_TARGET" != "na" ]; then
+            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
+          else
+            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
+          fi
+        else
+          if [ "$MAALI_CPU_TARGET" != "na" ]; then
+            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+          else
+            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+          fi
+        fi
+      fi
+    fi
+  fi
+
+  # used to make the module look pretty
+  MAALI_MODULE_MAX_VARIABLE=${#MAALI_APP_HOME_NAME}
+
+  cat <<EOF >$MAALI_TOOL_MODULE
+#%Module######################################################################
+#
+# $MAALI_TOOL_NAME modulefile
+#
+proc ModulesHelp { } {
+  puts stderr "Sets up the paths you need to use $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION"
+}
+set sys     [uname sysname]
+set version $MAALI_TOOL_VERSION
+EOF
+
+if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+  cat <<EOF >>$MAALI_TOOL_MODULE
+set tool    $MAALI_TOOL_NAME-gpu
+EOF
+else
+  cat <<EOF >>$MAALI_TOOL_MODULE
+set tool    $MAALI_TOOL_NAME
+EOF
+fi
+
+  if [ "$MAALI_MODULE_WHATIS" != "" ]; then
+    cat <<EOF >> $MAALI_TOOL_MODULE
+module-whatis "$MAALI_MODULE_WHATIS
+
+EOF
+  else
+    cat <<EOF >> $MAALI_TOOL_MODULE
+module-whatis "
+EOF
+  fi
+
+  for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
+  
+    if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+      MAALI_CRAY_PRGENV_NAME=`echo "$MAALI_CRAY_PRGENV" | cut -d '/' -f 1`
+
+      if [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-gnu" ]; then
+        MAALI_CRAY_COMPILER_MATCH="gcc"
+      elif [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-intel" ]; then
+        MAALI_CRAY_COMPILER_MATCH="intel"
+      elif [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-cray" ]; then
+        MAALI_CRAY_COMPILER_MATCH="cce"
+      fi
+
+      for MAALI_CRAY_TOOL_COMPILER in $MAALI_CRAY_TOOL_COMPILERS; do
+        MAALI_CRAY_TOOL_COMPILER_NAME=`echo "$MAALI_CRAY_TOOL_COMPILER" | cut -d '/' -f 1`
+        if [ "$MAALI_CRAY_TOOL_COMPILER_NAME" == "$MAALI_CRAY_COMPILER_MATCH" ]; then
+          echo "Compiled with $MAALI_CRAY_TOOL_COMPILER under $MAALI_CRAY_PRGENV" >> $MAALI_TOOL_MODULE
+        fi
+      done
+    else
+      if [ "$MAALI_TOOL_COMPILERS" != "binary" ]; then
+        for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
+          echo "Compiled with $MAALI_COMPILER" >> $MAALI_TOOL_MODULE
+        done
+      fi
+
+    fi
+  done
+
+  if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
+    for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
+      echo "Compiled for $MAALI_CRAY_CPU_TARGET" >> $MAALI_TOOL_MODULE
+    done
+  fi
+  if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
+    for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
+      echo "Compiled for $MAALI_CPU_TARGET" >> $MAALI_TOOL_MODULE
+    done
+  fi
+  if [ "$MAALI_TOOL_CUDA_COMPILERS" != "na" ]; then
+    for MAALI_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
+      echo "Compiled for CUDA with $MAALI_CUDA_COMPILER" >> $MAALI_TOOL_MODULE
+    done
+  fi
+  echo "\"" >> $MAALI_TOOL_MODULE
+
+cat <<EOF >>$MAALI_TOOL_MODULE
+if { [ module-info mode load ] } {
+  if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
+    module unload \$tool
+  }
+}
+
+EOF
+
+  if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
+    cat <<EOF >> $MAALI_TOOL_MODULE
+if { [module-info mode load] || [module-info mode switch] } {
+  if { [is-loaded PrgEnv-cray] } {
+    setenv MAALI_LOADED_PRGENV PrgEnv-cray
+    setenv COMPILER            cce
+    setenv COMPILER_VER        \$env(CRAY_CC_VERSION)
+  } else {
+    unsetenv MAALI_LOADED_PRGENV PrgEnv-cray
+    unsetenv COMPILER            cce
+    unsetenv COMPILER_VER        \$env(CRAY_CC_VERSION)
+  }
+
+  if { [is-loaded PrgEnv-gnu] } {
+    setenv MAALI_LOADED_PRGENV PrgEnv-gnu
+    setenv COMPILER            gcc
+    setenv COMPILER_VER        \$env(GCC_VERSION)
+  } else {
+    unsetenv MAALI_LOADED_PRGENV PrgEnv-gnu
+    unsetenv COMPILER            gcc
+    unsetenv COMPILER_VER        \$env(GCC_VERSION)
+  }
+
+  if { [is-loaded PrgEnv-intel] } {
+    setenv MAALI_LOADED_PRGENV PrgEnv-intel
+    setenv COMPILER            intel
+    setenv COMPILER_VER        \$env(INTEL_VERSION)
+  } else {
+    unsetenv MAALI_LOADED_PRGENV PrgEnv-intel
+    unsetenv COMPILER            intel
+    unsetenv COMPILER_VER        \$env(INTEL_VERSION)
+  }
+}
+
+EOF
+  fi
+
+  for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+    # this is to allow us to compile python software with a Cray environment
+    MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
+    if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
+
+      MAALI_SYSTEM_COMPILER_LIST=`module avail gcc/ -t 2>&1 | grep gcc/ | sed -e 's/(default)//g'`
+
+      if [ "$MAALI_SYSTEM_COMPILER_LIST" != "" ]; then
+        for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
+
+          if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+            # never conflict with the system compiler
+
+            # need to see if the system compiler is anywhere in the list
+            MAALI_COMPILER_FOUND_MATCH=0
+
+            if [ "$MAALI_SYSTEM_COMPILER" == "$MAALI_PREREQ_MODULE" ]; then
+              MAALI_COMPILER_FOUND_MATCH=1
+            fi
+
+            # if not found in list, force conflict
+            if [ $MAALI_COMPILER_FOUND_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_SYSTEM_COMPILER
+EOF
+            fi
+
+          fi # if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+
+        done # for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
+
+      fi # if [ $MAALI_SYSTEM_COMPILER_LIST != "" ]; then
+
+    elif [ "$MAALI_PREREQ_MODULE_NAME" == "PrgEnv-gnu" ]; then
+
+      MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray"
+
+      for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
+        MAALI_SYSTEM_CRAY_PRGENV_LIST=`module avail $MAALI_CRAY_PRGENV_TYPE -t 2>&1 | grep $MAALI_CRAY_PRGENV_TYPE | sed -e 's/(default)//g'`
+        for MAALI_SYSTEM_CRAY_PRGENV in $MAALI_SYSTEM_CRAY_PRGENV_LIST; do
+
+          # need to see if the system PrgEnv is anywhere in the list
+          MAALI_CRAY_PRGENV_FOUND_MATCH=0
+
+          if [ "$MAALI_SYSTEM_CRAY_PRGENV" == "$MAALI_PREREQ_MODULE" ]; then
+            MAALI_CRAY_PRGENV_FOUND_MATCH=1
+          fi
+
+          # if not found in list, force conflict
+          if [ $MAALI_CRAY_PRGENV_FOUND_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_SYSTEM_CRAY_PRGENV
+EOF
+          fi
+        done
+      done
+
+    elif [[ "$MAALI_PREREQ_MODULE_NAME" =~ "craype-" ]]; then
+
+      MAALI_TOOL_CRAY_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
+
+    fi # if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
+   done
+
+
+  # conflict for PrgEnv
+  if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
+    MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray"
+
+    for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
+      MAALI_SYSTEM_CRAY_PRGENV_LIST=`module avail $MAALI_CRAY_PRGENV_TYPE -t 2>&1 | grep $MAALI_CRAY_PRGENV_TYPE | sed -e 's/(default)//g'`
+      for MAALI_SYSTEM_CRAY_PRGENV in $MAALI_SYSTEM_CRAY_PRGENV_LIST; do
+
+        # need to see if the system PrgEnv is anywhere in the list
+        MAALI_CRAY_PRGENV_FOUND_MATCH=0
+
+        for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
+          if [ "$MAALI_SYSTEM_CRAY_PRGENV" == "$MAALI_CRAY_PRGENV" ]; then
+            MAALI_CRAY_PRGENV_FOUND_MATCH=1
+          fi
+        done
+
+        # if not found in list, force conflict
+        if [ $MAALI_CRAY_PRGENV_FOUND_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_SYSTEM_CRAY_PRGENV
+EOF
+        fi
+      done
+    done
+  fi
+
+  # conflict for craype
+  if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
+    MAALI_SUPPORTED_CRAY_CPU_TARGETS="sandybridge ivybridge haswell"
+
+    for MAALI_CRAY_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CRAY_CPU_TARGETS; do
+      MAALI_SYSTEM_CRAY_CPU_TARGET_LIST=`module avail craype-$MAALI_CRAY_CPU_TARGET_TYPE -t 2>&1 | grep craype-$MAALI_CRAY_CPU_TARGET_TYPE | sed -e 's/(default)//g'`
+      for MAALI_SYSTEM_CRAY_CPU_TARGET in $MAALI_SYSTEM_CRAY_CPU_TARGET_LIST; do
+
+        # need to see if the system CPU_TARGET is anywhere in the list
+        MAALI_CRAY_CPU_TARGET_FOUND_MATCH=0
+
+        for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
+          if [ "$MAALI_SYSTEM_CRAY_CPU_TARGET" == "craype-$MAALI_CRAY_CPU_TARGET" ]; then
+            MAALI_CRAY_CPU_TARGET_FOUND_MATCH=1
+          fi
+        done
+
+        # if not found in list, force conflict
+        if [ $MAALI_CRAY_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_SYSTEM_CRAY_CPU_TARGET
+EOF
+        fi
+      done
+    done
+
+  fi
+
+  if [ "$MAALI_TOOL_COMPILERS" != "binary" ]; then
+    # conflict for compilers
+    if [ $MAALI_PYTHON_TOOL ]; then
+      MAALI_SUPPORTED_COMPILERS="python"
+    else
+      MAALI_SUPPORTED_COMPILERS="gcc intel cce pgi"
+    fi # if [ $MAALI_PYTHON_TOOL ]; then
+
+    if [ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+      # if we have compiled with the system compiler, do we need conflict resolution?
+      for MAALI_COMPILER_TYPE in $MAALI_SUPPORTED_COMPILERS; do
+        MAALI_SYSTEM_COMPILER_LIST=`module avail $MAALI_COMPILER_TYPE/ -t 2>&1 | grep $MAALI_COMPILER_TYPE/ | sed -e 's/(default)//g'`
+
+        if [ "$MAALI_SYSTEM_COMPILER_LIST" != "" ]; then
+          for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
+
+            if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+              # never conflict with the system compiler
+
+              # need to see if the system compiler is anywhere in the list
+              MAALI_COMPILER_FOUND_MATCH=0
+
+              for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
+                if [ "$MAALI_SYSTEM_COMPILER" == "$MAALI_COMPILER" ]; then
+                  MAALI_COMPILER_FOUND_MATCH=1
+                fi
+              done
+
+              # if not found in list, force conflict
+              if [ $MAALI_COMPILER_FOUND_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_SYSTEM_COMPILER
+EOF
+              fi # if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+
+            fi
+
+          done # for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
+
+        fi # if [ $MAALI_SYSTEM_COMPILER_LIST != "" ]; then
+
+      done
+    fi # if [ "$MAALI_COMPILER_TYPE" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
+  fi
+
+  # CUDA conflict
+  if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+    MAALI_SYSTEM_CUDA_LIST=`module avail cuda/ -t 2>&1 | grep cuda/ | sed -e 's/(default)//g'`
+
+    for MAALI_SYSTEM_CUDA_VERSION in $MAALI_SYSTEM_CUDA_LIST; do
+
+      # need to see if the system cuda is anywhere in the list
+      MAALI_SYSTEM_CUDA_VERSION_MATCH=0
+
+      for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
+        if [ "$MAALI_SYSTEM_CUDA_VERSION" == "$MAALI_TOOL_CUDA_COMPILER" ]; then
+            MAALI_SYSTEM_CUDA_VERSION_MATCH=1
+        fi
+      done
+
+      # if not found in list, force conflict
+      if [ $MAALI_SYSTEM_CUDA_VERSION_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_SYSTEM_CUDA_VERSION
+EOF
+      fi
+
+    done
+
+  fi
+
+  if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+    cat <<EOF >> $MAALI_TOOL_MODULE
+
+if { [ module-info mode load ] } {
+  if {! [is-loaded cuda] } {
+    # this allows us support multiple cuda versions, but have a sensible default
+    module load cuda/$MAALI_SYSTEM_DEFAULT_CUDA
+  }
+}
+EOF
+  fi
+
+  if [ $MAALI_PYTHON_TOOL ]; then
+    cat <<EOF >> $MAALI_TOOL_MODULE
+
+if { [ module-info mode load ] } {
+  if {! [is-loaded python] } {
+    # this allows us support multiple python versions, but have a sensible default
+    module load python/$MAALI_SYSTEM_DEFAULT_PYTHON
+  }
+}
+EOF
+  fi
+
+  if [ $MAALI_R_TOOL ]; then
+    cat <<EOF >> $MAALI_TOOL_MODULE
+
+if { [ module-info mode load ] } {
+  if {! [is-loaded r] } {
+    # this allows us support multiple R versions, but have a sensible default
+    module load r/$MAALI_SYSTEM_DEFAULT_R
+  }
+}
+EOF
+  fi
+
+  if [ "$MAALI_MODULE_CONFLICT" != "" ]; then
+      (IFS=","; for MAALI_PKG in $MAALI_MODULE_CONFLICT
+      do
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict $MAALI_PKG
+EOF
+      done)
+  fi
+
+  if [ "$MAALI_MODULE_PREREQ" != "" ]; then
+      (IFS=","; for MAALI_PKG in $MAALI_MODULE_PREREQ
+      do
+          cat <<EOF >> $MAALI_TOOL_MODULE
+prereq $MAALI_PKG
+EOF
+      done)
+  fi
+
+  for MAALI_TOOL_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+    cat <<EOF >> $MAALI_TOOL_MODULE
+module load $MAALI_TOOL_PREREQ_MODULE
+EOF
+  done
+
+  # sort MAALI_MODULE_SET_MAALI variables first
+  MAALI_MODULE_VARIABLES_LIST_MAALI=`compgen -v | grep MAALI_MODULE_SET_MAALI`
+  MAALI_MODULE_VARIABLES_LIST_NON_MAALI=`compgen -v | grep MAALI_MODULE_SET_ | grep -v MAALI_MODULE_SET_MAALI`
+
+  # get all the varibales which start with MAALI_MODULE_SET_
+  MAALI_MODULE_VARIABLES_LIST="$MAALI_MODULE_VARIABLES_LIST_MAALI $MAALI_MODULE_VARIABLES_LIST_NON_MAALI"
+
+  if [ "$MAALI_MODULE_VARIABLES_ORDER" != "" ]; then
+    MAALI_MODULE_VARIABLES_LIST="$MAALI_MODULE_VARIABLES_ORDER"
+  fi
+
+  # find the maximum variable width
+  for MAALI_MODULE_VARIABLE in $MAALI_MODULE_VARIABLES_LIST
+  do
+    if [ "${!MAALI_MODULE_VARIABLE}" != "" ]; then
+      MAALI_MODULE_VARIABLE_WIDTH=$(expr ${#MAALI_MODULE_VARIABLE} - 15)
+      if [ $MAALI_MODULE_VARIABLE_WIDTH -gt $MAALI_MODULE_MAX_VARIABLE ]; then
+        MAALI_MODULE_MAX_VARIABLE=$MAALI_MODULE_VARIABLE_WIDTH
+      fi
+    fi
+  done
+
+# Start of setting variables
+  cat <<EOF >> $MAALI_TOOL_MODULE
+if {! [module-info mode whatis] } {
+EOF
+
+  printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "setenv" $MAALI_APP_HOME_NAME $MAALI_APP_HOME >> $MAALI_TOOL_MODULE
+
+  # main loop for defining environment variables
+  for MAALI_MODULE_VARIABLE in $MAALI_MODULE_VARIABLES_LIST
+  do
+    MAALI_MODULE_VARIABLE_NAME=`echo $MAALI_MODULE_VARIABLE | sed -e 's/MAALI_MODULE_SET_//g'`
+    MAALI_MODULE_VARIABLE_DIR=""
+    MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
+    MAALI_MODULE_VARIABLE_TCL="prepend-path"
+
+    MAALI_MODULE_VARIABLE_PREPREND_OFF="MAALI_MODULE_PREPEND_${MAALI_MODULE_VARIABLE_NAME}"
+    MAALI_MODULE_VARIABLE_PREPREND_OFF_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_PREPREND_OFF}"`
+
+    MAALI_MODULE_VARIABLE_LIST_OFF="MAALI_MODULE_LIST_${MAALI_MODULE_VARIABLE_NAME}"
+    MAALI_MODULE_VARIABLE_LIST_OFF_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_LIST_OFF}"`
+
+    # turn the prepending off
+    if [ "$MAALI_MODULE_VARIABLE_PREPREND_OFF_VALUE" == "off" ]; then
+      MAALI_MODULE_VARIABLE_PREPREND=""
+    fi
+
+    if [ "${!MAALI_MODULE_VARIABLE}" != "" ]; then
+      case $MAALI_MODULE_VARIABLE_NAME in
+        PATH)
+          MAALI_MODULE_VARIABLE_DIR="bin"
+          ;;
+        PYTHONPATH)
+          MAALI_MODULE_VARIABLE_DIR="\$env(MAALI_PYTHON_LIBDIR)/python\$env(MAALI_PYTHON_LIB_VERSION)/site-packages"
+          ;;
+        PERLLIB)
+          # TODO: get perl version from perl
+          MAALI_MODULE_VARIABLE_DIR="lib/perl5/site_perl/5.10.1"
+          ;;
+        INTEL_PATH)
+          ;;
+        R_LIBS)
+          ;;
+        LD_LIBRARY_PATH | CRAY_LD_LIBRARY_PATH | INTEL_LIB_PATH )
+          MAALI_MODULE_VARIABLE_DIR="lib"
+          ;;
+        LD_LIBRARY_PATH_APPEND)
+          MAALI_MODULE_VARIABLE_NAME='LD_LIBRARY_PATH'
+          MAALI_MODULE_VARIABLE_TCL="append-path"
+          MAALI_MODULE_VARIABLE_DIR="lib"
+          ;;
+        CPATH | C_INCLUDE_PATH | CPLUS_INCLUDE_PATH | FPATH | FCPATH | INCLUDE_PATH | INTEL_INC_PATH )
+          MAALI_MODULE_VARIABLE_DIR="include"
+          ;;
+        PKG_CONFIG_PATH | PKGCONFIG )
+          MAALI_MODULE_VARIABLE_DIR="lib/pkgconfig"
+          ;;
+        CMAKE_MODULE_PATH )
+          MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
+          ;;
+        MANPATH)
+          MAALI_MODULE_VARIABLE_DIR="share/man"
+          ;;
+        OMP_NUM_THREADS | MKL_NUM_THREADS)
+          MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
+          MAALI_MODULE_VARIABLE_PREPREND=""
+          ;;
+        LUA_CPATH)
+          MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
+          MAALI_MODULE_VARIABLE_DIR="lib/lua/${MAALI_LUA_LIB_VERSION}/?.so"
+          MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
+          ;;
+        LUA_CPATH_APPEND)
+          MAALI_MODULE_VARIABLE_NAME='LUA_CPATH'
+          MAALI_MODULE_VARIABLE_TCL="append-path"
+          ;;
+        LUA_PATH)
+          MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
+          MAALI_MODULE_VARIABLE_DIR="share/lua/${MAALI_LUA_LIB_VERSION}/init.lua;;"
+          MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
+          ;;
+        LUA_PATH_APPEND)
+          MAALI_MODULE_VARIABLE_NAME='LUA_PATH'
+          MAALI_MODULE_VARIABLE_TCL="append-path"
+          ;;
+        *)
+          # the default is to setenv
+          MAALI_MODULE_VARIABLE_TCL="setenv"
+          MAALI_MODULE_VARIABLE_PREPREND=""
+          ;;
+        esac
+        # don't treat value as a list
+        if [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "off" ]; then
+          MAALI_MODULE_VARIABLE_WORDS="1"
+        else
+          MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
+        fi
+
+        if [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_DEFAULT_' ]]; then
+          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
+        elif [ $MAALI_MODULE_VARIABLE_WORDS -gt 1 ]; then
+          for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
+            MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
+            printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
+          done
+        elif [[ ${!MAALI_MODULE_VARIABLE} == "1" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
+          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
+        elif [[ ${!MAALI_MODULE_VARIABLE} == "toplevel" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
+          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
+        else
+          # this is the same as 2
+          MAALI_MODULE_VARIABLE_EVAL=`eval echo "${!MAALI_MODULE_VARIABLE}"`
+          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
+        fi
+    fi
+  done
+
+  if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
+    libs=`echo ${MAALI_MODULE_PE_PKGCONFIG_NAME[*]} | sed -e 's/ \+$//' -e 's/ \+/:/g'`
+    cat <<EOF >> $MAALI_TOOL_MODULE
+prepend-path PE_PKGCONFIG_LIBS    $libs
+EOF
+  fi
+
+# End of setting variables
+  cat <<EOF >> $MAALI_TOOL_MODULE
+}
+EOF
+
+  if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+    if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
+      maali_run "chmod 750 $MAALI_TOOL_MODULE_DIR"
+      maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE_DIR"
+      maali_run "chmod 640 $MAALI_TOOL_MODULE"
+      maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE"
+
+      if [ -f "$MAALI_TOOL_MODULE~" ]; then
+        maali_run "chmod 640 $MAALI_TOOL_MODULE~"
+        maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE~"
+      fi
+    fi
+  fi
+
+  if [ $DEBUG ]; then
+    if [ -f "$MAALI_TOOL_MODULE~" ]; then
+      echo "differences between $MAALI_TOOL_MODULE and $MAALI_TOOL_MODULE~"
+      diff $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
+    fi
+  fi
+
+}
+
+##############################################################################
+
 function maali_python_build {
   # should work with most python packages
 
