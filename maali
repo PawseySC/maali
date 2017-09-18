@@ -1022,15 +1022,6 @@ EOF
   fi
   echo "\"" >> $MAALI_TOOL_MODULE
 
-cat <<EOF >>$MAALI_TOOL_MODULE
-if { [ module-info mode load ] } {
-  if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
-    module unload \$tool
-  }
-}
-
-EOF
-
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 if { [module-info mode load] || [module-info mode switch] } {
@@ -1335,7 +1326,7 @@ EOF
 if {! [module-info mode whatis] } {
 EOF
 
-  printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "setenv" $MAALI_APP_HOME_NAME $MAALI_APP_HOME >> $MAALI_TOOL_MODULE
+  printf "%s(\"%s\",\"%s\")\n" "setenv" $MAALI_APP_HOME_NAME $MAALI_APP_HOME >> $MAALI_TOOL_MODULE
 
   # main loop for defining environment variables
   for MAALI_MODULE_VARIABLE in $MAALI_MODULE_VARIABLES_LIST
