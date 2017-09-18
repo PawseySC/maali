@@ -1075,7 +1075,7 @@ EOF
             # if not found in list, force conflict
             if [ $MAALI_COMPILER_FOUND_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict $MAALI_SYSTEM_COMPILER
+conflict($MAALI_SYSTEM_COMPILER)
 EOF
             fi
 
@@ -1103,7 +1103,7 @@ EOF
           # if not found in list, force conflict
           if [ $MAALI_CRAY_PRGENV_FOUND_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict $MAALI_SYSTEM_CRAY_PRGENV
+conflict($MAALI_SYSTEM_CRAY_PRGENV)
 EOF
           fi
         done
@@ -1164,7 +1164,7 @@ EOF
         # if not found in list, force conflict
         if [ $MAALI_CRAY_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict $MAALI_SYSTEM_CRAY_CPU_TARGET
+conflict($MAALI_SYSTEM_CRAY_CPU_TARGET)
 EOF
         fi
       done
@@ -1203,7 +1203,7 @@ EOF
               # if not found in list, force conflict
               if [ $MAALI_COMPILER_FOUND_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict $MAALI_SYSTEM_COMPILER
+conflict($MAALI_SYSTEM_COMPILER)
 EOF
               fi # if [ "$MAALI_SYSTEM_COMPILER" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
 
@@ -1235,7 +1235,7 @@ EOF
       # if not found in list, force conflict
       if [ $MAALI_SYSTEM_CUDA_VERSION_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict $MAALI_SYSTEM_CUDA_VERSION
+conflict($MAALI_SYSTEM_CUDA_VERSION)
 EOF
       fi
 
@@ -1246,44 +1246,40 @@ EOF
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 
-if { [ module-info mode load ] } {
-  if {! [is-loaded cuda] } {
-    # this allows us support multiple cuda versions, but have a sensible default
-    module load cuda/$MAALI_SYSTEM_DEFAULT_CUDA
-  }
-}
+if (mode() == "load") then
+  if (isloaded("cuda") != true) then
+    load("cuda","$MAALI_SYSTEM_DEFAULT_CUDA")
+  end
+end
 EOF
   fi
 
   if [ $MAALI_PYTHON_TOOL ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 
-if { [ module-info mode load ] } {
-  if {! [is-loaded python] } {
-    # this allows us support multiple python versions, but have a sensible default
-    module load python/$MAALI_SYSTEM_DEFAULT_PYTHON
-  }
-}
+if (mode() == "load") then
+  if (isloaded("python") != true) then
+    load("python","$MAALI_SYSTEM_DEFAULT_PYTHON")
+  end
+end
 EOF
   fi
 
   if [ $MAALI_R_TOOL ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 
-if { [ module-info mode load ] } {
-  if {! [is-loaded r] } {
-    # this allows us support multiple R versions, but have a sensible default
-    module load r/$MAALI_SYSTEM_DEFAULT_R
-  }
-}
-EOF
+if (mode() == "load") then
+  if (isloaded("r") != true) then
+    load("r","$MAALI_SYSTEM_DEFAULT_R")
+  end
+end
   fi
 
   if [ "$MAALI_MODULE_CONFLICT" != "" ]; then
       (IFS=","; for MAALI_PKG in $MAALI_MODULE_CONFLICT
       do
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict $MAALI_PKG
+conflict("$MAALI_PKG")
 EOF
       done)
   fi
@@ -1292,14 +1288,14 @@ EOF
       (IFS=","; for MAALI_PKG in $MAALI_MODULE_PREREQ
       do
           cat <<EOF >> $MAALI_TOOL_MODULE
-prereq $MAALI_PKG
+prereq("$MAALI_PKG")
 EOF
       done)
   fi
 
   for MAALI_TOOL_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
     cat <<EOF >> $MAALI_TOOL_MODULE
-module load $MAALI_TOOL_PREREQ_MODULE
+load("$MAALI_TOOL_PREREQ_MODULE")
 EOF
   done
 
