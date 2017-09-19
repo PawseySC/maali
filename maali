@@ -132,12 +132,12 @@ function maali_download {
   # Encourage people to set MAALI_WGET_EXTRA=--no-check-certificate in cygnet file rather than rely on this hack.
   if [[ $MAALI_URL =~ .python.org ]] ; then
     if [[ "$MAALI_WGET_EXTRA" != *"--no-check-certificate"* ]]; then
-      MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"MAALI_WGET_EXTRA"} --no-check-certificate"
+      MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"$MAALI_WGET_EXTRA"} --no-check-certificate"
     fi
   fi
 
   if [ ! $DEBUG ]; then
-    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"MAALI_WGET_EXTRA"} -q"
+    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"$MAALI_WGET_EXTRA"} -q"
   fi
 
   size=${#MAALI_URL_ARRAY[@]}
@@ -178,7 +178,7 @@ includedir=\${prefix}/include
 libdir=\${prefix}/lib
 
 Cflags: -I\${includedir} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_CFLAGS[$indx]}`
-Lmaali: -L\${libdir} -l${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_LIBS[$indx]}`
+LIBS: -L\${libdir} -l${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_LIBS[$indx]}`
 EOF
     fi
   done
@@ -198,12 +198,12 @@ function maali_git_download {
   fi
 
   if [ ! $DEBUG ]; then
-    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"MAALI_WGET_EXTRA"} -q"
+    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"$MAALI_WGET_EXTRA"} -q"
   fi
 
   # github.org requires --no-check-certificate
   if [[ "$MAALI_WGET_EXTRA" != *"--no-check-certificate"* ]]; then
-    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"MAALI_WGET_EXTRA"} --no-check-certificate"
+    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"$MAALI_WGET_EXTRA"} --no-check-certificate"
   fi
 
   $MAALI_WGET_CMD $MAALI_WGET_EXTRA -O "$MAALI_GIT_DOWNLOAD_FILEPATH" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_GIT_DOWNLOAD_FILE"
