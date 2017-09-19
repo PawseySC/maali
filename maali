@@ -2014,11 +2014,6 @@ if [ $MAALI_FORCE_DOWNLOAD_FROM_GITHUB -eq 0 ]; then
   MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME $HOME/.maali/$MAALI_CYGNET_DIR_NAME $MAALI_FILES $MAALI_DIR/$MAALI_CYGNET_DIR_NAME ."
   for MAALI_FILES_PATH in $MAALI_FILES_DIR; do
 
-    # TODO: is MAALI_SYSTEM redundant?
-    # if [ -z $MAALI_SYSTEM ]; then
-    #   maali_di "MAALI_SYSTEM is undefined, exiting ..."
-    # fi
-
     if [ $DEBUG ]; then
       if [ "$MAALI_SYSTEM" != "" ]; then
         echo "Searching for $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_SYSTEM.$MAALI_CYGNET_BUILD_FILE_EXT and $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
