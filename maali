@@ -1247,7 +1247,7 @@ EOF
     cat <<EOF >> $MAALI_TOOL_MODULE
 
 if (mode() == "load") then
-  if (isloaded("cuda") != true) then
+  if (isloaded("cuda") ~= true) then
     load("cuda","$MAALI_SYSTEM_DEFAULT_CUDA")
   end
 end
@@ -1258,7 +1258,7 @@ EOF
     cat <<EOF >> $MAALI_TOOL_MODULE
 
 if (mode() == "load") then
-  if (isloaded("python") != true) then
+  if (isloaded("python") ~= true) then
     load("python","$MAALI_SYSTEM_DEFAULT_PYTHON")
   end
 end
@@ -1269,7 +1269,7 @@ EOF
     cat <<EOF >> $MAALI_TOOL_MODULE
 
 if (mode() == "load") then
-  if (isloaded("r") != true) then
+  if (isloaded("r") ~= true) then
     load("r","$MAALI_SYSTEM_DEFAULT_R")
   end
 end
@@ -1313,7 +1313,7 @@ EOF
 
 # Start of setting variables
   cat <<EOF >> $MAALI_TOOL_MODULE
-if (mode() != "whatis") then
+if (mode() ~= "whatis") then
 EOF
 
   printf "%s(\"%s\",\"%s\")\n" "setenv" $MAALI_APP_HOME_NAME $MAALI_APP_HOME >> $MAALI_TOOL_MODULE
