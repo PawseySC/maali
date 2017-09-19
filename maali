@@ -945,9 +945,6 @@ function maali_module_lua {
     fi
   fi
 
-  # used to make the module look pretty
-  MAALI_MODULE_MAX_VARIABLE=${#MAALI_APP_HOME_NAME}
-
   cat <<EOF >$MAALI_TOOL_MODULE
 help("Sets up the paths you need to use $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION")
 local version = '$MAALI_TOOL_VERSION'
@@ -1342,7 +1339,7 @@ EOF
           MAALI_MODULE_VARIABLE_DIR="bin"
           ;;
         PYTHONPATH)
-          MAALI_MODULE_VARIABLE_DIR="\$env(MAALI_PYTHON_LIBDIR)/python\$env(MAALI_PYTHON_LIB_VERSION)/site-packages"
+          MAALI_MODULE_VARIABLE_DIR='" .. os.getenv("MAALI_PYTHON_LIBDIR") .. "/python" ..  os.getenv("MAALI_PYTHON_LIB_VERSION") .. "/site-packages'
           ;;
         PERLLIB)
           # TODO: get perl version from perl
@@ -1415,7 +1412,7 @@ EOF
             printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
           done
         elif [[ ${!MAALI_MODULE_VARIABLE} == "1" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
-          printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
+          printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR" >> $MAALI_TOOL_MODULE
         elif [[ ${!MAALI_MODULE_VARIABLE} == "toplevel" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
           printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
         else
