@@ -950,7 +950,7 @@ function maali_module_lua {
   MAALI_MODULE_MAX_VARIABLE=${#MAALI_APP_HOME_NAME}
 
   cat <<EOF >$MAALI_TOOL_MODULE
-help(Sets up the paths you need to use $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION)
+help("Sets up the paths you need to use $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION")
 local version = '$MAALI_TOOL_VERSION'
 EOF
 
@@ -1313,7 +1313,7 @@ EOF
 
 # Start of setting variables
   cat <<EOF >> $MAALI_TOOL_MODULE
-if {! [module-info mode whatis] } {
+if (mode() != "whatis") then
 EOF
 
   printf "%s(\"%s\",\"%s\")\n" "setenv" $MAALI_APP_HOME_NAME $MAALI_APP_HOME >> $MAALI_TOOL_MODULE
@@ -1436,7 +1436,7 @@ EOF
 
 # End of setting variables
   cat <<EOF >> $MAALI_TOOL_MODULE
-}
+end
 EOF
 
   if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
