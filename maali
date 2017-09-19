@@ -1682,6 +1682,9 @@ MAALI_MODULE_PE_PKGCONFIG_NAME=
 MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
 MAALI_MODULE_PE_PKGCONFIG_LIBS=
 
+# to support TCL and LUA modules
+MAALI_MODULE_DEFAULT_FILENAME='.version'
+
 while getopts "ht:v:pdc:mr:bgswafuxnl" OPTION
 do
      case $OPTION in
@@ -1743,6 +1746,7 @@ do
              ;;
          l)
              MAALI_LUA_MODULE=1
+             MAALI_MODULE_DEFAULT_FILENAME='.modulerc'
              ;;
          ?)
              usage
@@ -2644,12 +2648,12 @@ else
 
   if [[ $MAALI_UNINSTALL_REMOVE -eq 1 ]] || [[ $MAALI_UNINSTALL_HIDE -eq 1 ]]; then
 
-    if [ -f "$MAALI_TOOL_MODULE_DIR/.version" ]; then
+    if [ -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" ]; then
       # check if it is the default version
-      MAALI_TOOL_VERSION_CURRENT_DEFAULT=`grep \"$MAALI_TOOL_VERSION\" $MAALI_TOOL_MODULE_DIR/.version | wc -l`
+      MAALI_TOOL_VERSION_CURRENT_DEFAULT=`grep \"$MAALI_TOOL_VERSION\" $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME | wc -l`
 
       if [ $MAALI_TOOL_VERSION_CURRENT_DEFAULT -eq 1 ]; then
-        rm -f "$MAALI_TOOL_MODULE_DIR/.version"
+        rm -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME"
       fi
     fi
 
@@ -2677,40 +2681,47 @@ else
     fi
 
     # make this version the default if there is no other
-    if [ ! -f "$MAALI_TOOL_MODULE_DIR/.version" -o $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then
+    if [ ! -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" -o $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then
 
       if [ $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then
-        if [ -f "$MAALI_TOOL_MODULE_DIR/.version" ]; then
-          mv "$MAALI_TOOL_MODULE_DIR/.version" "$MAALI_TOOL_MODULE_DIR/.version~"
+        if [ -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" ]; then
+          mv "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~"
           if [ $DEBUG ]; then
-            echo "backing up $MAALI_TOOL_MODULE_DIR/.version"
+            echo "backing up $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME"
           fi
         fi
       fi
 
-      cat <<EOF >"$MAALI_TOOL_MODULE_DIR/.version"
+      if [ $MAALI_LUA_MODULE -eq 1 ]; then
+        cat <<EOF >"$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME"
+#%Module
+module-version $MAALI_TOOL_VERSION default
+EOF
+      else
+        cat <<EOF >"$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME"
 #%Module1.0#####################################################################
 ##
 set ModulesVersion "$MAALI_TOOL_VERSION"
 EOF
+      fi
 
       if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
         if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
-          maali_run "chmod 640 $MAALI_TOOL_MODULE_DIR/.version"
-          maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE_DIR/.version"
+          maali_run "chmod 640 $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME"
+          maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME"
 
-          if [ -f "$MAALI_TOOL_MODULE_DIR/.version~" ]; then
-            maali_run "chmod 640 $MAALI_TOOL_MODULE_DIR/.version~"
-            maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE_DIR/.version~"
+          if [ -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~" ]; then
+            maali_run "chmod 640 $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~"
+            maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~"
           fi
         fi
       fi
 
 
       if [ $DEBUG ]; then
-        if [ -f "$MAALI_TOOL_MODULE_DIR/.version~" ]; then
-          echo "differences between $MAALI_TOOL_MODULE_DIR/.version and $MAALI_TOOL_MODULE_DIR/.version~"
-          diff "$MAALI_TOOL_MODULE_DIR/.version" "$MAALI_TOOL_MODULE_DIR/.version~"
+        if [ -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~" ]; then
+          echo "differences between $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME and $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~"
+          diff "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~"
         fi
       fi
 
