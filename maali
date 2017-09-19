@@ -120,7 +120,6 @@ function maali_download {
 
   if [[ "$MAALI_URL" == "" ]]; then
     MAALI_DST_COUNT=${#MAALI_DST_ARRAY[@]}
-    echo $MAALI_DST_COUNT
     for (( i=0; i<$MAALI_DST_COUNT; i++ ))
     do
       MAALI_TMP_DST=${MAALI_DST_ARRAY[$i]}
