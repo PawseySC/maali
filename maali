@@ -923,22 +923,22 @@ function maali_module_lua {
     else
       if [ $MAALI_CRAY -eq 1 ]; then
         if [ $MAALI_CUDA_BUILD -eq 1 ]; then
-          MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(MAALI_LOADED_PRGENV)/\$env(CRAYOS_VERSION)/\$env(COMPILER)/\$env(COMPILER_VER)/\$env(CRAY_CPU_TARGET)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
+          MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("MAALI_LOADED_PRGENV").."/"..os.getenv("CRAYOS_VERSION").."/"..os.getenv("COMPILER").."/"..os.getenv("COMPILER_VER").."/"..os.getenv("CRAY_CPU_TARGET").."/cuda/"..os.getenv("CUDA_VER").."'."/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
         else
-          MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(MAALI_LOADED_PRGENV)/\$env(CRAYOS_VERSION)/\$env(COMPILER)/\$env(COMPILER_VER)/\$env(CRAY_CPU_TARGET)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+          MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("MAALI_LOADED_PRGENV").."/"..os.getenv("CRAYOS_VERSION").."/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER)/"..os.getenv("CRAY_CPU_TARGET").."'."/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
         fi
       else
         if [ $MAALI_CUDA_BUILD -eq 1 ]; then
           if [ "$MAALI_CPU_TARGET" != "na" ]; then
-            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
+            MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("CPU_TARGET)/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER)/cuda/"..os.getenv("CUDA_VER").."'."/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
           else
-            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
+            MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("CPU_TARGET)/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER)/cuda/"..os.getenv("CUDA_VER").."'."/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
           fi
         else
           if [ "$MAALI_CPU_TARGET" != "na" ]; then
-            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+            MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("CPU_TARGET)/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER").."'."/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
           else
-            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+            MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("CPU_TARGET)/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER").."'."/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
           fi
         fi
       fi
@@ -1312,7 +1312,7 @@ EOF
 if (mode() ~= "whatis") then
 EOF
 
-  printf "%s(\"%s\",\"%s\")\n" "setenv" $MAALI_APP_HOME_NAME $MAALI_APP_HOME >> $MAALI_TOOL_MODULE
+  printf "%s(\"%s\",\"%s\")\n" "setenv" $MAALI_APP_HOME_NAME "$MAALI_APP_HOME" >> $MAALI_TOOL_MODULE
 
   # main loop for defining environment variables
   for MAALI_MODULE_VARIABLE in $MAALI_MODULE_VARIABLES_LIST
@@ -1339,7 +1339,7 @@ EOF
           MAALI_MODULE_VARIABLE_DIR="bin"
           ;;
         PYTHONPATH)
-          MAALI_MODULE_VARIABLE_DIR='" .. os.getenv("MAALI_PYTHON_LIBDIR") .. "/python" ..  os.getenv("MAALI_PYTHON_LIB_VERSION") .. "/site-packages'
+          MAALI_MODULE_VARIABLE_DIR='"..os.getenv("MAALI_PYTHON_LIBDIR").."/python"..os.getenv("MAALI_PYTHON_LIB_VERSION").."/site-packages'
           ;;
         PERLLIB)
           # TODO: get perl version from perl
