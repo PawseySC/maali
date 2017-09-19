@@ -1324,7 +1324,7 @@ EOF
     MAALI_MODULE_VARIABLE_NAME=`echo $MAALI_MODULE_VARIABLE | sed -e 's/MAALI_MODULE_SET_//g'`
     MAALI_MODULE_VARIABLE_DIR=""
     MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
-    MAALI_MODULE_VARIABLE_LUA="prepend-path"
+    MAALI_MODULE_VARIABLE_LUA="prepend_path"
 
     MAALI_MODULE_VARIABLE_PREPREND_OFF="MAALI_MODULE_PREPEND_${MAALI_MODULE_VARIABLE_NAME}"
     MAALI_MODULE_VARIABLE_PREPREND_OFF_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_PREPREND_OFF}"`
@@ -1380,20 +1380,20 @@ EOF
         LUA_CPATH)
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
           MAALI_MODULE_VARIABLE_DIR="lib/lua/${MAALI_LUA_LIB_VERSION}/?.so"
-          MAALI_MODULE_VARIABLE_LUA='prepend-path --delim=\;'
+          MAALI_MODULE_VARIABLE_LUA='prepend_path --delim=\;'
           ;;
         LUA_CPATH_APPEND)
           MAALI_MODULE_VARIABLE_NAME='LUA_CPATH'
-          MAALI_MODULE_VARIABLE_TCL="append-path"
+          MAALI_MODULE_VARIABLE_TCL="append_path"
           ;;
         LUA_PATH)
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
           MAALI_MODULE_VARIABLE_DIR="share/lua/${MAALI_LUA_LIB_VERSION}/init.lua;;"
-          MAALI_MODULE_VARIABLE_LUA='prepend-path --delim=\;'
+          MAALI_MODULE_VARIABLE_LUA='prepend_path --delim=\;'
           ;;
         LUA_PATH_APPEND)
           MAALI_MODULE_VARIABLE_NAME='LUA_PATH'
-          MAALI_MODULE_VARIABLE_LUA="append-path"
+          MAALI_MODULE_VARIABLE_LUA="append_path"
           ;;
         *)
           # the default is to setenv
@@ -1430,7 +1430,7 @@ EOF
   if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
     libs=`echo ${MAALI_MODULE_PE_PKGCONFIG_NAME[*]} | sed -e 's/ \+$//' -e 's/ \+/:/g'`
     cat <<EOF >> $MAALI_TOOL_MODULE
-prepend-path PE_PKGCONFIG_LIBS    $libs
+prepend_path PE_PKGCONFIG_LIBS    $libs
 EOF
   fi
 
