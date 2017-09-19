@@ -2645,6 +2645,10 @@ else
 
   # make the module
   MAALI_TOOL_MODULE="$MAALI_TOOL_MODULE_DIR/$MAALI_TOOL_VERSION"
+  if [ $MAALI_LUA_MODULE -eq 1 ]; then
+    MAALI_TOOL_MODULE="${MAALI_TOOL_MODULE}.lua"
+  fi
+
 
   if [[ $MAALI_UNINSTALL_REMOVE -eq 1 ]] || [[ $MAALI_UNINSTALL_HIDE -eq 1 ]]; then
 
