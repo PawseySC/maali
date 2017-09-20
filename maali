@@ -1016,37 +1016,39 @@ EOF
 
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
-if { [module-info mode load] || [module-info mode switch] } {
-  if { [is-loaded PrgEnv-cray] } {
-    setenv MAALI_LOADED_PRGENV PrgEnv-cray
-    setenv COMPILER            cce
-    setenv COMPILER_VER        \$env(CRAY_CC_VERSION)
-  } else {
-    unsetenv MAALI_LOADED_PRGENV PrgEnv-cray
-    unsetenv COMPILER            cce
-    unsetenv COMPILER_VER        \$env(CRAY_CC_VERSION)
-  }
-
-  if { [is-loaded PrgEnv-gnu] } {
-    setenv MAALI_LOADED_PRGENV PrgEnv-gnu
-    setenv COMPILER            gcc
-    setenv COMPILER_VER        \$env(GCC_VERSION)
-  } else {
-    unsetenv MAALI_LOADED_PRGENV PrgEnv-gnu
-    unsetenv COMPILER            gcc
-    unsetenv COMPILER_VER        \$env(GCC_VERSION)
-  }
-
-  if { [is-loaded PrgEnv-intel] } {
-    setenv MAALI_LOADED_PRGENV PrgEnv-intel
-    setenv COMPILER            intel
-    setenv COMPILER_VER        \$env(INTEL_VERSION)
-  } else {
-    unsetenv MAALI_LOADED_PRGENV PrgEnv-intel
-    unsetenv COMPILER            intel
-    unsetenv COMPILER_VER        \$env(INTEL_VERSION)
-  }
-}
+if ((mode() == "load") or (mode() == "switch") or (mode() == "remove")) then
+  if (isloaded("PrgEnv-cray") ~= true) then
+    setenv("MAALI_LOADED_PRGENV","PrgEnv-cray")
+    setenv("COMPILER","cce")
+    setenv("COMPILER_VER",os.getenv("CRAY_CC_VERSION"))
+  end
+  if (isloaded("PrgEnv-gnu") ~= true) then
+    setenv("MAALI_LOADED_PRGENV","PrgEnv-gnu")
+    setenv("COMPILER","gcc")
+    setenv("COMPILER_VER",os.getenv("GCC_VERSION"))
+  end
+  if (isloaded("PrgEnv-intel") ~= true) then
+    setenv("MAALI_LOADED_PRGENV","PrgEnv-intel")
+    setenv("COMPILER","intel")
+    setenv("COMPILER_VER",os.getenv("INTEL_VERSION"))
+  end
+  if (isloaded("PrgEnv-pgi") ~= true) then
+    setenv("MAALI_LOADED_PRGENV","PrgEnv-pgi")
+    setenv("COMPILER","pgi")
+    setenv("COMPILER_VER",os.getenv("PGI_VERSION"))
+  end
+  if (os.getenv("MAALI_LOADED_PRGENV") ~= "") then
+    if ((mode() == "load") or (mode() == "switch")) then
+      setenv("MAALI_LOADED_PRGENV","\$MAALI_LOADED_PRGENV")
+      setenv("COMPILER","\$COMPILER")
+      setenv("COMPILER_VER","\$COMPILER_VER")
+    elseif (mode() == "remove") then
+      unsetenv("MAALI_LOADED_PRGENV","\$MAALI_LOADED_PRGENV")
+      unsetenv("COMPILER","\$COMPILER")
+      unsetenv("COMPILER_VER","\$COMPILER_VER")
+    end
+  end
+end
 
 EOF
   fi
