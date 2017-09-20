@@ -1536,9 +1536,9 @@ MAALI_TOOL_COMPILERS=${MAALI_TOOL_COMPILERS:-"$MAALI_DEFAULT_COMPILERS"}
 if [ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" -o "$MAALI_TOOL_COMPILERS" == "binary" ]; then
   MAALI_TOOL_CPU_TARGET="na"
 fi
-#if [ "$MAALI_TOOL_CPU_TARGET" == "" ]; then
-#  maali_die "MAALI_TOOL_CPU_TARGET is not set, and this is not a binary or system/gcc install"
-#fi
+if [ "$MAALI_TOOL_CPU_TARGET" == "" ]; then
+  maali_die "MAALI_TOOL_CPU_TARGET is not set, and this is not a binary or system/gcc install"
+fi
 
 # patch files - I'm note entirely sure of the logic
 for MAALI_PATCH_NUMBER in $MAALI_TOOL_PATCHES; do
