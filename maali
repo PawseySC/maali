@@ -337,13 +337,13 @@ function maali_module {
           if [ "$MAALI_CPU_TARGET" != "na" ]; then
             MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
           else
-            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
+            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/cuda/\$env(CUDA_VER)/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
           fi
         else
           if [ "$MAALI_CPU_TARGET" != "na" ]; then
             MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
           else
-            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(CPU_TARGET)/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+            MAALI_APP_HOME="$MAALI_APPS_DIR/\$env(COMPILER)/\$env(COMPILER_VER)/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
           fi
         fi
       fi
@@ -932,13 +932,13 @@ function maali_module_lua {
           if [ "$MAALI_CPU_TARGET" != "na" ]; then
             MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("CPU_TARGET)/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER)/cuda/"..os.getenv("CUDA_VER").."'."/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
           else
-            MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("CPU_TARGET)/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER)/cuda/"..os.getenv("CUDA_VER").."'."/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
+            MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER)/cuda/"..os.getenv("CUDA_VER").."'."/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
           fi
         else
           if [ "$MAALI_CPU_TARGET" != "na" ]; then
             MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("CPU_TARGET)/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER").."'."/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
           else
-            MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("CPU_TARGET)/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER").."'."/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+            MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER").."'."/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
           fi
         fi
       fi
