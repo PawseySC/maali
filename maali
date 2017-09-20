@@ -1687,7 +1687,7 @@ do
      case $OPTION in
          h)
              usage
-             exit 1
+             exit 0
              ;;
          t)
              MAALI_TOOL_NAME=$OPTARG
