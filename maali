@@ -460,6 +460,11 @@ if { [ is-loaded PrgEnv-intel ] } {
   set COMPILER            intel
   set COMPILER_VER        \$env(INTEL_VERSION)
 }
+if { [ is-loaded PrgEnv-pgi ] } {
+  set MAALI_LOADED_PRGENV PrgEnv-pgi
+  set COMPILER            pgi
+  set COMPILER_VER        \$env(PGI_VERSION)
+}
 if { [ info exists MAALI_LOADED_PRGENV ] } {
   if { [module-info mode load] || [module-info mode switch] } {
     setenv MAALI_LOADED_PRGENV \$MAALI_LOADED_PRGENV
