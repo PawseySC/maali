@@ -900,39 +900,26 @@ function maali_module_lua {
   MAALI_SYSTEM_DEFAULT_CUDA=`module -dt avail cuda | tail -1 | cut -d '/' -f 2`
 
   MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
+  MAALI_APP_HOME="$MAALI_APPS_DIR"
+  [ "$MAALI_TOOL_CRAY_PRGENV" != "na" ] && MAALI_APP_HOME+='/"..os.getenv("MAALI_LOADED_PRGENV").."/"..os.getenv("CRAYOS_VERSION")..'
+  [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='/"..os.getenv("CPU_TARGET")..'
   if [ $MAALI_PYTHON_TOOL ]; then
-    MAALI_APP_HOME="$MAALI_ROOT/python/"'"..os.getenv("PYTHON_VERSION").."'"/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+    MAALI_APP_HOME+='/python/"..os.getenv("PYTHON_VERSION").."'
   elif [ $MAALI_R_TOOL ]; then
-    MAALI_APP_HOME="$MAALI_ROOT/r/"'"..os.getenv("R_VERSION").."'"/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
+    MAALI_APP_HOME+='r/"..os.getenv("R_VERSION")..'
   else
-    if [ $MAALI_SYSTEM_CYGNET_FILE -eq 1 ]; then
-      # system-intel sets this, others may as well
-      MAALI_APP_HOME="$MAALI_INSTALL_DIR"
-    elif [ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" -o "$MAALI_TOOL_COMPILERS" == "binary" ]; then
-      MAALI_APP_HOME="$MAALI_APPS_DIR/$MAALI_TOOL_COMPILERS/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-    else
-      if [ $MAALI_CRAY -eq 1 ]; then
-        if [ $MAALI_CUDA_BUILD -eq 1 ]; then
-          MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("MAALI_LOADED_PRGENV").."/"..os.getenv("CRAYOS_VERSION").."/"..os.getenv("COMPILER").."/"..os.getenv("COMPILER_VER").."/"..os.getenv("CRAY_CPU_TARGET").."/cuda/"..os.getenv("CUDA_VER").."'."/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
-        else
-          MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("MAALI_LOADED_PRGENV").."/"..os.getenv("CRAYOS_VERSION").."/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER)/"..os.getenv("CRAY_CPU_TARGET").."'."/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-        fi
-      else
-        if [ $MAALI_CUDA_BUILD -eq 1 ]; then
-          if [ "$MAALI_CPU_TARGET" != "na" ]; then
-            MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("CPU_TARGET)/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER)/cuda/"..os.getenv("CUDA_VER").."'."/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
-          else
-            MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER)/cuda/"..os.getenv("CUDA_VER").."'."/$MAALI_TOOL_NAME-gpu/$MAALI_TOOL_VERSION"
-          fi
-        else
-          if [ "$MAALI_CPU_TARGET" != "na" ]; then
-            MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("CPU_TARGET)/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER").."'."/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-          else
-            MAALI_APP_HOME=$MAALI_APPS_DIR.'/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER").."'."/$MAALI_TOOL_NAME/$MAALI_TOOL_VERSION"
-          fi
-        fi
-      fi
-    fi
+    MAALI_APP_HOME+='/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER")..'
+  fi
+  [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='/"..os.getenv("CPU_TARGET")..'
+  [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+='/cuda/"..os.getenv("CUDA_VER")..'
+  MAALI_APP_HOME+="/$MAALI_TOOL_NAME"
+  [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="-gpu"
+  MAALI_APP_HOME+="/$MAALI_TOOL_VERSION"
+
+  # Clobber MAALI_APP_HOME if MAALI_INSTALL_DIR set in cygnet file.
+  if [ $MAALI_SYSTEM_CYGNET_FILE -eq 1 ]; then
+    # system-intel sets this, others may as well
+    MAALI_APP_HOME="$MAALI_INSTALL_DIR"
   fi
 
   cat <<EOF >$MAALI_TOOL_MODULE
