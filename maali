@@ -1228,7 +1228,7 @@ EOF
 
 if (mode() == "load") then
   if (isloaded("cuda") ~= true) then
-    load("cuda","$MAALI_SYSTEM_DEFAULT_CUDA")
+    load("cuda/$MAALI_SYSTEM_DEFAULT_CUDA")
   end
 end
 EOF
@@ -1239,7 +1239,7 @@ EOF
 
 if (mode() == "load") then
   if (isloaded("python") ~= true) then
-    load("python","$MAALI_SYSTEM_DEFAULT_PYTHON")
+    load("python/$MAALI_SYSTEM_DEFAULT_PYTHON")
   end
 end
 EOF
@@ -1250,7 +1250,7 @@ EOF
 
 if (mode() == "load") then
   if (isloaded("r") ~= true) then
-    load("r","$MAALI_SYSTEM_DEFAULT_R")
+    load("r/$MAALI_SYSTEM_DEFAULT_R")
   end
 end
 EOF
