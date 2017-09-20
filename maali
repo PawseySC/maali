@@ -443,37 +443,40 @@ EOF
 
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
-if { [module-info mode load] || [module-info mode switch] } {
-  if { [is-loaded PrgEnv-cray] } {
-    setenv MAALI_LOADED_PRGENV PrgEnv-cray
-    setenv COMPILER            cce
-    setenv COMPILER_VER        \$env(CRAY_CC_VERSION)
-  } else {
-    unsetenv MAALI_LOADED_PRGENV PrgEnv-cray
-    unsetenv COMPILER            cce
-    unsetenv COMPILER_VER        \$env(CRAY_CC_VERSION)
-  }
-
-  if { [is-loaded PrgEnv-gnu] } {
-    setenv MAALI_LOADED_PRGENV PrgEnv-gnu
-    setenv COMPILER            gcc
-    setenv COMPILER_VER        \$env(GCC_VERSION)
-  } else {
-    unsetenv MAALI_LOADED_PRGENV PrgEnv-gnu
-    unsetenv COMPILER            gcc
-    unsetenv COMPILER_VER        \$env(GCC_VERSION)
-  }
-
-  if { [is-loaded PrgEnv-intel] } {
-    setenv MAALI_LOADED_PRGENV PrgEnv-intel
-    setenv COMPILER            intel
-    setenv COMPILER_VER        \$env(INTEL_VERSION)
-  } else {
-    unsetenv MAALI_LOADED_PRGENV PrgEnv-intel
-    unsetenv COMPILER            intel
-    unsetenv COMPILER_VER        \$env(INTEL_VERSION)
+if { [module-info mode load] || [module-info mode switch] || [module-info mode remove] } {
+if { [ is-loaded PrgEnv-cray ] } {
+  set MAALI_LOADED_PRGENV PrgEnv-cray
+  set COMPILER            cce
+  set COMPILER_VER        \$env(CRAY_CC_VERSION)
+}
+if { [ is-loaded PrgEnv-gnu ] } {
+  set MAALI_LOADED_PRGENV PrgEnv-gnu
+  set COMPILER            gcc
+  set COMPILER_VER        \$env(GCC_VERSION)
+}
+if { [ is-loaded PrgEnv-intel ] } {
+  set MAALI_LOADED_PRGENV PrgEnv-intel
+  set COMPILER            intel
+  set COMPILER_VER        \$env(INTEL_VERSION)
+}
+if { [ is-loaded PrgEnv-pgi ] } {
+  set MAALI_LOADED_PRGENV PrgEnv-pgi
+  set COMPILER            pgi
+  set COMPILER_VER        \$env(PGI_VERSION)
+}
+if { [ info exists MAALI_LOADED_PRGENV ] } {
+  if { [module-info mode load] || [module-info mode switch] } {
+    setenv MAALI_LOADED_PRGENV \$MAALI_LOADED_PRGENV
+    setenv COMPILER \$COMPILER
+    setenv COMPILER_VER \$COMPILER_VER
+  } elseif { [module-info mode remove] } {
+    unsetenv MAALI_LOADED_PRGENV \$MAALI_LOADED_PRGENV
+    unsetenv COMPILER \$COMPILER
+    unsetenv COMPILER_VER \$COMPILER_VER
   }
 }
+}
+
 
 EOF
   fi
