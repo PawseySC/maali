@@ -327,7 +327,6 @@ function maali_module {
   else
     MAALI_APP_HOME+="/\$env(COMPILER)/\$env(COMPILER_VER)"
   fi
-  [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ] && MAALI_APP_HOME+="/\$env(CRAY_CPU_TARGET)"
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="/cuda/\$env(CUDA_VER)"
   MAALI_APP_HOME+="/$MAALI_TOOL_NAME"
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="-gpu"
@@ -529,7 +528,7 @@ EOF
 
     elif [[ "$MAALI_PREREQ_MODULE_NAME" =~ "craype-" ]]; then
 
-      MAALI_TOOL_CRAY_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
+      MAALI_TOOL_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
 
     fi # if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
    done
@@ -562,27 +561,33 @@ EOF
     done
   fi
 
-  # conflict for craype
-  if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
-    MAALI_SUPPORTED_CRAY_CPU_TARGETS="sandybridge ivybridge haswell"
+  if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
+    if [[ $MAALI_CRAY -eq 1 ]]; then
+      MAALI_SUPPORTED_CPU_TARGETS="sandybridge ivybridge haswell"
+    else
+      MAALI_SUPPORTED_CPU_TARGETS="sandybridge ivybridge broadwell knl"
+    fi
 
-    for MAALI_CRAY_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CRAY_CPU_TARGETS; do
-      MAALI_SYSTEM_CRAY_CPU_TARGET_LIST=`module avail craype-$MAALI_CRAY_CPU_TARGET_TYPE -t 2>&1 | grep craype-$MAALI_CRAY_CPU_TARGET_TYPE | sed -e 's/(default)//g'`
-      for MAALI_SYSTEM_CRAY_CPU_TARGET in $MAALI_SYSTEM_CRAY_CPU_TARGET_LIST; do
+    for MAALI_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CPU_TARGETS; do
+      if [[ $MAALI_CRAY -eq 1 ]]; then
+        MAALI_SYSTEM_CPU_TARGET_LIST=`module avail craype-$MAALI_CPU_TARGET_TYPE -t 2>&1 | grep craype-$MAALI_CPU_TARGET_TYPE | sed -e 's/(default)//g'`
+      fi
+
+      for MAALI_SYSTEM_CPU_TARGET in $MAALI_SYSTEM_CPU_TARGET_LIST; do
 
         # need to see if the system CPU_TARGET is anywhere in the list
-        MAALI_CRAY_CPU_TARGET_FOUND_MATCH=0
+        MAALI_CPU_TARGET_FOUND_MATCH=0
 
-        for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
-          if [ "$MAALI_SYSTEM_CRAY_CPU_TARGET" == "craype-$MAALI_CRAY_CPU_TARGET" ]; then
-            MAALI_CRAY_CPU_TARGET_FOUND_MATCH=1
+        for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
+          if [ "$MAALI_SYSTEM_CPU_TARGET" == "craype-$MAALI_CPU_TARGET" ]; then
+            MAALI_CPU_TARGET_FOUND_MATCH=1
           fi
         done
 
         # if not found in list, force conflict
-        if [ $MAALI_CRAY_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
+        if [ $MAALI_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict $MAALI_SYSTEM_CRAY_CPU_TARGET
+conflict $MAALI_SYSTEM_CPU_TARGET
 EOF
         fi
       done
@@ -1119,26 +1124,30 @@ EOF
   fi
 
   # conflict for craype
-  if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
-    MAALI_SUPPORTED_CRAY_CPU_TARGETS="sandybridge ivybridge haswell"
+  if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
+    if [[ $MAALI_CRAY -eq 1 ]]; then
+      MAALI_SUPPORTED_CPU_TARGETS="sandybridge ivybridge haswell"
+    else
+      MAALI_SUPPORTED_CPU_TARGETS="sandybridge ivybridge broadwell knl"
+    fi
 
-    for MAALI_CRAY_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CRAY_CPU_TARGETS; do
-      MAALI_SYSTEM_CRAY_CPU_TARGET_LIST=`module -t avail craype-$MAALI_CRAY_CPU_TARGET_TYPE 2>&1 | grep craype-$MAALI_CRAY_CPU_TARGET_TYPE`
-      for MAALI_SYSTEM_CRAY_CPU_TARGET in $MAALI_SYSTEM_CRAY_CPU_TARGET_LIST; do
+    for MAALI_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CPU_TARGETS; do
+      MAALI_SYSTEM_CPU_TARGET_LIST=`module -t avail craype-$MAALI_CPU_TARGET_TYPE 2>&1 | grep craype-$MAALI_CPU_TARGET_TYPE`
+      for MAALI_SYSTEM_CPU_TARGET in $MAALI_SYSTEM_CPU_TARGET_LIST; do
 
         # need to see if the system CPU_TARGET is anywhere in the list
-        MAALI_CRAY_CPU_TARGET_FOUND_MATCH=0
+        MAALI_CPU_TARGET_FOUND_MATCH=0
 
-        for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
-          if [ "$MAALI_SYSTEM_CRAY_CPU_TARGET" == "craype-$MAALI_CRAY_CPU_TARGET" ]; then
-            MAALI_CRAY_CPU_TARGET_FOUND_MATCH=1
+        for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
+          if [ "$MAALI_SYSTEM_CPU_TARGET" == "craype-$MAALI_CPU_TARGET" ]; then
+            MAALI_CPU_TARGET_FOUND_MATCH=1
           fi
         done
 
         # if not found in list, force conflict
-        if [ $MAALI_CRAY_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
+        if [ $MAALI_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict($MAALI_SYSTEM_CRAY_CPU_TARGET)
+conflict($MAALI_SYSTEM_CPU_TARGET)
 EOF
         fi
       done
@@ -2249,7 +2258,6 @@ if [ "$MAALI_TOOL_CRAY_PRGENV" == "" ]; then
     exit
   else 
     MAALI_TOOL_CRAY_PRGENV="na"
-    MAALI_TOOL_CRAY_CPU_TARGET="na"
   fi
 fi
 
