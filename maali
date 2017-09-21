@@ -404,16 +404,16 @@ EOF
     fi
   done
 
-  if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
-    for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
-      echo "Compiled for craype-$MAALI_CRAY_CPU_TARGET" >> $MAALI_TOOL_MODULE
-    done
-  fi
   if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
     for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
-      echo "Compiled for $MAALI_CPU_TARGET" >> $MAALI_TOOL_MODULE
+      if [[ $MAALI_CRAY -eq 1 ]]; then
+        echo "Compiled for craype-$MAALI_CPU_TARGET" >> $MAALI_TOOL_MODULE
+      else
+        echo "Compiled for $MAALI_CPU_TARGET" >> $MAALI_TOOL_MODULE
+      fi
     done
   fi
+
   if [ "$MAALI_TOOL_CUDA_COMPILERS" != "na" ]; then
     for MAALI_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
       echo "Compiled for CUDA with $MAALI_CUDA_COMPILER" >> $MAALI_TOOL_MODULE
@@ -976,11 +976,6 @@ EOF
     fi
   done
 
-  if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
-    for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
-      echo "whatis( [[Compiled for $MAALI_CRAY_CPU_TARGET]] )" >> $MAALI_TOOL_MODULE
-    done
-  fi
   if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
     for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
       echo "whatis( [[Compiled for $MAALI_CPU_TARGET]] )" >> $MAALI_TOOL_MODULE
@@ -2453,7 +2448,6 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             [ "$MAALI_CRAY_PRGENV" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_CRAY_PRGENV"
             [ "$MAALI_CPU_TARGET" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_CPU_TARGET"
             [ "$MAALI_COMPILER" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_COMPILER"
-            [ "$MAALI_CRAY_CPU_TARGET" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_CRAY_CPU_TARGET"
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_CUDA_COMPILER"
             MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_NAME"
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="-gpu"
