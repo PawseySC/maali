@@ -52,6 +52,7 @@ MAALI_WGET_CMD="wget"
 
 MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray PrgEnv-pgi"
 MAALI_SUPPORTED_CPU_TARGETS="sandybridge ivybridge haswell broadwell knl"
+MAALI_SUPPORTED_COMPILERS="gcc intel cce pgi" # This gets overwritten for python
 
 ##############################################################################
 
@@ -596,12 +597,6 @@ EOF
 
   if [ "$MAALI_TOOL_COMPILERS" != "binary" ]; then
     # conflict for compilers
-    if [ $MAALI_PYTHON_TOOL ]; then
-      MAALI_SUPPORTED_COMPILERS="python"
-    else
-      MAALI_SUPPORTED_COMPILERS="gcc intel cce pgi"
-    fi # if [ $MAALI_PYTHON_TOOL ]; then
-
     if [ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
       # if we have compiled with the system compiler, do we need conflict resolution?
       for MAALI_COMPILER_TYPE in $MAALI_SUPPORTED_COMPILERS; do
@@ -1156,12 +1151,6 @@ EOF
 
   if [ "$MAALI_TOOL_COMPILERS" != "binary" ]; then
     # conflict for compilers
-    if [ $MAALI_PYTHON_TOOL ]; then
-      MAALI_SUPPORTED_COMPILERS="python"
-    else
-      MAALI_SUPPORTED_COMPILERS="gcc intel cce pgi"
-    fi # if [ $MAALI_PYTHON_TOOL ]; then
-
     if [ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
       # if we have compiled with the system compiler, do we need conflict resolution?
       for MAALI_COMPILER_TYPE in $MAALI_SUPPORTED_COMPILERS; do
@@ -2122,6 +2111,11 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
     break
   fi
 done
+
+#Overwrite MAALI_SUPPORTED_COMPILERS for python
+if [ $MAALI_PYTHON_TOOL ]; then
+  MAALI_SUPPORTED_COMPILERS="python"
+fi # if [ $MAALI_PYTHON_TOOL ]; then
 
 if [[ $MAALI_CRAY -eq 1 ]] ; then
   # Support legacy MAALI_TOOL_CRAY_CPU_TARGET
