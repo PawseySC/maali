@@ -560,7 +560,7 @@ EOF
 
   if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
 
-    for MAALI_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CPU_TARGETS; do
+    for MAALI_CPU_TARGET_TYPE in $MAALI_DEFAULT_TOOL_CPU_TARGET; do
       if [[ $MAALI_CRAY -eq 1 ]]; then
         MAALI_SYSTEM_CPU_TARGET_LIST=`module avail craype-$MAALI_CPU_TARGET_TYPE -t 2>&1 | grep craype-$MAALI_CPU_TARGET_TYPE | sed -e 's/(default)//g'`
       fi
@@ -1115,7 +1115,7 @@ EOF
   # conflict for craype
   if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
 
-    for MAALI_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CPU_TARGETS; do
+    for MAALI_CPU_TARGET_TYPE in $MAALI_DEFAULT_TOOL_CPU_TARGET; do
       MAALI_SYSTEM_CPU_TARGET_LIST=`module -t avail craype-$MAALI_CPU_TARGET_TYPE 2>&1 | grep craype-$MAALI_CPU_TARGET_TYPE`
       for MAALI_SYSTEM_CPU_TARGET in $MAALI_SYSTEM_CPU_TARGET_LIST; do
 
