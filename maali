@@ -2368,43 +2368,29 @@ if [ $MAALI_REMODULE -eq 0 ]; then
           module list
         fi
       fi # if [ "$MAALI_COMPILER" != "binary" ]; then
-  
+
       # need to build for every cpu target that we support
-      for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
-  
-        if [ "$MAALI_CRAY_CPU_TARGET" != "na" ]; then
-          # load the Cray Parallel Environment for cpu target
-  
+      for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
+
+        if [ "$MAALI_CPU_TARGET" != "na" ]; then
+
           if [ $DEBUG ]; then
-            echo " .. before module load \$MAALI_CRAY_CPU_TARGET"
+            echo " .. before module load \$MAALI_CPU_TARGET"
             module list
           fi # if [ $DEBUG ]; then
-          maali_load_module "craype-$MAALI_CRAY_CPU_TARGET"
+
+          if [[ $MAALI_CRAY -eq 1 ]]; then
+            # load the Cray Parallel Environment for cpu target
+            maali_load_module "craype-$MAALI_CPU_TARGET"
+          else
+            maali_load_module "$MAALI_CPU_TARGET"
+          fi
+
           if [ $DEBUG ]; then
-            echo " .. after module load \$MAALI_CRAY_CPU_TARGET"
+            echo " .. after module load \$MAALI_CPU_TARGET"
             module list
           fi # 
-  
-        fi # if [ "$MAALI_CRAY_CPU_TARGET" != "na" ]; then
-
-        # need to build for every cpu target that we support
-        for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
-
-          if [ "$MAALI_CPU_TARGET" != "na" ]; then
-            # should we load some sort of module?
-
-            if [ $DEBUG ]; then
-              echo " .. before module load \$MAALI_CPU_TARGET"
-              module list
-            fi # if [ $DEBUG ]; then
-
-            maali_load_module "$MAALI_CPU_TARGET"
-
-            if [ $DEBUG ]; then
-              echo " .. after module load \$MAALI_CPU_TARGET"
-              module list
-            fi # 
-          fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
+        fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
 
           for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
 
@@ -2543,19 +2529,15 @@ if [ $MAALI_REMODULE -eq 0 ]; then
 
           done # for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
 
-          if [ "$MAALI_CPU_TARGET" != "na" ]; then
+        if [ "$MAALI_CPU_TARGET" != "na" ]; then
+          if [[ $MAALI_CRAY -eq 1 ]]; then
+            module unload "craype-$MAALI_CPU_TARGET"
+          else
             module unload "$MAALI_CPU_TARGET"
-          fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
+          fi
+        fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
 
-        done # for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
-  
-        if [ "$MAALI_CRAY_CPU_TARGET" != "na" ]; then
-          # unload the Cray Parallel Environment for cpu target
-
-          module unload "craype-$MAALI_CRAY_CPU_TARGET"
-        fi
-  
-      done # cpu target
+      done # for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
   
       if [ "$MAALI_COMPILER" != "binary" ]; then
         # don't need to unload the "binary" compiler
