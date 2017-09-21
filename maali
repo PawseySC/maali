@@ -588,7 +588,6 @@ EOF
           cat <<EOF >> $MAALI_TOOL_MODULE
 conflict $MAALI_SYSTEM_CPU_TARGET
 EOF
-echo $MAALI_SYSTEM_CPU_TARGET
         fi
       done
     done
