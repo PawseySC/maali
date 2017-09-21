@@ -20,6 +20,7 @@ if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
   MAALI_OS="cle$MAALI_OS_VERSION"
 
   MAALI_CRAY=1
+  MAALI_PRE_CPU_TARGET="craype-"
 elif [ -f "/etc/SuSE-release" ]; then
   # We are running SLES
   MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
@@ -48,6 +49,9 @@ MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
 MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
 MAALI_WGET_CMD="wget"
+
+MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray PrgEnv-pgi"
+MAALI_SUPPORTED_CPU_TARGETS="sandybridge ivybridge haswell broadwell knl"
 
 ##############################################################################
 
@@ -317,7 +321,9 @@ function maali_module {
   MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   MAALI_APP_HOME="$MAALI_APPS_DIR"
   [ "$MAALI_TOOL_CRAY_PRGENV" != "na" ] && MAALI_APP_HOME+="/\$env(MAALI_LOADED_PRGENV)/\$env(CRAYOS_VERSION)"
+  if [[ $MAALI_CRAY -eq 0 ]] ;  then
   [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+="/\$env(CPU_TARGET)"
+  fi
   if [ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" -o "$MAALI_TOOL_COMPILERS" == "binary" ]; then
     MAALI_APP_HOME+="/$MAALI_TOOL_COMPILERS"
   elif [ $MAALI_PYTHON_TOOL ]; then
@@ -327,7 +333,9 @@ function maali_module {
   else
     MAALI_APP_HOME+="/\$env(COMPILER)/\$env(COMPILER_VER)"
   fi
-  [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ] && MAALI_APP_HOME+="/\$env(CRAY_CPU_TARGET)"
+  if [[ $MAALI_CRAY -eq 1 ]] ;  then
+    [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+="/\$env(CRAY_CPU_TARGET)"
+  fi
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="/cuda/\$env(CUDA_VER)"
   MAALI_APP_HOME+="/$MAALI_TOOL_NAME"
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="-gpu"
@@ -380,13 +388,18 @@ EOF
     if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
       MAALI_CRAY_PRGENV_NAME=`echo "$MAALI_CRAY_PRGENV" | cut -d '/' -f 1`
 
-      if [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-gnu" ]; then
-        MAALI_CRAY_COMPILER_MATCH="gcc"
-      elif [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-intel" ]; then
-        MAALI_CRAY_COMPILER_MATCH="intel"
-      elif [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-cray" ]; then
-        MAALI_CRAY_COMPILER_MATCH="cce"
-      fi
+      case "$MAALI_CRAY_PRGENV_NAME" in
+        "PrgEnv-gnu")
+          MAALI_CRAY_COMPILER_MATCH="gcc" ;;
+        "PrgEnv-intel")
+          MAALI_CRAY_COMPILER_MATCH="intel" ;;
+        "PrgEnv-cray")
+          MAALI_CRAY_COMPILER_MATCH="cce" ;;
+        "PrgEnv-pgi")
+          MAALI_CRAY_COMPILER_MATCH="pgi" ;;
+        *)
+          maali_die "Unknown Cray Programming Environment ${MAALI_CRAY_PRGENV}" ;;
+      esac
 
       for MAALI_CRAY_TOOL_COMPILER in $MAALI_CRAY_TOOL_COMPILERS; do
         MAALI_CRAY_TOOL_COMPILER_NAME=`echo "$MAALI_CRAY_TOOL_COMPILER" | cut -d '/' -f 1`
@@ -404,14 +417,9 @@ EOF
     fi
   done
 
-  if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
-    for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
-      echo "Compiled for craype-$MAALI_CRAY_CPU_TARGET" >> $MAALI_TOOL_MODULE
-    done
-  fi
   if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
     for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
-      echo "Compiled for $MAALI_CPU_TARGET" >> $MAALI_TOOL_MODULE
+      echo "Compiled for $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET" >> $MAALI_TOOL_MODULE
     done
   fi
   if [ "$MAALI_TOOL_CUDA_COMPILERS" != "na" ]; then
@@ -505,8 +513,6 @@ EOF
 
     elif [ "$MAALI_PREREQ_MODULE_NAME" == "PrgEnv-gnu" ]; then
 
-      MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray"
-
       for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
         MAALI_SYSTEM_CRAY_PRGENV_LIST=`module avail $MAALI_CRAY_PRGENV_TYPE -t 2>&1 | grep $MAALI_CRAY_PRGENV_TYPE | sed -e 's/(default)//g'`
         for MAALI_SYSTEM_CRAY_PRGENV in $MAALI_SYSTEM_CRAY_PRGENV_LIST; do
@@ -527,9 +533,9 @@ EOF
         done
       done
 
-    elif [[ "$MAALI_PREREQ_MODULE_NAME" =~ "craype-" ]]; then
+    elif [[ "$MAALI_PREREQ_MODULE_NAME" =~ "$MAALI_PRE_CPU_TARGET" ]]; then
 
-      MAALI_TOOL_CRAY_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
+      MAALI_TOOL_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
 
     fi # if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
    done
@@ -537,7 +543,6 @@ EOF
 
   # conflict for PrgEnv
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
-    MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray"
 
     for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
       MAALI_SYSTEM_CRAY_PRGENV_LIST=`module avail $MAALI_CRAY_PRGENV_TYPE -t 2>&1 | grep $MAALI_CRAY_PRGENV_TYPE | sed -e 's/(default)//g'`
@@ -562,28 +567,28 @@ EOF
     done
   fi
 
-  # conflict for craype
-  if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
-    MAALI_SUPPORTED_CRAY_CPU_TARGETS="sandybridge ivybridge haswell"
+  # conflict for MAALI_TOOL_CPU_TARGET
+  if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
 
-    for MAALI_CRAY_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CRAY_CPU_TARGETS; do
-      MAALI_SYSTEM_CRAY_CPU_TARGET_LIST=`module avail craype-$MAALI_CRAY_CPU_TARGET_TYPE -t 2>&1 | grep craype-$MAALI_CRAY_CPU_TARGET_TYPE | sed -e 's/(default)//g'`
-      for MAALI_SYSTEM_CRAY_CPU_TARGET in $MAALI_SYSTEM_CRAY_CPU_TARGET_LIST; do
+    for MAALI_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CPU_TARGETS; do
+      MAALI_SYSTEM_CPU_TARGET_LIST=`module avail $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET_TYPE -t 2>&1 | grep $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET_TYPE | sed -e 's/(default)//g' | sed -e 's|/.*||g'`
+      for MAALI_SYSTEM_CPU_TARGET in $MAALI_SYSTEM_CPU_TARGET_LIST; do
 
         # need to see if the system CPU_TARGET is anywhere in the list
-        MAALI_CRAY_CPU_TARGET_FOUND_MATCH=0
+        MAALI_CPU_TARGET_FOUND_MATCH=0
 
-        for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
-          if [ "$MAALI_SYSTEM_CRAY_CPU_TARGET" == "craype-$MAALI_CRAY_CPU_TARGET" ]; then
-            MAALI_CRAY_CPU_TARGET_FOUND_MATCH=1
+        for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
+          if [ "$MAALI_SYSTEM_CPU_TARGET" == "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET" ]; then
+            MAALI_CPU_TARGET_FOUND_MATCH=1
           fi
         done
 
         # if not found in list, force conflict
-        if [ $MAALI_CRAY_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
+        if [ $MAALI_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict $MAALI_SYSTEM_CRAY_CPU_TARGET
+conflict $MAALI_SYSTEM_CPU_TARGET
 EOF
+echo $MAALI_SYSTEM_CPU_TARGET
         fi
       done
     done
@@ -904,7 +909,9 @@ function maali_module_lua {
   MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   MAALI_APP_HOME="$MAALI_APPS_DIR"
   [ "$MAALI_TOOL_CRAY_PRGENV" != "na" ] && MAALI_APP_HOME+='/"..os.getenv("MAALI_LOADED_PRGENV").."/"..os.getenv("CRAYOS_VERSION")..'
-  [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='/"..os.getenv("CPU_TARGET")..'
+  if [[ $MAALI_CRAY -eq 0 ]] ;  then
+    [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='/"..os.getenv("CPU_TARGET")..'
+  fi
   if [ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" -o "$MAALI_TOOL_COMPILERS" == "binary" ]; then
     MAALI_APP_HOME+="/$MAALI_TOOL_COMPILERS"
   elif [ $MAALI_PYTHON_TOOL ]; then
@@ -914,7 +921,9 @@ function maali_module_lua {
   else
     MAALI_APP_HOME+='/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER")..'
   fi
-  [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='/"..os.getenv("CPU_TARGET")..'
+  if [[ $MAALI_CRAY -eq 0 ]] ;  then
+    [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='/"..os.getenv("CRAY_CPU_TARGET")..'
+  fi
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+='/cuda/"..os.getenv("CUDA_VER")..'
   MAALI_APP_HOME+="/$MAALI_TOOL_NAME"
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="-gpu"
@@ -952,13 +961,18 @@ EOF
     if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
       MAALI_CRAY_PRGENV_NAME=`echo "$MAALI_CRAY_PRGENV" | cut -d '/' -f 1`
 
-      if [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-gnu" ]; then
-        MAALI_CRAY_COMPILER_MATCH="gcc"
-      elif [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-intel" ]; then
-        MAALI_CRAY_COMPILER_MATCH="intel"
-      elif [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-cray" ]; then
-        MAALI_CRAY_COMPILER_MATCH="cce"
-      fi
+      case "$MAALI_CRAY_PRGENV_NAME" in
+        "PrgEnv-gnu")
+          MAALI_CRAY_COMPILER_MATCH="gcc" ;;
+        "PrgEnv-intel")
+          MAALI_CRAY_COMPILER_MATCH="intel" ;;
+        "PrgEnv-cray")
+          MAALI_CRAY_COMPILER_MATCH="cce" ;;
+        "PrgEnv-pgi")
+          MAALI_CRAY_COMPILER_MATCH="pgi" ;;
+        *)
+          maali_die "Unknown Cray PrgEnv $MAALI_CRAY_PRGENV_NAME" ;;
+      esac
 
       for MAALI_CRAY_TOOL_COMPILER in $MAALI_CRAY_TOOL_COMPILERS; do
         MAALI_CRAY_TOOL_COMPILER_NAME=`echo "$MAALI_CRAY_TOOL_COMPILER" | cut -d '/' -f 1`
@@ -976,14 +990,9 @@ EOF
     fi
   done
 
-  if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
-    for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
-      echo "whatis( [[Compiled for $MAALI_CRAY_CPU_TARGET]] )" >> $MAALI_TOOL_MODULE
-    done
-  fi
   if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
     for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
-      echo "whatis( [[Compiled for $MAALI_CPU_TARGET]] )" >> $MAALI_TOOL_MODULE
+      echo "whatis( [[Compiled for $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET]] )" >> $MAALI_TOOL_MODULE
     done
   fi
   if [ "$MAALI_TOOL_CUDA_COMPILERS" != "na" ]; then
@@ -1066,8 +1075,6 @@ EOF
 
     elif [ "$MAALI_PREREQ_MODULE_NAME" == "PrgEnv-gnu" ]; then
 
-      MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray"
-
       for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
         MAALI_SYSTEM_CRAY_PRGENV_LIST=`module -t avail $MAALI_CRAY_PRGENV_TYPE 2>&1 | grep $MAALI_CRAY_PRGENV_TYPE`
         for MAALI_SYSTEM_CRAY_PRGENV in $MAALI_SYSTEM_CRAY_PRGENV_LIST; do
@@ -1088,9 +1095,9 @@ EOF
         done
       done
 
-    elif [[ "$MAALI_PREREQ_MODULE_NAME" =~ "craype-" ]]; then
+    elif [[ "$MAALI_PREREQ_MODULE_NAME" =~ "$MAALI_PRE_CPU_TARGET" ]]; then
 
-      MAALI_TOOL_CRAY_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
+      MAALI_TOOL_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
 
     fi # if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
    done
@@ -1098,7 +1105,6 @@ EOF
 
   # conflict for PrgEnv
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
-    MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray"
 
     for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
       MAALI_SYSTEM_CRAY_PRGENV_LIST=`module -t avail $MAALI_CRAY_PRGENV_TYPE -t 2>&1 | grep $MAALI_CRAY_PRGENV_TYPE`
@@ -1123,27 +1129,25 @@ EOF
     done
   fi
 
-  # conflict for craype
-  if [ "$MAALI_TOOL_CRAY_CPU_TARGET" != "na" ]; then
-    MAALI_SUPPORTED_CRAY_CPU_TARGETS="sandybridge ivybridge haswell"
-
-    for MAALI_CRAY_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CRAY_CPU_TARGETS; do
-      MAALI_SYSTEM_CRAY_CPU_TARGET_LIST=`module -t avail craype-$MAALI_CRAY_CPU_TARGET_TYPE 2>&1 | grep craype-$MAALI_CRAY_CPU_TARGET_TYPE`
-      for MAALI_SYSTEM_CRAY_CPU_TARGET in $MAALI_SYSTEM_CRAY_CPU_TARGET_LIST; do
+  # conflict for CPU_TARGET
+  if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
+    for MAALI_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CPU_TARGETS; do
+      MAALI_SYSTEM_CPU_TARGET_LIST=`module avail $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET_TYPE -t 2>&1 | grep $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET_TYPE | sed -e 's/(default)//g' | sed -e 's|/.*||g'`
+      for MAALI_SYSTEM_CPU_TARGET in $MAALI_SYSTEM_CPU_TARGET_LIST; do
 
         # need to see if the system CPU_TARGET is anywhere in the list
-        MAALI_CRAY_CPU_TARGET_FOUND_MATCH=0
+        MAALI_CPU_TARGET_FOUND_MATCH=0
 
-        for MAALI_CRAY_CPU_TARGET in $MAALI_TOOL_CRAY_CPU_TARGET; do
-          if [ "$MAALI_SYSTEM_CRAY_CPU_TARGET" == "craype-$MAALI_CRAY_CPU_TARGET" ]; then
-            MAALI_CRAY_CPU_TARGET_FOUND_MATCH=1
+        for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
+          if [ "$MAALI_SYSTEM_CPU_TARGET" == "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET" ]; then
+            MAALI_CPU_TARGET_FOUND_MATCH=1
           fi
         done
 
         # if not found in list, force conflict
-        if [ $MAALI_CRAY_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
+        if [ $MAALI_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict($MAALI_SYSTEM_CRAY_CPU_TARGET)
+conflict($MAALI_SYSTEM_CPU_TARGET)
 EOF
         fi
       done
@@ -1875,50 +1879,32 @@ fi
 if [ "$MAALI_DEFAULT_CRAY_PRGENVS" != "" ]; then
   for MAALI_DEFAULT_PRGENV in $MAALI_DEFAULT_CRAY_PRGENVS; do
     MAALI_DEFAULT_PRGENV_NAME=`echo "$MAALI_DEFAULT_PRGENV" | cut -d '/' -f 1`
-    if [ "$MAALI_DEFAULT_PRGENV_NAME" == "PrgEnv-gnu" ]; then
-      if [ "$MAALI_DEFAULT_CRAY_GCC_PRGENV" == "" ]; then
-        MAALI_DEFAULT_CRAY_GCC_PRGENV="$MAALI_DEFAULT_PRGENV"
-      else
-        MAALI_DEFAULT_CRAY_GCC_PRGENV="$MAALI_DEFAULT_CRAY_GCC_PRGENV $MAALI_DEFAULT_PRGENV"
-      fi
-    elif [ "$MAALI_DEFAULT_PRGENV_NAME" == "PrgEnv-intel" ]; then
-      if [ "$MAALI_DEFAULT_CRAY_INTEL_PRGENV" == "" ]; then
-        MAALI_DEFAULT_CRAY_INTEL_PRGENV="$MAALI_DEFAULT_PRGENV"
-      else
-        MAALI_DEFAULT_CRAY_INTEL_PRGENV="$MAALI_DEFAULT_CRAY_INTEL_PRGENV $MAALI_DEFAULT_PRGENV"
-      fi
-    elif [ "$MAALI_DEFAULT_PRGENV_NAME" == "PrgEnv-cray" ]; then
-      if [ "$MAALI_DEFAULT_CRAY_CRAY_PRGENV" == "" ]; then
-        MAALI_DEFAULT_CRAY_CRAY_PRGENV="$MAALI_DEFAULT_PRGENV"
-      else
-        MAALI_DEFAULT_CRAY_CRAY_PRGENV="$MAALI_DEFAULT_CRAY_CRAY_PRGENV $MAALI_DEFAULT_PRGENV"
-      fi
-    fi
+    case "$MAALI_DEFAULT_PRGENV_NAME" in
+      "PrgEnv-gnu")
+        MAALI_DEFAULT_CRAY_GCC_PRGENV="${MAALI_DEFAULT_CRAY_GCC_PRGENV:+$MAALI_DEFAULT_CRAY_GCC_PRGENV }$MAALI_DEFAULT_PRGENV" ;;
+      "PrgEnv-intel")
+        MAALI_DEFAULT_CRAY_INTEL_PRGENV="${MAALI_DEFAULT_CRAY_INTEL_PRGENV:+$MAALI_DEFAULT_CRAY_INTEL_PRGENV }$MAALI_DEFAULT_PRGENV" ;;
+      "PrgEnv-cray")
+        MAALI_DEFAULT_CRAY_CRAY_PRGENV="${MAALI_DEFAULT_CRAY_CRAY_PRGENV:+$MAALI_DEFAULT_CRAY_CRAY_PRGENV }$MAALI_DEFAULT_PRGENV" ;;
+      "PrgEnv-pgi")
+        MAALI_DEFAULT_CRAY_PGI_PRGENV="${MAALI_DEFAULT_CRAY_PGI_PRGENV:+$MAALI_DEFAULT_CRAY_PGI_PRGENV }$MAALI_DEFAULT_PRGENV" ;;
+      *)
+        maali_die "Unknown Cray Programming Environment ${MAALI_DEFAULT_PRGENV}" ;;
+    esac
   done
 fi
 
-# need to set MAALI_DEFAULT_GCC_COMPILERS, MAALI_DEFAULT_INTEL_COMPILERS and MAALI_DEFAULT_CCE_COMPILERS
+# need to set MAALI_DEFAULT_GCC_COMPILERS, MAALI_DEFAULT_INTEL_COMPILERS and MAALI_DEFAULT_CCE_COMPILERS, etc
 if [ "$MAALI_DEFAULT_COMPILERS" != "" ]; then
   for MAALI_DEFAULT_COMPILER in $MAALI_DEFAULT_COMPILERS; do
     MAALI_DEFAULT_COMPILER_NAME=`echo "$MAALI_DEFAULT_COMPILER" | cut -d '/' -f 1`
-    if [ "$MAALI_DEFAULT_COMPILER_NAME" == "gcc" ]; then
-      if [ "$MAALI_DEFAULT_GCC_COMPILERS" == "" ]; then
-        MAALI_DEFAULT_GCC_COMPILERS="$MAALI_DEFAULT_COMPILER"
-      else
-        MAALI_DEFAULT_GCC_COMPILERS="$MAALI_DEFAULT_GCC_COMPILERS $MAALI_DEFAULT_COMPILER"
-      fi
-    elif [ "$MAALI_DEFAULT_COMPILER_NAME" == "intel" ]; then
-      if [ "$MAALI_DEFAULT_INTEL_COMPILERS" == "" ]; then
-        MAALI_DEFAULT_INTEL_COMPILERS="$MAALI_DEFAULT_COMPILER"
-      else
-        MAALI_DEFAULT_INTEL_COMPILERS="$MAALI_DEFAULT_INTEL_COMPILERS $MAALI_DEFAULT_COMPILER"
-      fi
-    elif [ "$MAALI_DEFAULT_COMPILER_NAME" == "cce" ]; then
-      if [ "$MAALI_DEFAULT_CCE_COMPILERS" == "" ]; then
-        MAALI_DEFAULT_CCE_COMPILERS="$MAALI_DEFAULT_COMPILER"
-      else
-        MAALI_DEFAULT_CCE_COMPILERS="$MAALI_DEFAULT_CCE_COMPILERS $MAALI_DEFAULT_COMPILER"
-      fi
+    #e.g. MAALI_DEFAULT_GCC_COMPILERS="gcc/5.4.0 gcc/2.9.2"
+    #e.g. MAALI_DEFAULT_CCE_COMPILERS="cce/8.1.7 cce/8.3.0"
+    varname=MAALI_DEFAULT_${MAALI_DEFAULT_COMPILER_NAME}_COMPILERS
+    if [ "${!varname}" == "" ]; then
+      eval $varname="$MAALI_DEFAULT_COMPILER"
+    else
+      eval "$varname+=\" $MAALI_DEFAULT_COMPILER\""
     fi
   done
 fi
@@ -2138,9 +2124,13 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
   fi
 done
 
+if [[ $MAALI_CRAY -eq 1 ]] ; then
+  # Support legacy MAALI_TOOL_CRAY_CPU_TARGET
+  MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_TOOL_CRAY_CPU_TARGET"}
+fi
 MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_DEFAULT_TOOL_CPU_TARGET"}
 
-if [[ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" ]] || [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] || [[ $MAALI_PYTHON_TOOL -eq 1 ]] || [[ $MAALI_CRAY -eq 1 ]] ; then
+if [[ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" ]] || [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] || [[ $MAALI_PYTHON_TOOL -eq 1 ]] ; then
   MAALI_TOOL_CPU_TARGET="na"
 fi
 if [ "$MAALI_TOOL_CPU_TARGET" == "" ]; then
@@ -2253,8 +2243,10 @@ if [ "$MAALI_TOOL_CRAY_PRGENV" == "" ]; then
     echo "You are compiling on a cray, you need to define MAALI_TOOL_CRAY_PRGENV"
     exit
   else 
+    if [[ $DEBUG -eq 1 ]] && [[ $MAALI_CRAY -eq 1 ]]; then
+      echo " setting MAALI_TOOL_CRAY_PRGENV=\"na\""
+    fi
     MAALI_TOOL_CRAY_PRGENV="na"
-    MAALI_TOOL_CRAY_CPU_TARGET="na"
   fi
 fi
 
@@ -2271,26 +2263,25 @@ if [ $MAALI_REMODULE -eq 0 ]; then
       # need to set MAALI_TOOL_COMPILERS to the compilers which match the PrgEnv
       MAALI_CRAY_PRGENV_NAME=`echo "$MAALI_CRAY_PRGENV" | cut -d '/' -f 1`
 
-      if [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-gnu" ]; then
-        MAALI_CRAY_COMPILER_MATCH="gcc"
-      elif [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-intel" ]; then
-        MAALI_CRAY_COMPILER_MATCH="intel"
-      elif [ "$MAALI_CRAY_PRGENV_NAME" == "PrgEnv-cray" ]; then
-        MAALI_CRAY_COMPILER_MATCH="cce"
-      else
-        maali_die "Unknown Cray Programming Environment ${MAALI_CRAY_PRGENV}"
-      fi
+      case "$MAALI_CRAY_PRGENV_NAME" in
+        "PrgEnv-gnu")
+          MAALI_CRAY_COMPILER_MATCH="gcc" ;;
+        "PrgEnv-intel")
+          MAALI_CRAY_COMPILER_MATCH="intel" ;;
+        "PrgEnv-cray")
+          MAALI_CRAY_COMPILER_MATCH="cce" ;;
+        "PrgEnv-pgi")
+          MAALI_CRAY_COMPILER_MATCH="pgi" ;;
+        *)
+          maali_die "Unknown Cray Programming Environment ${MAALI_CRAY_PRGENV}" ;;
+      esac
 
       MAALI_TOOL_COMPILERS=""
 
       for MAALI_CRAY_TOOL_COMPILER in $MAALI_CRAY_TOOL_COMPILERS; do
         MAALI_CRAY_TOOL_COMPILER_NAME=`echo "$MAALI_CRAY_TOOL_COMPILER" | cut -d '/' -f 1`
         if [ "$MAALI_CRAY_TOOL_COMPILER_NAME" == "$MAALI_CRAY_COMPILER_MATCH" ]; then
-          if [ "$MAALI_TOOL_COMPILERS" == "" ]; then
-            MAALI_TOOL_COMPILERS="$MAALI_CRAY_TOOL_COMPILER"
-          else
-            MAALI_TOOL_COMPILERS="$MAALI_TOOL_COMPILERS $MAALI_CRAY_TOOL_COMPILER"
-          fi
+          MAALI_TOOL_COMPILERS="${MAALI_TOOL_COMPILERS:+$MAALI_TOOL_COMPILERS }$MAALI_CRAY_TOOL_COMPILER"
         fi
       done
 
@@ -2379,12 +2370,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             module list
           fi # if [ $DEBUG ]; then
 
-          if [[ $MAALI_CRAY -eq 1 ]]; then
-            # load the Cray Parallel Environment for cpu target
-            maali_load_module "craype-$MAALI_CPU_TARGET"
-          else
-            maali_load_module "$MAALI_CPU_TARGET"
-          fi
+          maali_load_module "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET"
 
           if [ $DEBUG ]; then
             echo " .. after module load \$MAALI_CPU_TARGET"
@@ -2451,9 +2437,13 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             # where we want to install the tool
             MAALI_INSTALL_TOOLDIR="$MAALI_APPS_DIR"
             [ "$MAALI_CRAY_PRGENV" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_CRAY_PRGENV"
+            if [[ $MAALI_CRAY -eq 0 ]] ;  then
             [ "$MAALI_CPU_TARGET" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_CPU_TARGET"
+            fi
             [ "$MAALI_COMPILER" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_COMPILER"
-            [ "$MAALI_CRAY_CPU_TARGET" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_CRAY_CPU_TARGET"
+            if [[ $MAALI_CRAY -eq 1 ]] ;  then
+            [ "$MAALI_CPU_TARGET" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_CPU_TARGET"
+            fi
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_CUDA_COMPILER"
             MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_NAME"
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="-gpu"
@@ -2530,11 +2520,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
           done # for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
 
         if [ "$MAALI_CPU_TARGET" != "na" ]; then
-          if [[ $MAALI_CRAY -eq 1 ]]; then
-            module unload "craype-$MAALI_CPU_TARGET"
-          else
-            module unload "$MAALI_CPU_TARGET"
-          fi
+          module unload "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET"
         fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
 
       done # for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
