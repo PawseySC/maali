@@ -914,13 +914,13 @@ function maali_module_lua {
   elif [ $MAALI_R_TOOL ]; then
     MAALI_APP_HOME+='r/"..os.getenv("R_VERSION")..'
   else
-    MAALI_APP_HOME+='/"..os.getenv("COMPILER)/"..os.getenv("COMPILER_VER")..'
+    MAALI_APP_HOME+='"/"..os.getenv("COMPILER").."/"..os.getenv("COMPILER_VER")..'
   fi
-  if [[ $MAALI_CRAY -eq 0 ]] ;  then
-    [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='/"..os.getenv("CRAY_CPU_TARGET")..'
+  if [[ $MAALI_CRAY -eq 1 ]] ;  then
+    [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("CRAY_CPU_TARGET")..'
   fi
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+='/cuda/"..os.getenv("CUDA_VER")..'
-  MAALI_APP_HOME+="/$MAALI_TOOL_NAME"
+  MAALI_APP_HOME+='"/'$MAALI_TOOL_NAME
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="-gpu"
   MAALI_APP_HOME+="/$MAALI_TOOL_VERSION"
 
@@ -1058,7 +1058,7 @@ EOF
             # if not found in list, force conflict
             if [ $MAALI_COMPILER_FOUND_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict($MAALI_SYSTEM_COMPILER)
+conflict("$MAALI_SYSTEM_COMPILER")
 EOF
             fi
 
@@ -1090,7 +1090,7 @@ EOF
         done
       done
 
-    elif [[ "$MAALI_PREREQ_MODULE_NAME" =~ "$MAALI_PRE_CPU_TARGET" ]]; then
+    elif [[ "$MAALI_PRE_CPU_TARGET" != "" ]] && [[ "$MAALI_PREREQ_MODULE_NAME" =~ "$MAALI_PRE_CPU_TARGET" ]]; then
 
       MAALI_TOOL_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
 
@@ -1127,26 +1127,22 @@ EOF
   # conflict for MAALI_TOOL_CPU_TARGET
   if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
     for MAALI_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CPU_TARGETS; do
-      MAALI_SYSTEM_CPU_TARGET_LIST=`module -t avail $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET_TYPE 2>&1 | grep $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET_TYPE | sed -e 's/(default)//g' | sed -e 's|/.*||g'`
-      #MAALI_SYSTEM_CPU_TARGET_LIST=`module -t avail craype-$MAALI_CPU_TARGET_TYPE 2>&1 | grep craype-$MAALI_CPU_TARGET_TYPE`
-      for MAALI_SYSTEM_CPU_TARGET in $MAALI_SYSTEM_CPU_TARGET_LIST; do
 
-        # need to see if the system CPU_TARGET is anywhere in the list
-        MAALI_CPU_TARGET_FOUND_MATCH=0
+      # need to see if the system CPU_TARGET is anywhere in the list
+      MAALI_CPU_TARGET_FOUND_MATCH=0
 
-        for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
-          if [ "$MAALI_SYSTEM_CPU_TARGET" == "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET" ]; then
-            MAALI_CPU_TARGET_FOUND_MATCH=1
-          fi
-        done
-
-        # if not found in list, force conflict
-        if [ $MAALI_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
-          cat <<EOF >> $MAALI_TOOL_MODULE
-conflict($MAALI_SYSTEM_CPU_TARGET)
-EOF
+      for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
+        if [ "$MAALI_CPU_TARGET_TYPE" == "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET" ]; then
+          MAALI_CPU_TARGET_FOUND_MATCH=1
         fi
       done
+
+      # if not found in list, force conflict
+      if [ $MAALI_CPU_TARGET_FOUND_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict("$MAALI_CPU_TARGET_TYPE")
+EOF
+      fi
     done
 
   fi
