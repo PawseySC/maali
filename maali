@@ -26,13 +26,16 @@ function maali_wiki {
 # Rudimentary Operating System detecting which can be overriden by setting
 # MAALI_OS to a value of your choosing
 
-# by default we are not a cray
+# by default we are not a Cray or IBM power
 MAALI_CRAY=0
+MAALI_POWER=0
 
 if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
   # We are a Cray
   MAALI_OS_VERSION=`grep CLERELEASE /etc/opt/cray/release/CLEinfo | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]`
+
   MAALI_OS="cle$MAALI_OS_VERSION"
+
   MAALI_CRAY=1
 
 elif [ -f "/etc/SuSE-release" ]; then
@@ -60,13 +63,22 @@ elif [[ -f "/etc/os-release" ]]; then
   elif [[ "${NAME}" == "centos" ]]; then
       MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
       MAALI_OS="centos${MAALI_OS_VERSION}"
+
+  elif [[ "$NAME" == "rhel" ]]; then 
+	echo ${NAME}
+	MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
+        MAALI_OS="${NAME}${MAALI_OS_VERSION}"
+        if [ `uname -m` == "ppc64le" ]; then
+        # We are on a IBM power system
+           echo "found the POWER!"
+	   MAALI_POWER=1
+        fi 
   fi
   
 #elif [ -f "/etc/redhat-release" ]; then
 #  MAALI_OS_VERSION=`cat /etc/redhat-release | awk '{print $4;}'`
 #  MAALI_OS="scientific_linux$MAALI_OS_VERSION"
 #fi    
-
 
 elif [[ -z "${MAALI_OS}" ]]; then
   echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
