@@ -4,6 +4,19 @@
 ##############################################################################
 # needs to be set by the install script
 MAALI_VERSION="tip"
+MAALI_CMD_LINE="$0 $*"
+
+##############################################################################
+function maali_wiki {
+  # echo to screen and add to wiki
+  echo $1
+
+  if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+    if [ $MAALI_REMODULE -eq 0 ]; then
+      echo $1 >> $MAALI_WIKI_SRC
+    fi
+  fi
+}
 
 ##############################################################################
 function maali_wiki {
@@ -40,10 +53,6 @@ elif [ -f "/etc/SuSE-release" ]; then
   MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
   MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
 
-#elif [ -f "/etc/centos-release" ]; then
-#  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
-#  MAALI_OS="centos$MAALI_OS_VERSION"
-
 elif [[ -f "/etc/os-release" ]]; then
   # This works for ubuntu, fedora and debian linux images
   NAME=`grep -w ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g' `
@@ -69,11 +78,15 @@ elif [[ -f "/etc/os-release" ]]; then
 #  MAALI_OS_VERSION=`cat /etc/redhat-release | awk '{print $4;}'`
 #  MAALI_OS="scientific_linux$MAALI_OS_VERSION"
 #fi    
+
+
 elif [[ -z "${MAALI_OS}" ]]; then
   echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
   exit 1
 fi
-maali_wiki "MAALI_OS is $MAALI_OS"
+
+maali_wiki "The operating system is $MAALI_OS"
+
 ##############################################################################
 # these are global
 
@@ -95,6 +108,25 @@ else
 fi
 
 MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
+MAALI_WGET_CMD="wget"
+
+##############################################################################
+
+function maali_pre_build {
+  # do any patching before compilation here.
+
+  cd "$MAALI_TOOL_BUILD_DIR"
+  #maali_run "patch bla bla bla"
+}
+
+##############################################################################
+
+function maali_post_build {
+  # do any work after the installation
+
+  cd "$MAALI_TOOL_BUILD_DIR"
+  #maali_run "patch bla bla bla"
+}
 
 
 ##############################################################################
@@ -104,6 +136,7 @@ function maali_build {
 
   # allows late evaluation
   MAALI_TOOL_CONFIGURE_EVAL=`eval echo "$MAALI_TOOL_CONFIGURE"`
+
   if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
       maali_wiki "The configure flags used ${MAALI_TOOL_CONFIGURE_EVAL}"
       maali_wiki "The default prefix install dir ${MAALI_INSTALL_DIR}"
@@ -112,12 +145,13 @@ function maali_build {
       
       cd "$MAALI_TOOL_BUILD_DIR"
       maali_run "./configure --prefix=$MAALI_INSTALL_DIR $MAALI_TOOL_CONFIGURE_EVAL"
-      maali_run "make"
+      maali_run "make -j $MAALI_CORES"
       if [ "$MAALI_MAKE_TEST" == "YES" ]; then
 	  maali_run "make test"
       fi
       maali_run "make install"
   fi
+
 }
 
 ##############################################################################
@@ -134,9 +168,9 @@ function maali_cmake_build {
 
   maali_run "cmake -DCMAKE_INSTALL_PREFIX=$MAALI_INSTALL_DIR $MAALI_TOOL_CONFIGURE $MAALI_CMAKE_PATH"
   if [ $DEBUG ]; then
-    maali_run "make VERBOSE=TRUE"
+    maali_run "make -j $MAALI_CORES VERBOSE=TRUE"
   else
-    maali_run "make"
+    maali_run "make -j $MAALI_CORES"
   fi
   maali_run "make install"
 }
@@ -170,10 +204,15 @@ function maali_download {
     done
   fi
 
+  # Encourage people to set MAALI_WGET_EXTRA=--no-check-certificate in cygnet file rather than rely on this hack.
   if [[ $MAALI_URL =~ .python.org ]] ; then
-    MAALI_WGET_CMD="wget --no-check-certificate"
-  else
-    MAALI_WGET_CMD="wget"
+    if [[ "$MAALI_WGET_EXTRA" != *"--no-check-certificate"* ]]; then
+      MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"MAALI_WGET_EXTRA"} --no-check-certificate"
+    fi
+  fi
+
+  if [ ! $DEBUG ]; then
+    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"MAALI_WGET_EXTRA"} -q"
   fi
 
   size=${#MAALI_URL_ARRAY[@]}
@@ -188,15 +227,11 @@ function maali_download {
 
     if [ ! -f "$MAALI_TMP_DST" ]; then
         if [ $DEBUG ]; then
-          maali_wiki " .. can't find $MAALI_TMP_DST so will run '$MAALI_WGET_CMD -O $MAALI_TMP_DST -q $MAALI_TMP_URL'"
+          maali_wiki " .. can't find $MAALI_TMP_DST so will run '$MAALI_WGET_CMD $MAALI_WGET_EXTRA -O $MAALI_TMP_DST $MAALI_TMP_URL'"
         fi
       cd $MAALI_SRC
 
-      if [ $DEBUG ]; then
-        $MAALI_WGET_CMD -O $MAALI_TMP_DST $MAALI_TMP_URL
-      else
-        $MAALI_WGET_CMD -O $MAALI_TMP_DST -q $MAALI_TMP_URL
-      fi
+      $MAALI_WGET_CMD $MAALI_WGET_EXTRA -O $MAALI_TMP_DST $MAALI_TMP_URL
     fi
   done
 }
@@ -210,7 +245,9 @@ function maali_genpkgconfig {
     if [ ! -f "$MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc" ]; then
       cat <<EOF > $MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc
 Name: $MAALI_TOOL_NAME
-Description: $MAALI_TOOL_NAME library ${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}
+
+Description: $MAALI_TOOL_NAME\'s library ${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}
+
 Version: $MAALI_TOOL_VERSION
 
 prefix=$MAALI_INSTALL_DIR
@@ -237,12 +274,16 @@ function maali_git_download {
     mv ${MAALI_GIT_DOWNLOAD_FILEPATH} ${MAALI_GIT_DOWNLOAD_FILEPATH}~
   fi
 
-  if [ $DEBUG ]; then
-    MAALI_WGET_EXTRA=''
-  else
-    MAALI_WGET_EXTRA='-q'
+  if [ ! $DEBUG ]; then
+    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"MAALI_WGET_EXTRA"} -q"
   fi
-  wget --no-check-certificate $MAALI_WGET_EXTRA -O "$MAALI_GIT_DOWNLOAD_FILEPATH" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_GIT_DOWNLOAD_FILE"
+
+  # github.org requires --no-check-certificate
+  if [[ "$MAALI_WGET_EXTRA" != *"--no-check-certificate"* ]]; then
+    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"MAALI_WGET_EXTRA"} --no-check-certificate"
+  fi
+
+  $MAALI_WGET_CMD $MAALI_WGET_EXTRA -O "$MAALI_GIT_DOWNLOAD_FILEPATH" "$MAALI_CYGNET_FILES_URL/$MAALI_OS/$MAALI_GIT_DOWNLOAD_FILE"
 
   if [ $DEBUG ]; then
     echo "Checking the size of $MAALI_GIT_DOWNLOAD_FILEPATH"
@@ -344,7 +385,7 @@ function maali_makedir {
 
   # reset IFS
   IFS=$MAALI_IFS
-}
+} 
 
 ##############################################################################
 
@@ -411,31 +452,45 @@ set tool    $MAALI_TOOL_NAME
 EOF
 fi
 
+if [ "$MAALI_MODULE_WHATIS" != "" ]; then
+  cat <<EOF >> $MAALI_TOOL_MODULE
+module-whatis "$MAALI_MODULE_WHATIS"
+EOF
+fi
+
 cat <<EOF >>$MAALI_TOOL_MODULE
-if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
-  module unload \$tool
+if { [ module-info mode load ] } {
+  if { [is-loaded \$tool] && ! [is-loaded \$tool/\$version] } {
+    module unload \$tool
+  }
 }
 
 EOF
 
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
-if { [is-loaded PrgEnv-cray] } {
-  setenv MAALI_LOADED_PRGENV PrgEnv-cray
-  setenv COMPILER            cce
-  setenv COMPILER_VER        \$env(CRAY_CC_VERSION)
+if { [ module-info mode load ] } {
+  if { [is-loaded PrgEnv-cray] } {
+    setenv MAALI_LOADED_PRGENV PrgEnv-cray
+    setenv COMPILER            cce
+    setenv COMPILER_VER        \$env(CRAY_CC_VERSION)
+  }
 }
 
-if { [is-loaded PrgEnv-gnu] } {
-  setenv MAALI_LOADED_PRGENV PrgEnv-gnu
-  setenv COMPILER            gcc
-  setenv COMPILER_VER        \$env(GCC_VERSION)
+if { [ module-info mode load ] } {
+  if { [is-loaded PrgEnv-gnu] } {
+    setenv MAALI_LOADED_PRGENV PrgEnv-gnu
+    setenv COMPILER            gcc
+    setenv COMPILER_VER        \$env(GCC_VERSION)
+  }
 }
 
-if { [is-loaded PrgEnv-intel] } {
-  setenv MAALI_LOADED_PRGENV PrgEnv-intel
-  setenv COMPILER            intel
-  setenv COMPILER_VER        \$env(INTEL_VERSION)
+if { [ module-info mode load ] } {
+  if { [is-loaded PrgEnv-intel] } {
+    setenv MAALI_LOADED_PRGENV PrgEnv-intel
+    setenv COMPILER            intel
+    setenv COMPILER_VER        \$env(INTEL_VERSION)
+  }
 }
 
 EOF
@@ -635,9 +690,11 @@ EOF
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 
-if {! [is-loaded cuda] } {
-  # this allows us support multiple cuda versions, but have a sensible default
-  module load cuda/$MAALI_SYSTEM_DEFAULT_CUDA
+if { [ module-info mode load ] } {
+  if {! [is-loaded cuda] } {
+    # this allows us support multiple cuda versions, but have a sensible default
+    module load cuda/$MAALI_SYSTEM_DEFAULT_CUDA
+  }
 }
 EOF
   fi
@@ -645,9 +702,11 @@ EOF
   if [ $MAALI_PYTHON_TOOL ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 
-if {! [is-loaded python] } {
-  # this allows us support multiple python versions, but have a sensible default
-  module load python/$MAALI_SYSTEM_DEFAULT_PYTHON
+if { [ module-info mode load ] } {
+  if {! [is-loaded python] } {
+    # this allows us support multiple python versions, but have a sensible default
+    module load python/$MAALI_SYSTEM_DEFAULT_PYTHON
+  }
 }
 EOF
   fi
@@ -655,9 +714,11 @@ EOF
   if [ $MAALI_R_TOOL ]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
 
-if {! [is-loaded r] } {
-  # this allows us support multiple R versions, but have a sensible default
-  module load r/$MAALI_SYSTEM_DEFAULT_R
+if { [ module-info mode load ] } {
+  if {! [is-loaded r] } {
+    # this allows us support multiple R versions, but have a sensible default
+    module load r/$MAALI_SYSTEM_DEFAULT_R
+  }
 }
 EOF
   fi
@@ -680,12 +741,6 @@ EOF
       done)
   fi
 
-  if [ "$MAALI_MODULE_WHATIS" != "" ]; then
-      cat <<EOF >> $MAALI_TOOL_MODULE
-module-whatis "$MAALI_MODULE_WHATIS"
-EOF
-  fi
-
   for MAALI_TOOL_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
     cat <<EOF >> $MAALI_TOOL_MODULE
 module load $MAALI_TOOL_PREREQ_MODULE
@@ -696,9 +751,10 @@ EOF
   MAALI_MODULE_VARIABLES_LIST_MAALI=`compgen -v | grep MAALI_MODULE_SET_MAALI`
   MAALI_MODULE_VARIABLES_LIST_NON_MAALI=`compgen -v | grep MAALI_MODULE_SET_ | grep -v MAALI_MODULE_SET_MAALI`
 
-  # get all the varibales which start with MAALI_MODULE_SET_
+  # get all the variables which start with MAALI_MODULE_SET_
   MAALI_MODULE_VARIABLES_LIST="$MAALI_MODULE_VARIABLES_LIST_MAALI $MAALI_MODULE_VARIABLES_LIST_NON_MAALI"
 
+# this is for a check that is only set in the OpenFOAM cygnet file..
   if [ "$MAALI_MODULE_VARIABLES_ORDER" != "" ]; then
     MAALI_MODULE_VARIABLES_LIST="$MAALI_MODULE_VARIABLES_ORDER"
   fi
@@ -708,7 +764,7 @@ EOF
   do
     if [ "${!MAALI_MODULE_VARIABLE}" != "" ]; then
       MAALI_MODULE_VARIABLE_WIDTH=$(expr ${#MAALI_MODULE_VARIABLE} - 15)
-      if [ $MAALI_MODULE_VARIABLE_WIDTH -gt $MAALI_MODULE_MAX_VARIABLE ]; then
+      if [[ $MAALI_MODULE_VARIABLE_WIDTH -gt $MAALI_MODULE_MAX_VARIABLE ]]; then
         MAALI_MODULE_MAX_VARIABLE=$MAALI_MODULE_VARIABLE_WIDTH
       fi
     fi
@@ -722,7 +778,16 @@ EOF
     MAALI_MODULE_VARIABLE_NAME=`echo $MAALI_MODULE_VARIABLE | sed -e 's/MAALI_MODULE_SET_//g'`
     MAALI_MODULE_VARIABLE_DIR=""
     MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
-    MAALI_MODULE_VARIABLE_TCL="prepend-path"
+    #MAALI_MODULE_VARIABLE_TCL="prepend-path"
+
+  #Shift MAALI_MODULE_VARIABLE_TCL, need to set delimiter / fileseperator to ; for LUA_CPATH / LUA_PATH
+    if [  "$MAALI_MODULE_VARIABLE" == "MAALI_MODULE_SET_LUA_PATH" ]; then
+      MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
+    elif [  "$MAALI_MODULE_VARIABLE" == "MAALI_MODULE_SET_LUA_CPATH" ]; then
+      MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
+    else
+      MAALI_MODULE_VARIABLE_TCL='prepend-path'
+    fi
 
     MAALI_MODULE_VARIABLE_PREPREND_OFF="MAALI_MODULE_PREPEND_${MAALI_MODULE_VARIABLE_NAME}"
     MAALI_MODULE_VARIABLE_PREPREND_OFF_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_PREPREND_OFF}"`
@@ -765,6 +830,9 @@ EOF
         PKG_CONFIG_PATH | PKGCONFIG )
           MAALI_MODULE_VARIABLE_DIR="lib/pkgconfig"
           ;;
+        CMAKE_MODULE_PATH )
+          MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
+          ;;
         MANPATH)
           MAALI_MODULE_VARIABLE_DIR="share/man"
           ;;
@@ -772,6 +840,23 @@ EOF
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
           MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
+        LUA_CPATH)
+		  MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
+          MAALI_MODULE_VARIABLE_DIR="lib/lua/${MAALI_LUA_LIB_VERSION}/?.so"
+          ;;
+        LUA_CPATH_APPEND)
+          MAALI_MODULE_VARIABLE_NAME='LUA_CPATH'
+          MAALI_MODULE_VARIABLE_TCL="append-path"
+          ;;
+        LUA_PATH)
+		  MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
+		  MAALI_MODULE_VARIABLE_DIR="share/lua/${MAALI_LUA_LIB_VERSION}/init.lua;;"
+          ;;
+        LUA_PATH_APPEND)
+		  MAALI_MODULE_VARIABLE_NAME='LUA_PATH'
+		  MAALI_MODULE_VARIABLE_TCL="append-path"
+          ;;
+		
         *)
           # the default is to setenv
           MAALI_MODULE_VARIABLE_TCL="setenv"
@@ -785,22 +870,48 @@ EOF
         else
           MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
         fi
-        
+	    
         if [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_DEFAULT_' ]]; then
           printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
+
         elif [ $MAALI_MODULE_VARIABLE_WORDS -gt 1 ]; then
           for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
             MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
-            printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
+ 
+            #When LUA_CPATH or LUA_PATH is set, $MAALI_MODULE_VARIABLE_TCL variable has a space in it
+	    if [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_CPATH' ]] || [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_PATH' ]]; then
+		printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
+	    else
+	        printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
+	    fi
           done
+
         elif [[ ${!MAALI_MODULE_VARIABLE} == "1" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
-          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
+          #When LUA_CPATH or LUA_PATH is set, $MAALI_MODULE_VARIABLE_TCL variable has a space in it
+          if [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_CPATH' ]] || [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_PATH' ]]; then
+	      printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
+          else
+	      printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
+          fi
+
         elif [[ ${!MAALI_MODULE_VARIABLE} == "toplevel" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
-          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
+	  #When LUA_CPATH or LUA_PATH is set, $MAALI_MODULE_VARIABLE_TCL variable has a space in it
+          if [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_CPATH' ]] || [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_PATH' ]]; then
+	      printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
+          else
+	      printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
+          fi
+
         else
           # this is the same as 2
           MAALI_MODULE_VARIABLE_EVAL=`eval echo "${!MAALI_MODULE_VARIABLE}"`
-          printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
+	      #When LUA_CPATH or LUA_PATH is set, $MAALI_MODULE_VARIABLE_TCL variable has a space in it
+          if [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_CPATH' ]] || [[ "$MAALI_MODULE_VARIABLE_NAME" == 'LUA_PATH' ]]; then
+	      printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
+          else
+	      printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
+          fi
+
         fi
     fi
   done
@@ -832,7 +943,7 @@ EOF
       diff $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
     fi
   fi
-}
+}  # end function maali_module
 
 ##############################################################################
 
@@ -851,7 +962,7 @@ function maali_python_build {
   maali_run "python setup.py install --prefix=$MAALI_INSTALL_DIR"
 
   export PYTHONPATH=$MAALI_OLD_PYTHONPATH
-}
+} # end function maali_python_build
 
 ##############################################################################
 
@@ -876,7 +987,7 @@ function maali_run {
     echo "failed to run $@, exiting"
     exit $MAALI_EXIT_STATUS
   fi
-}
+} # end function maali_run
 
 ##############################################################################
 
@@ -885,7 +996,7 @@ function maali_r_build {
   export R_LIBS="$MAALI_INSTALL_DIR:$R_LIBS"
   maali_run "R CMD INSTALL $MAALI_DST"
 
-}
+}  # end function maali_r_build
 
 ##############################################################################
 
@@ -913,25 +1024,27 @@ function maali_unpack {
     MAALI_TYPE=`file -b $MAALI_INDIVIDUAL_DST | cut -d ',' -f 1`
 
     if [ "$MAALI_TYPE" = "bzip2 compressed data" ]; then
-      tar jxf $MAALI_INDIVIDUAL_DST
+      tar xj $MAALI_TAR_EXTRA -f $MAALI_INDIVIDUAL_DST
     elif [ "$MAALI_TYPE" = "compress'd data 16 bits" ]; then
-      tar zxf $MAALI_INDIVIDUAL_DST
+      tar xz $MAALI_TAR_EXTRA -f $MAALI_INDIVIDUAL_DST
     elif [ "$MAALI_TYPE" = "xz compressed data" -o "$MAALI_TYPE" = "XZ compressed data" ]; then
-      tar Jxf $MAALI_INDIVIDUAL_DST
+      tar xJ $MAALI_TAR_EXTRA -f $MAALI_INDIVIDUAL_DST
     elif [ "$MAALI_TYPE" = "gzip compressed data" ]; then
-      tar zxf $MAALI_INDIVIDUAL_DST
+      tar xz $MAALI_TAR_EXTRA -f $MAALI_INDIVIDUAL_DST
 
       if [ $? -ne 0 ]; then
         gzip -dc $MAALI_INDIVIDUAL_DST | tar zxf -
       fi
     elif [[ "$MAALI_TYPE" = "POSIX tar archive (GNU)" ]] || [[ "$MAALI_TYPE" = "POSIX tar archive" ]] ; then
-      tar xf $MAALI_INDIVIDUAL_DST
+      tar x $MAALI_TAR_EXTRA -f $MAALI_INDIVIDUAL_DST
     elif [ "$MAALI_TYPE" = "Zip archive data" ]; then
       if [ "$MAALI_UNZIP_EXCLUDE" == "" ]; then
         unzip -qq $MAALI_INDIVIDUAL_DST
       else
         unzip -qq $MAALI_INDIVIDUAL_DST -x $MAALI_UNZIP_EXCLUDE
       fi
+    elif [ "$MAALI_TYPE" = "ASCII C program text" ]; then
+      cp "$MAALI_INDIVIDUAL_DST" "$MAALI_TOOL_BUILD_DIR"
     else
       echo "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please please lodge a ticket at https://github/Pawseyops/maali."
       exit 1
@@ -945,7 +1058,7 @@ function maali_unpack {
     fi
 
   done
-}
+}  # end function maali_unpack
 
 ##############################################################################
 
@@ -959,17 +1072,18 @@ function log {
 	echo "$1" >>$MAALI_TOOL_LOG
 	echo "#####################################################################" >>$MAALI_TOOL_LOG
     fi
-}
+} # end function log
+
 
 ##############################################################################
 
-function removedir {
+function removedir { 
   if [ -d "$1" ]; then
     # make sure permissions on everything is correct
     find $1 -exec chmod 700 {} \;
     rm -fr "$1"
   fi
-}
+} # end function removedir
 
 ##############################################################################
 
@@ -977,7 +1091,8 @@ function removefile {
   if [ -f "$1" ]; then
     rm -f "$1"
   fi
-}
+
+}  # end function removefile 
 ##############################################################################
 
 function maali_modify_modulepath {
@@ -1002,7 +1117,7 @@ function maali_modify_modulepath {
    fi
    echo " exit maali_modify_modulepath" 
    echo ""
-}
+} # maali_modify_modulepath
 
 ##############################################################################
 
@@ -1038,6 +1153,7 @@ function install_default_compiler_modules {
     maali_wiki " exit install default compiler modules "
   fi
 }
+
 
 ##############################################################################
 
@@ -1179,7 +1295,7 @@ do
      case $OPTION in
          h)
              usage
-             exit 1
+             exit 0
              ;;
          t)
              MAALI_TOOL_NAME=$OPTARG
@@ -1367,8 +1483,9 @@ MAALI_LOADEDMODULES=`echo $LOADEDMODULES | sed -e 's/:/ /g' | tac -s' '`
 
 MAALI_IS_LOADED=0
 
+# test to see if maali module has been loaded 
 for MAALI_MODULE in $MAALI_LOADEDMODULES; do
-  # module without the version
+  # want just the module name without the version
   MAALI_MODULE_NAME=`echo $MAALI_MODULE | cut -d '/' -f 1`
 
   if [ "$MAALI_MODULE_NAME" == "maali" ]; then
@@ -1407,13 +1524,13 @@ MAALI_TOOL_MAJOR_MINOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1,2`
 if [ -z $PBS_NODEFILE ]; then
   if [ -z $SLURM_JOB_CPUS_PER_NODE ]; then
     # not running in PBS Pro or SLURM
-    MAALI_CORES=1
+    MAALI_CORES=${MAALI_CORES:-1}
   else
-    MAALI_CORES="$SLURM_JOB_CPUS_PER_NODE"
+    MAALI_CORES=${MAALI_CORES:-"$SLURM_JOB_CPUS_PER_NODE"}
   fi
 else
   # make sure you set mpiprocs
-  MAALI_CORES=`wc -l $PBS_NODEFILE | cut -d ' ' -f 1`
+  MAALI_CORES=${MAALI_CORES:-`wc -l $PBS_NODEFILE | cut -d ' ' -f 1`}
 fi
 
 MAALI_CMDLINE=$*
@@ -1774,7 +1891,7 @@ fi
 for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
   MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
 
-  # make the -p redundant
+  # make the -p usage flag redundant
   if [ "$MAALI_COMPILER_NAME" == "python" ]; then
     echo ".. detected python compiler, setting MAALI_PYTHON_TOOL"
     MAALI_PYTHON_TOOL=1
@@ -1956,6 +2073,8 @@ else
   removefile "$MAALI_TOOL_LOG"
 
   log "$MAALI_TOOL_NAME $MAALI_TOOL_VERSION is being built by $MAALI_BUILDER_BUILD_CN"
+
+  log "Command line: $MAALI_CMD_LINE"
 
   maali_wiki "downloading the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
   maali_download
@@ -2183,6 +2302,9 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               fi
             fi
   
+            maali_wiki "  .. performing pre-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+            maali_pre_build
+
             maali_wiki "  .. compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
             if [ $MAALI_PYTHON_TOOL ]; then
               maali_python_build
@@ -2194,6 +2316,9 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               maali_build
             fi
   
+            maali_wiki "  .. performing post-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+            maali_post_build
+
             # auto-generate pkgconfig file
             if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
               maali_genpkgconfig
@@ -2418,3 +2543,4 @@ fi
 EOF
 
 fi
+ 
