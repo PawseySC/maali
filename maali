@@ -9,18 +9,6 @@ MAALI_CMD_LINE="$0 $*"
 ##############################################################################
 function maali_wiki {
   # echo to screen and add to wiki
-  echo $1
-
-  if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
-    if [ $MAALI_REMODULE -eq 0 ]; then
-      echo $1 >> $MAALI_WIKI_SRC
-    fi
-  fi
-}
-
-##############################################################################
-function maali_wiki {
-  # echo to screen and add to wiki
 #  echo $1
 
   if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
