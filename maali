@@ -84,7 +84,7 @@ elif [[ -z "${MAALI_OS}" ]]; then
   echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
   exit 1
 fi
-
+echo `module list`
 maali_wiki "The operating system is $MAALI_OS"
 
 ##############################################################################
@@ -1112,7 +1112,7 @@ function maali_modify_modulepath {
        done
          echo newpath is $NEWPATH
          echo "# add maali module \" $MOD_TOOL_LIST \" directories to MODULEPATH" >> ${HOME}/.bashrc
-         echo "export MODULEPATH=$MODULEPATH${NEWPATH}:" >> ${HOME}/.bashrc
+         echo "export MODULEPATH=$MODULEPATH${NEWPATH}" >> ${HOME}/.bashrc
      fi
    fi
    echo " exit maali_modify_modulepath" 
@@ -1371,74 +1371,75 @@ done
 # MAALI_OS to a value of your choosing
 
 # by default we are not a cray
-MAALI_CRAY=0
+#MAALI_CRAY=0
 
-if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
+#if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
   # We are a Cray
-  MAALI_OS_VERSION=`grep CLERELEASE /etc/opt/cray/release/CLEinfo | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]`
-  MAALI_OS="cle$MAALI_OS_VERSION"
-  MAALI_CRAY=1
+#  MAALI_OS_VERSION=`grep CLERELEASE /etc/opt/cray/release/CLEinfo | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]`
+#  MAALI_OS="cle$MAALI_OS_VERSION"
+#  MAALI_CRAY=1
 
-elif [ -f "/etc/SuSE-release" ]; then
+#elif [ -f "/etc/SuSE-release" ]; then
   # We are running SLES
-  MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
-  MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
-  MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
+#  MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
+#  MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
+#  MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
 
-elif [ -f "/etc/centos-release" ]; then
-  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
-  MAALI_OS="centos$MAALI_OS_VERSION"
+#elif [ -f "/etc/centos-release" ]; then
+#  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
+#  MAALI_OS="centos$MAALI_OS_VERSION"
 
-elif [[ -f "/etc/os-release" ]]; then
+#elif [[ -f "/etc/os-release" ]]; then
   # This works for ubuntu, fedora and debian linux images
-  NAME=`grep -w ID /etc/os-release | cut -d '=' -f 2`
-  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
+#  NAME=`grep -w ID /etc/os-release | cut -d '=' -f 2`
+#  MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
 
-  if [[ "${NAME}" == "ubuntu" ]]; then
-    MAALI_OS="ubuntu$MAALI_OS_VERSION"
+#  if [[ "${NAME}" == "ubuntu" ]]; then
+#    MAALI_OS="ubuntu$MAALI_OS_VERSION"
 
-  elif [[ "$NAME" == "fedora" ]]; then
-    MAALI_OS_VERSION=`grep -w VERSION_ID /etc/os-release | cut -d '=' -f 2`
-    MAALI_OS="fedora$MAALI_OS_VERSION"
+#  elif [[ "$NAME" == "fedora" ]]; then
+#    MAALI_OS_VERSION=`grep -w VERSION_ID /etc/os-release | cut -d '=' -f 2`
+#    MAALI_OS="fedora$MAALI_OS_VERSION"
 
-  elif [[ "$NAME" == "debian" ]]; then
-    MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
-    MAALI_OS="debian$MAALI_OS_VESION"   
-  fi
+#  elif [[ "$NAME" == "debian" ]]; then
+#    MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
+#    MAALI_OS="debian$MAALI_OS_VESION"   
+#  fi
 
 #elif [ -f "/etc/redhat-release" ]; then
 #  MAALI_OS_VERSION=`cat /etc/redhat-release | awk '{print $4;}'`
 #  MAALI_OS="scientific_linux$MAALI_OS_VERSION"
 #fi    
-elif [[ -z "${MAALI_OS}" ]]; then
-  echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
-  maali_wiki "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
-  exit 1
-fi
-maali_wiki "MAALI_OS is $MAALI_OS"
+#elif [[ -z "${MAALI_OS}" ]]; then
+#  echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
+#  maali_wiki "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
+#  exit 1
+#fi
+#maali_wiki "MAALI_OS is $MAALI_OS"
 
    
 ##############################################################################
 # these are global
 
 #MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet/master"
-MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/chrisbpawsey/maali-cygnet/master"
-MAALI_CYGNET_DIR_NAME='cygnet_files'
-MAALI_CYGNET_BUILD_FILE_EXT='cyg'
+#MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/chrisbpawsey/maali-cygnet/master"
+#MAALI_CYGNET_DIR_NAME='cygnet_files'
+#MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 
-if [ ! $MYGROUP ]; then
-   maali_wiki " MYGROUP is not defined! "
-   maali_wiki " This is not on the Pawsey HPC file system"
-   maali_wiki " The Maali root directory is $MAALI_ROOT as set by ${MAALI_CONFIG}.config file"
-else 
+#if [ ! $MYGROUP ]; then
+#   maali_wiki " MYGROUP is not defined! "
+#   maali_wiki " This is not on the Pawsey HPC file system"
+#   maali_wiki " The Maali root directory is $MAALI_ROOT as set by ${MAALI_CONFIG}.config file"
+#else 
 # At the Pawsey Supercomputing Center MYGROUP is a custom system variable
 # /group/projectID where /group is parallel filesystem for storing job outputs
 # This allows users to install applications in their own group directory
-   maali_wiki "This is for Pawsey HPC systems the environment variable MYGROUP is set!"
-   MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
-fi
+#   maali_wiki "This is for Pawsey HPC systems the environment variable MYGROUP is set!"
+#   MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
+#fi
 
-MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
+#MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
+
 
 ######################################################################
 
@@ -1551,7 +1552,7 @@ MAALI_PYTHON_FIRSTLETTER=`echo "$MAALI_TOOL_NAME_ORIG" | cut -b 1`
 
 maali_wiki "!!  test for maali config file $MAALI_CONFIG maali module is $MAALI_IS_LOADED"
 
-if [ ${MAALI_IS_LOADED} -eq 1 ]; then
+if [ ${MAALI_IS_LOADED} == true ]; then
   maali_wiki "maali module is loaded"
 else 
   maali_wiki "maali module is not loaded "
