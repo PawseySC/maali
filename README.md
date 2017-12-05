@@ -1,7 +1,7 @@
 # maali
 Pawsey Supercomputing Centre Build System
 
-You should be able to install maali by using:
+You should be able to install maali on any of the Pawsey Supercomputing Resources by using:
 
 * `git clone https://github.com/Pawseyops/maali`
 * `cd maali`
@@ -35,47 +35,70 @@ setenv          COMPILER        gcc
 setenv          COMPILER_VER    4.8.3
 ```
 
-We define in the maali.config the MAALI_ROOT path variable.
-** /$MAALI_ROOT ** this will be site/install specific. If it is system install should 
-be root directory level (/).  Note you will need to check the ** /$MAALI_ROOT **
-owner names and group names and make the appropiate changes with the chown comma
-nd.
+## Installing at external sites!
+At the Pawsey Supercomputing Centre we have several system-wide aliases for the different 
+file systems.  This includes the group file system which is intended to be used for 
+long-term storage of executables, input data, important output data, and so on. It allows all 
+members within a project group have read and write access to the /group/[project] directory, 
+so it can be used for sharing files within a project. 
 
+MYGROUP = /group//$PAWSEY_PROJECT/$USER
+
+In the maali script the ** DEFAULT ** MAALI_ROOT variable is set to
+MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
+
+So if you wish to use maali for your own project
+in your $HOME/.bashrc export the MYGROUP variable to what matches up to your ** group file** system
+as defined for the Pawsey Supercomputing Centre.
+ 
+```
+export MYGROUP=/your_testgroup/[project_name]/$USER
+```
+#NOTE you need make sure that you have chmod and chown the path you have defined for MYGROUP!
+#
+
+
+The MAALI_ROOT path variable can be defined in the maali.config file that is downloaded with maali.
+During installation the maali.config file with be copied to $HOME/.maali directory.
+
+** /$MAALI_ROOT ** this will be site/install specific. If it is a system install should 
+be root directory level (/).  Note you will need to check the ** /$MAALI_ROOT **
+owner names and group names and make the appropiate changes with the chown command.
 
 The directories in $MAALI_ROOT are created automatically when maali is installed
-/$MAALI_ROOT/$MAALI_OS/ is the maali rool level directory  at which all the pack
-ages and modules are installed.
+/$MAALI_ROOT/$MAALI_OS is the root path maali for which all sub-directories that maali will
+create at the packages and modules are installed.
 
-for example
-/$MAALI_ROOT/$MAALI_OS/apps - The application install directory this where 
+for example the defaults paths would be:
+/$MAALI_ROOT/apps - The application install directory this where 
                               --prefix is usually set to.  
-/$MAALI_ROOT/$MAALI_OS/build - For most applications we copy and extract the 
+/$MAALI_ROOT/build - For most applications we copy and extract the 
                                source and build it in a seperate directory.
-/$MAALI_ROOT/$MAALI_OS/src - This is where we save all the src packages that 
+/$MAALI_ROOT/src - This is where we save all the src packages that 
                              are downloaded for each build.
-/$MAALI_ROOT/$MAALI_OS/tools - This is where on maali is installed
-/$MAALI_ROOT/$MAALI_OS/modulefiles - the environment module files are located here.
+/$MAALI_ROOT/tools - This is where on maali is installed
+/$MAALI_ROOT/modulefiles - the environment module files are located here.
 
-In the application directory (/$MAALI_ROOT/$MAALI_OS/apps) we create the main 
+In the application directory (/$MAALI_ROOT/apps) we create the main 
 branches for different compilers 
 
-To install maali 
+To do a system install of maali you should modify the maali.config file first then 
+you just need to run the following command.  
 
 ./maali -t maali -v <version> -c maali -d
 
 You will need to then add the maali modulefiles to your MODULEPATH
 either in your .bashrc file in your $HOME directory.  
 
-Here is and example
-export MODULEPATH=/$MAALI_ROOT/$MAALI_OS/modulefiles/devel:/$MAALI_ROOT/$MAALI_O
-S/modulefiles/tools:/$MAALI_ROOT/$MAALI_OS/modulefiles/apps:$MODULEPATH
+Here is an example using the ** DEFAULT ** paths 
+export MODULEPATH=/$MAALI_ROOT/modulefiles/devel:/$MAALI_ROOT/modulefiles/tools:/$MAALI_ROOT/modulefiles/apps:$MODULEPATH
 
 You can then source your ".bashrc" file with the command "source ~/.bashrc"
-Note: The simplest way to pickup changes to your .bashrc file is to logout and l
-og back in.
+Note: The simplest way to pickup changes to your .bashrc file is to logout and
+ log back in.
 
-There is a sample gnu compiler module name gnu/4.8.3 in $MAALI_OS/samples direct
-ory. 
+There is a sample gnu compiler module name gnu/4.8.3 in $MAALI_OS/samples 
+directory. 
 Check to ensure that the compiler version is correct for your system 
 "gcc -v" will show the gnu version for the default gnu compilers.
 Rename and edit the COMPILER_VER variable as needed.
@@ -86,18 +109,18 @@ Next you will want to define the MAALI_TOOL_COMPILERS variable in your
 ```
 .maali/$MAALI_SYSTEM.config file.
 ```
-then run 
+then run ** add_builder ** to create the list of users who can install software
 
 ```
+
 ./add_builder fgump "Forrest Gump" Forrest.Gump@email.com
 ```
 
-
-
 # Extra notes
 ```
-/proc/cpuinfo - lists detailed information about the local cpu 
-
+/proc/cpuinfo - is a file that has detailed information about the local cpu 
+lscpu - list information about the CPU
+lspci | grep NVIDIA - will show what GPUs are installed
 
 These variable match up to this way in cygnet files.
 ```
