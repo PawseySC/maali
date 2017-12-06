@@ -1,7 +1,22 @@
 # maali
 Pawsey Supercomputing Centre Build System
-
+Maali is used to automate the make/cmake builds and the creation of environment modules.
+The build scripts are called by maali to configure, compile and install software for HPC systems.
+Maali is the result of efforts led by Chris Bording, Christopher Harris and  David Schibeci
 You should be able to install maali on any of the Pawsey Supercomputing Resources by using:
+
+##  Maali installation instructions 
+Maali uses itself to install Maali. 
+Some assumptions made with maali one is that you are setting up a hierachral module 
+environment. This requires that you add in some cases set additional environment
+variables the COMPILER and COMPILER_VER are used throughout for defined the install
+path for most applications the major execption is python.
+
+for example in the gnu compiler module we define 
+```
+setenv          COMPILER        gcc
+setenv          COMPILER_VER    4.8.3
+```
 
 * `git clone https://github.com/Pawseyops/maali`
 * `cd maali`
@@ -19,14 +34,10 @@ MAALI_DEFAULT_PYTHON='python/2.6.9 python/2.7.10' \
 ./maali -t maali -v 1.0b1
 ```
 
-##  Maali instructions 
-Maali is used to automate the make/cmake builds and the creation of environment modules.
-The build scripts are called by maali to configure, compile and install software for HPC systems.
-Maali is the result of efforts led by Chris Bording, Christopher Harris and  David Schibeci
 
 Some assumptions made with maali one is that you are setting up a hierachral module 
 environment. This requires that you add in some cases set additional environment
- variables the COMPILER and COMPILER_VER are used throughout for defined the install
+variables the COMPILER and COMPILER_VER are used throughout for defined the install
 path for most applications the major execption is python.
 
 for example in the gnu compiler module we define 
