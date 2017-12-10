@@ -1042,24 +1042,36 @@ function install_default_compiler_modules {
     echo " "
     maali_wiki "list of default compilers to install $MAALI_DEFAULT_COMPILERS"    
     echo " "
-    maali_makedir "$MAALI_MODULE_DIR/devel"
+#    maali_makedir "$MAALI_MODULE_DIR/devel"
     maali_wiki " call maali_modify_modulepath - from install_default_compiler_modules function"
     maali_modify_modulepath 
     for COMP_ID in $MAALI_DEFAULT_COMPILERS; do 
-    # create a loop here 
-
        COMP_NAME=`echo ${COMP_ID} |  cut -d '/' -f 1 `
-       echo "Compiler name is ${COMP_NAME}"
+       IFS=: read -r -d '' -a mpath_list < <(printf '%s:\0' "$MODULEPATH")
+       for lvar in ${mpath_list[@]}; do
+	   echo $lvar
+	   echo "Compiler name is ${COMP_NAME}"
+#           if [ ! -f "$MAALI_MODULE_DIR/devel/${COMP_ID}" ]; then 
+	   if [ ! -f "${lvar}/${COMP_ID}" ]; then
+	       echo "!! no compiler ${COMP_ID} module exsists - install ${COMP_ID} module "
+	       if [[ ${COMP_NAME} == "gnu" ]] || [[ ${COMP_NAME} == "gcc" ]]; then
+		   echo " call create gnu compiler module" 
+		   if [ ! -d ${MAALI_MODULE_DIR/devel ]; then
 
-       if [ ! -f "$MAALI_MODULE_DIR/devel/${COMP_ID}" ]; then 
-         echo "!! no compiler ${COMP_ID} module exsists - install ${COMP_ID} module "
-	 if [[ ${COMP_NAME} == "gnu" ]] || [[ ${COMP_NAME} == "gcc" ]]; then
-           echo " call create gnu compiler module" 
-           create_gcc_compiler_module $COMP_ID	
-         fi
-       else
-         echo "compiler module already exists "
-       fi
+		       maali_makedir "$MAALI_MODULE_DIR/devel"
+		       create_gcc_compiler_module $COMP_ID	
+		   else
+		       echo "compiler module already exists "
+		       echo "!! maali installation failed"
+		       echo "install default compiler module"
+		       exit
+		   fi
+	       fi
+	   else
+	       maali_wiki "Found ${COMP_ID} in modulepath ${lvar}"
+	       break
+	   fi
+       done
     done
     maali_wiki " function install_default_compiler_modules "
     maali_wiki " installed ${MAALI_DEFAULT_COMPILERS} "
@@ -1355,8 +1367,86 @@ MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/chrisbpawsey/maali-cyg
 MAALI_CYGNET_DIR_NAME='cygnet_files'
 MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 
+######################################################################
+# If using a MAALI_CONFIG file find it and source it.
+# will either be in the maali directory during maali initial installation
+# or it will be it the users $HOME/.maali directory.
+#
+
+maali_wiki "!!  test for maali config file $MAALI_CONFIG maali module is $MAALI_IS_LOADED"
+
+if [ ${MAALI_IS_LOADED} == true ]; then
+  maali_wiki "maali module is loaded"
+else 
+  maali_wiki "maali module is not loaded "
+fi 
+
+if [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" != "maali" ]]; then
+   echo " ! Using a local maali configuration file in the user's home directory .maali "
+   echo "   to install ${MAALI_TOOL_NAME} " 
+  # allow us to override the config
+# Test to see if it in the users directory this means maali is installed!
+  if [ -f "$HOME/.maali/$MAALI_CONFIG.config" ]; then
+     . "$HOME/.maali/$MAALI_CONFIG.config"
+
+     # use the name of our config file to create a different log file
+     MAALI_LOG_PREFIX="$MAALI_CONFIG-"
+  fi  
+
+elif [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then 
+    echo " ! this is for a users account"
+    echo " ! this will attempt to create and gnu compiler module "
+    maali_wiki " using config file in current directory to do a custom installation of maali!"
+    maali_wiki " we are installing maali in the workstation ${MAALI_OS} "  
+ 
+    if [ ! -d ${HOME}/.maali ]; then    
+    # copy the MAALI_CONFIG.config file copy to user home and source
+     maali_makedir "${HOME}/.maali"
+     maali_wiki " created the ${HOME}/.maali"
+     cp ${MAALI_CONFIG}.config ${HOME}/.maali
+     . "${HOME}/.maali/${MAALI_CONFIG}.config"
+
+    # Since this is an initial install what else can we do?  
+    # Try to auto generate module files for compilers!
+      if [ ! -d ${MAALI_MODULE_DIR}  ]; then
+ 	maali_wiki "!! The module devel directory has been created $MAALI_MODULE_DIR"
+        install_default_compiler_modules 
+      else
+ 	echo " $MAALI_MODULE_DIR does not exist line 1318"
+      fi
+
+    fi 
+#  else
+#    echo "Could not open $HOME/.maali/$MAALI_CONFIG.config!";
+#    exit 1;
+#  fi
+elif [[ -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then
+  echo " !  this is the default workstation build "
+  echo " !! test for module dir and install default compiler modules "
+  echo " !! the maali module directory is ${MAALI_MODULE_DIR}"
+  echo " "
+  if [ -z ${MAALI_DEFAULT_COMPILERS} ]; then
+      echo " NO Default compilers defined, installation will fail"
+      echo " the installation command for maali should look like this...."
+      echo " MAALI_DEFAULT_COMPILERS=\"gcc/4.8.3 intel/15.0.0\" ./maali -t maali -v 1.0.1"
+      exit 1
+  else 
+      echo "!!!!!"
+      echo "  Install maali with the default compilers ${MAALI_DEFAULT_COMPILERS} and "
+      echo "  check modulepath environment variable line 1352 "
+      echo "  the module path here is $MODULEPATH"
+      echo "!!!!!"
+      echo " "
+      install_default_compiler_modules 
+  fi
+fi
+maali_wiki " exit test for maali.config file" 
+
+######################################################################
+
+
 if [ ! $MYGROUP ]; then
-   maali_wiki " MYGROUP is not defined as a system variable! "
+   maali_wiki " MYGROUP is not defined as a system environment variable! "
    maali_wiki " This is not on the Pawsey HPC file system"
    maali_wiki " The Maali root directory is $MAALI_ROOT as set by ${MAALI_CONFIG}.config file"
 else 
@@ -1374,6 +1464,11 @@ fi
 
 MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
 MAALI_WGET_CMD="wget"
+
+if [[ -z $MAALI_ROOT ]]; then
+    echo "MAALI_ROOT is UNDEFINED, check your config file!
+    exit 1
+fi 
 
 echo MAALI_ROOT is set to $MAALI_ROOT 
 ######################################################################
@@ -1478,81 +1573,6 @@ MAALI_TOOL_NAME_UPPERCASE=$(echo "$MAALI_TOOL_NAME" | tr '[:lower:]' '[:upper:]'
 
 # chicken and egg
 MAALI_PYTHON_FIRSTLETTER=`echo "$MAALI_TOOL_NAME_ORIG" | cut -b 1`
-
-######################################################################
-# If using a MAALI_CONFIG file find it and source it.
-# will either be in the maali directory during maali initial installation
-# or it will be it the users $HOME/.maali directory.
-#
-
-maali_wiki "!!  test for maali config file $MAALI_CONFIG maali module is $MAALI_IS_LOADED"
-
-if [ ${MAALI_IS_LOADED} == true ]; then
-  maali_wiki "maali module is loaded"
-else 
-  maali_wiki "maali module is not loaded "
-fi 
-
-if [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" != "maali" ]]; then
-   echo " ! Using a local maali configuration file in the user's home directory .maali "
-   echo "   to install ${MAALI_TOOL_NAME} " 
-  # allow us to override the config
-# Test to see if it in the users directory this means maali is installed!
-  if [ -f "$HOME/.maali/$MAALI_CONFIG.config" ]; then
-     . "$HOME/.maali/$MAALI_CONFIG.config"
-
-     # use the name of our config file to create a different log file
-     MAALI_LOG_PREFIX="$MAALI_CONFIG-"
-  fi  
-
-elif [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then 
-    echo " ! this is for a users account"
-    echo " ! this will attempt to create and gnu compiler module "
-    maali_wiki " using config file in current directory to do a custom installation of maali!"
-    maali_wiki " we are installing maali in the workstation ${MAALI_OS} "  
- 
-    if [ ! -d ${HOME}/.maali ]; then    
-    # copy the MAALI_CONFIG.config file copy to user home and source
-     maali_makedir "${HOME}/.maali"
-     maali_wiki " created the ${HOME}/.maali"
-     cp ${MAALI_CONFIG}.config ${HOME}/.maali
-     . "${HOME}/.maali/${MAALI_CONFIG}.config"
-
-    # Since this is an initial install what else can we do?  
-    # Try to auto generate module files for compilers!
-      if [ ! -d ${MAALI_MODULE_DIR}  ]; then
- 	maali_wiki "!! The module devel directory has been created $MAALI_MODULE_DIR"
-        install_default_compiler_modules 
-      else
- 	echo " $MAALI_MODULE_DIR does not exist line 1318"
-      fi
-
-    fi 
-#  else
-#    echo "Could not open $HOME/.maali/$MAALI_CONFIG.config!";
-#    exit 1;
-#  fi
-elif [[ -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then
-  echo " !  this is the default workstation build "
-  echo " !! test for module dir and install default compiler modules "
-  echo " !! the maali module directory is ${MAALI_MODULE_DIR}"
-  echo " "
-  if [ -z ${MAALI_DEFAULT_COMPILERS} ]; then
-      echo " NO Default compilers defined, installation will fail"
-      echo " the installation command for maali should look like this...."
-      echo " MAALI_DEFAULT_COMPILERS=\"gcc/4.8.3 intel/15.0.0\" ./maali -t maali -v 1.0.1"
-      exit 1
-  else 
-      echo "!!!!!"
-      echo "  Install maali with the default compilers ${MAALI_DEFAULT_COMPILERS} and "
-      echo "  check modulepath environment variable line 1352 "
-      echo "  the module path here is $MODULEPATH"
-      echo "!!!!!"
-      echo " "
-      install_default_compiler_modules 
-  fi
-fi
-maali_wiki " exit test for maali.config file" 
 
 
 
