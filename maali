@@ -919,8 +919,8 @@ function maali_module_lua {
   if [[ $MAALI_CRAY -eq 1 ]] ;  then
     [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("CRAY_CPU_TARGET")..'
   fi
-  [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+='/cuda/"..os.getenv("CUDA_VER")..'
-  if [ "$MAALI_TOOL_COMPILERS" != "binary" ]; then
+  [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+='"/cuda/"..os.getenv("CUDA_VER")..'
+  if [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] ; then
     MAALI_APP_HOME+='"/'$MAALI_TOOL_NAME
   else 
     MAALI_APP_HOME+='/'$MAALI_TOOL_NAME
@@ -1192,7 +1192,7 @@ EOF
 
   # CUDA conflict
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
-    MAALI_SYSTEM_CUDA_LIST=`module avail cuda/ -t 2>&1 | grep cuda/ | sed -e 's/(default)//g'`
+    MAALI_SYSTEM_CUDA_LIST=`module -t avail cuda/ 2>&1 | grep cuda/ | sed -e 's/(default)//g'`
 
     for MAALI_SYSTEM_CUDA_VERSION in $MAALI_SYSTEM_CUDA_LIST; do
 
