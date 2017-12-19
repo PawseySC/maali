@@ -21,6 +21,14 @@ if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
 
   MAALI_CRAY=1
   MAALI_PRE_CPU_TARGET="craype-"
+elif [ -f "/etc/opt/cray/release/cle-release" ]; then
+  # We are a Cray
+  MAALI_OS_VERSION=`grep RELEASE /etc/opt/cray/release/cle-release | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]`
+
+  MAALI_OS="cle$MAALI_OS_VERSION"
+
+  MAALI_CRAY=1
+  MAALI_PRE_CPU_TARGET="craype-"
 elif [ -f "/etc/SuSE-release" ]; then
   # We are running SLES
   MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
@@ -1741,7 +1749,7 @@ MAALI_SRC="$MAALI_ROOT/src"
 # Why can't SLES file the module command?
 if [ -f "/etc/SuSE-release" ]; then
   # but a Cray can?
-  if [ ! $CRAYOS_VERSION ]; then
+  if [[ ! $CRAYOS_VERSION ]] && [[ ! -d "/etc/opt/cray" ]] ; then
     if [ -f "/etc/profile.d/modules.sh" ]; then
       # running SLES machine using environment modules
       . /etc/profile.d/modules.sh
