@@ -905,9 +905,9 @@ EOF
 
 function maali_module_lua {
   # determine the default versions of a number of tools
-  MAALI_SYSTEM_DEFAULT_PYTHON=`module -dt avail python | tail -1 | cut -d '/' -f 2`
-  MAALI_SYSTEM_DEFAULT_R=`module -dt avail r | tail -1 | cut -d '/' -f 2`
-  MAALI_SYSTEM_DEFAULT_CUDA=`module -dt avail cuda | tail -1 | cut -d '/' -f 2`
+  MAALI_SYSTEM_DEFAULT_PYTHON=`module -dt avail python | xargs -n1 | grep '^python/' | cut -d '/' -f 2`
+  MAALI_SYSTEM_DEFAULT_R=`module -dt avail r | xargs -n1 | grep '^r/' | cut -d '/' -f 2`
+  MAALI_SYSTEM_DEFAULT_CUDA=`module -dt avail cuda | xargs -n1 | grep '^cuda/' | cut -d '/' -f 2`
 
   MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   MAALI_APP_HOME="$MAALI_APPS_DIR"
