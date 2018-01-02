@@ -543,7 +543,7 @@ EOF
         done
       done
 
-    elif [[ "$MAALI_PREREQ_MODULE_NAME" =~ "$MAALI_PRE_CPU_TARGET" ]]; then
+    elif [[ "$MAALI_PRE_CPU_TARGET" != "" ]] && [[ "$MAALI_PREREQ_MODULE_NAME" =~ "$MAALI_PRE_CPU_TARGET" ]]; then
 
       MAALI_TOOL_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
 
