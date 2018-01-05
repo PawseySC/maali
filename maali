@@ -493,7 +493,7 @@ EOF
     MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
     if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
 
-      MAALI_SYSTEM_COMPILER_LIST=`module avail gcc/ -t 2>&1 | xargs -n1 | grep gcc/ | xargs`
+      MAALI_SYSTEM_COMPILER_LIST=`module avail gcc/ -t 2>&1 | xargs -n1 | grep '^gcc/' | xargs`
 
       if [ "$MAALI_SYSTEM_COMPILER_LIST" != "" ]; then
         for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
@@ -524,7 +524,7 @@ EOF
     elif [ "$MAALI_PREREQ_MODULE_NAME" == "PrgEnv-gnu" ]; then
 
       for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
-        MAALI_SYSTEM_CRAY_PRGENV_LIST=`module avail $MAALI_CRAY_PRGENV_TYPE -t 2>&1 | xargs -n1 | grep $MAALI_CRAY_PRGENV_TYPE | xargs`
+        MAALI_SYSTEM_CRAY_PRGENV_LIST=`module avail $MAALI_CRAY_PRGENV_TYPE -t 2>&1 | xargs -n1 | grep "^$MAALI_CRAY_PRGENV_TYPE" | xargs`
         for MAALI_SYSTEM_CRAY_PRGENV in $MAALI_SYSTEM_CRAY_PRGENV_LIST; do
 
           # need to see if the system PrgEnv is anywhere in the list
@@ -555,7 +555,7 @@ EOF
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
 
     for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
-      MAALI_SYSTEM_CRAY_PRGENV_LIST=`module -t avail $MAALI_CRAY_PRGENV_TYPE 2>&1 | xargs -n1 | grep $MAALI_CRAY_PRGENV_TYPE | xargs`
+      MAALI_SYSTEM_CRAY_PRGENV_LIST=`module -t avail $MAALI_CRAY_PRGENV_TYPE 2>&1 | xargs -n1 | grep "^$MAALI_CRAY_PRGENV_TYPE" | xargs`
       for MAALI_SYSTEM_CRAY_PRGENV in $MAALI_SYSTEM_CRAY_PRGENV_LIST; do
 
         # need to see if the system PrgEnv is anywhere in the list
@@ -580,7 +580,7 @@ EOF
   # conflict for MAALI_TOOL_CPU_TARGET
   if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
     for MAALI_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CPU_TARGETS; do
-      MAALI_SYSTEM_CPU_TARGET_LIST=`module -t avail $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET_TYPE 2>&1 | xargs -n1 | grep $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET_TYPE | xargs | sed -e 's|/.*||g'`
+      MAALI_SYSTEM_CPU_TARGET_LIST=`module -t avail $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET_TYPE 2>&1 | xargs -n1 | grep "^$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET_TYPE" | xargs | sed -e 's|/.*||g'`
       for MAALI_SYSTEM_CPU_TARGET in $MAALI_SYSTEM_CPU_TARGET_LIST; do
 
         # need to see if the system CPU_TARGET is anywhere in the list
@@ -608,7 +608,7 @@ EOF
     if [ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
       # if we have compiled with the system compiler, do we need conflict resolution?
       for MAALI_COMPILER_TYPE in $MAALI_SUPPORTED_COMPILERS; do
-        MAALI_SYSTEM_COMPILER_LIST=`module avail $MAALI_COMPILER_TYPE/ -t 2>&1 | xargs -n1 | grep $MAALI_COMPILER_TYPE/ | xargs`
+        MAALI_SYSTEM_COMPILER_LIST=`module avail $MAALI_COMPILER_TYPE/ -t 2>&1 | xargs -n1 | grep "^$MAALI_COMPILER_TYPE/" | xargs`
 
         if [ "$MAALI_SYSTEM_COMPILER_LIST" != "" ]; then
           for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
@@ -644,7 +644,7 @@ EOF
 
   # CUDA conflict
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
-    MAALI_SYSTEM_CUDA_LIST=`module avail cuda/ -t 2>&1 | xargs -n1 | grep cuda/ | xargs`
+    MAALI_SYSTEM_CUDA_LIST=`module avail cuda/ -t 2>&1 | xargs -n1 | grep '^cuda/' | xargs`
 
     for MAALI_SYSTEM_CUDA_VERSION in $MAALI_SYSTEM_CUDA_LIST; do
 
@@ -729,8 +729,8 @@ EOF
   done
 
   # sort MAALI_MODULE_SET_MAALI variables first
-  MAALI_MODULE_VARIABLES_LIST_MAALI=`compgen -v | grep MAALI_MODULE_SET_MAALI`
-  MAALI_MODULE_VARIABLES_LIST_NON_MAALI=`compgen -v | grep MAALI_MODULE_SET_ | grep -v MAALI_MODULE_SET_MAALI`
+  MAALI_MODULE_VARIABLES_LIST_MAALI=`compgen -v | grep "^MAALI_MODULE_SET_MAALI"`
+  MAALI_MODULE_VARIABLES_LIST_NON_MAALI=`compgen -v | grep "^MAALI_MODULE_SET_" | grep -v "^MAALI_MODULE_SET_MAALI"`
 
   # get all the varibales which start with MAALI_MODULE_SET_
   MAALI_MODULE_VARIABLES_LIST="$MAALI_MODULE_VARIABLES_LIST_MAALI $MAALI_MODULE_VARIABLES_LIST_NON_MAALI"
@@ -1052,7 +1052,7 @@ EOF
     MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
     if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
 
-      MAALI_SYSTEM_COMPILER_LIST=`module -t avail gcc/ 2>&1 | xargs -n1 | grep gcc/ | xargs`
+      MAALI_SYSTEM_COMPILER_LIST=`module -t avail gcc/ 2>&1 | xargs -n1 | grep '^gcc/' | xargs`
 
       if [ "$MAALI_SYSTEM_COMPILER_LIST" != "" ]; then
         for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
@@ -1083,7 +1083,7 @@ EOF
     elif [ "$MAALI_PREREQ_MODULE_NAME" == "PrgEnv-gnu" ]; then
 
       for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
-        MAALI_SYSTEM_CRAY_PRGENV_LIST=`module -t avail $MAALI_CRAY_PRGENV_TYPE 2>&1 | xargs -n1 | grep $MAALI_CRAY_PRGENV_TYPE | xargs`
+        MAALI_SYSTEM_CRAY_PRGENV_LIST=`module -t avail $MAALI_CRAY_PRGENV_TYPE 2>&1 | xargs -n1 | grep "^$MAALI_CRAY_PRGENV_TYPE" | xargs`
         for MAALI_SYSTEM_CRAY_PRGENV in $MAALI_SYSTEM_CRAY_PRGENV_LIST; do
 
           # need to see if the system PrgEnv is anywhere in the list
@@ -1114,7 +1114,7 @@ EOF
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
 
     for MAALI_CRAY_PRGENV_TYPE in $MAALI_SUPPORTED_CRAY_PRGENVS; do
-      MAALI_SYSTEM_CRAY_PRGENV_LIST=`module -t avail $MAALI_CRAY_PRGENV_TYPE 2>&1 | xargs -n1 | grep $MAALI_CRAY_PRGENV_TYPE | xargs`
+      MAALI_SYSTEM_CRAY_PRGENV_LIST=`module -t avail $MAALI_CRAY_PRGENV_TYPE 2>&1 | xargs -n1 | grep "^$MAALI_CRAY_PRGENV_TYPE" | xargs`
       for MAALI_SYSTEM_CRAY_PRGENV in $MAALI_SYSTEM_CRAY_PRGENV_LIST; do
 
         # need to see if the system PrgEnv is anywhere in the list
@@ -1164,7 +1164,7 @@ EOF
     if [ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
       # if we have compiled with the system compiler, do we need conflict resolution?
       for MAALI_COMPILER_TYPE in $MAALI_SUPPORTED_COMPILERS; do
-        MAALI_SYSTEM_COMPILER_LIST=`module -t avail $MAALI_COMPILER_TYPE/ 2>&1 | xargs -n1 | grep $MAALI_COMPILER_TYPE/ | xargs`
+        MAALI_SYSTEM_COMPILER_LIST=`module -t avail $MAALI_COMPILER_TYPE/ 2>&1 | xargs -n1 | grep "^$MAALI_COMPILER_TYPE/" | xargs`
 
         if [ "$MAALI_SYSTEM_COMPILER_LIST" != "" ]; then
           for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
@@ -1200,7 +1200,7 @@ EOF
 
   # CUDA conflict
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
-    MAALI_SYSTEM_CUDA_LIST=`module -t avail cuda/ 2>&1 | xargs -n1 | grep cuda/ | xargs`
+    MAALI_SYSTEM_CUDA_LIST=`module -t avail cuda/ 2>&1 | xargs -n1 | grep '^cuda/' | xargs`
 
     for MAALI_SYSTEM_CUDA_VERSION in $MAALI_SYSTEM_CUDA_LIST; do
 
@@ -1282,8 +1282,8 @@ EOF
   done
 
   # sort MAALI_MODULE_SET_MAALI variables first
-  MAALI_MODULE_VARIABLES_LIST_MAALI=`compgen -v | grep MAALI_MODULE_SET_MAALI`
-  MAALI_MODULE_VARIABLES_LIST_NON_MAALI=`compgen -v | grep MAALI_MODULE_SET_ | grep -v MAALI_MODULE_SET_MAALI`
+  MAALI_MODULE_VARIABLES_LIST_MAALI=`compgen -v | grep "^MAALI_MODULE_SET_MAALI"`
+  MAALI_MODULE_VARIABLES_LIST_NON_MAALI=`compgen -v | grep "^MAALI_MODULE_SET_" | grep -v "^MAALI_MODULE_SET_MAALI"`
 
   # get all the varibales which start with MAALI_MODULE_SET_
   MAALI_MODULE_VARIABLES_LIST="$MAALI_MODULE_VARIABLES_LIST_MAALI $MAALI_MODULE_VARIABLES_LIST_NON_MAALI"
@@ -1862,8 +1862,8 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   fi
 
   # attempt to derive the information from ldap
-  MAALI_BUILDER_BUILD_CN=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' cn | grep cn: | sed -e 's/cn: //g'`
-  MAALI_BUILDER_BUILD_MAIL=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' mail | grep mail: | sed -e 's/mail: //g'`
+  MAALI_BUILDER_BUILD_CN=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' cn | grep '^cn:' | sed -e 's/cn: //g'`
+  MAALI_BUILDER_BUILD_MAIL=`ldapsearch -LLL -x '(uid='$MAALI_BUILDER_UID')' mail | grep '^mail:' | sed -e 's/mail: //g'`
 
   if [[ "$MAALI_BUILDER_BUILD_CN" == "" ]] || [[ "$MAALI_BUILDER_BUILD_MAIL" = "" ]]; then
     # use the MAALI_USER_MAP file
@@ -2358,7 +2358,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
 
         if [ $MAALI_CRAY -eq 1 ]; then
           # check to see if the PrgEnv loaded the wrong compiler
-          MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep -v PrgEnv | grep $MAALI_COMPILER_NAME | wc -l`
+          MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep -v "^PrgEnv" | grep "^$MAALI_COMPILER_NAME" | wc -l`
           
           if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
             module unload $MAALI_COMPILER_NAME
@@ -2414,7 +2414,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
               if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
                 # check to see if the PrgEnv loaded the wrong compiler
-                MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep $MAALI_PREREQ_MODULE_NAME | wc -l`
+                MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep "^$MAALI_PREREQ_MODULE_NAME" | wc -l`
                 if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
                   module unload $MAALI_PREREQ_MODULE_NAME
                 fi # if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
@@ -2593,7 +2593,7 @@ else
 
     if [ -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" ]; then
       # check if it is the default version
-      MAALI_TOOL_VERSION_CURRENT_DEFAULT=`grep \"$MAALI_TOOL_VERSION\" $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME | wc -l`
+      MAALI_TOOL_VERSION_CURRENT_DEFAULT=`grep \"^$MAALI_TOOL_VERSION\" $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME | wc -l`
 
       if [ $MAALI_TOOL_VERSION_CURRENT_DEFAULT -eq 1 ]; then
         rm -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME"
