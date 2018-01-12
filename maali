@@ -491,6 +491,7 @@ if { [ info exists MAALI_LOADED_PRGENV ] } {
 EOF
   fi
 
+echo $MAALI_TOOL_CPU_TARGET
   for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
     # this is to allow us to compile python software with a Cray environment
     MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
@@ -546,12 +547,13 @@ EOF
         done
       done
 
-    elif [[ "$MAALI_PRE_CPU_TARGET" != "" ]] && [[ "$MAALI_PREREQ_MODULE_NAME" =~ "$MAALI_PRE_CPU_TARGET" ]]; then
-
-      MAALI_TOOL_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
-
+#    elif [[ "$MAALI_PRE_CPU_TARGET" != "" ]] && [[ "$MAALI_PREREQ_MODULE_NAME" =~ "$MAALI_PRE_CPU_TARGET" ]]; then
+#
+#      MAALI_TOOL_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
+#
     fi # if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
    done
+echo $MAALI_TOOL_CPU_TARGET
 
 
   # conflict for PrgEnv
@@ -1105,10 +1107,10 @@ EOF
         done
       done
 
-    elif [[ "$MAALI_PRE_CPU_TARGET" != "" ]] && [[ "$MAALI_PREREQ_MODULE_NAME" =~ "$MAALI_PRE_CPU_TARGET" ]]; then
-
-      MAALI_TOOL_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
-
+#    elif [[ "$MAALI_PRE_CPU_TARGET" != "" ]] && [[ "$MAALI_PREREQ_MODULE_NAME" =~ "$MAALI_PRE_CPU_TARGET" ]]; then
+#
+#      MAALI_TOOL_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
+#
     fi # if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
    done
 
