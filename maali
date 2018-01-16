@@ -1711,7 +1711,7 @@ do
          g)
              MAALI_ROOT="/group/$PAWSEY_PROJECT/software/$MAALI_OS"
              MAALI_GROUP_BUILD="YES"
-             MAALI_MKDIR_FLAGS="--mode=a=rwx,g=rwxs,o="
+             MAALI_MKDIR_FLAGS=${MAALI_MKDIR_FLAGS:-"--mode=a=rwx,g=rwxs,o="}
              ;;
          s)
              # how do we reset MAALI_ROOT, MAALI_BUILD_DIR and MAALI_MODULE_DIR
