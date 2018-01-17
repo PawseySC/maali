@@ -455,24 +455,24 @@ setenv CRAYOS_VERSION 6.0.4
 
 if { [module-info mode load] || [module-info mode switch] || [module-info mode remove] } {
 if { [ is-loaded PrgEnv-cray ] } {
-  setenv MAALI_LOADED_PRGENV PrgEnv-cray
-  setenv COMPILER            cce
-  setenv COMPILER_VER        \$env(CRAY_CC_VERSION)
+  set MAALI_LOADED_PRGENV PrgEnv-cray
+  set COMPILER            cce
+  set COMPILER_VER        \$env(CRAY_CC_VERSION)
 }
 if { [ is-loaded PrgEnv-gnu ] } {
-  setenv MAALI_LOADED_PRGENV PrgEnv-gnu
-  setenv COMPILER            gcc
-  setenv COMPILER_VER        \$env(GCC_VERSION)
+  set MAALI_LOADED_PRGENV PrgEnv-gnu
+  set COMPILER            gcc
+  set COMPILER_VER        \$env(GCC_VERSION)
 }
 if { [ is-loaded PrgEnv-intel ] } {
-  setenv MAALI_LOADED_PRGENV PrgEnv-intel
-  setenv COMPILER            intel
-  setenv COMPILER_VER        \$env(INTEL_VERSION)
+  set MAALI_LOADED_PRGENV PrgEnv-intel
+  set COMPILER            intel
+  set COMPILER_VER        \$env(INTEL_VERSION)
 }
 if { [ is-loaded PrgEnv-pgi ] } {
-  setenv MAALI_LOADED_PRGENV PrgEnv-pgi
-  setenv COMPILER            pgi
-  setenv COMPILER_VER        \$env(PGI_VERSION)
+  set MAALI_LOADED_PRGENV PrgEnv-pgi
+  set COMPILER            pgi
+  set COMPILER_VER        \$env(PGI_VERSION)
 }
 if { [ info exists MAALI_LOADED_PRGENV ] } {
   if { [module-info mode load] || [module-info mode switch] } {
@@ -1011,24 +1011,24 @@ EOF
     cat <<EOF >> $MAALI_TOOL_MODULE
 if ((mode() == "load") or (mode() == "switch") or (mode() == "remove")) then
   if (isloaded("PrgEnv-cray") ~= true) then
-    setenv("MAALI_LOADED_PRGENV","PrgEnv-cray")
-    setenv("COMPILER","cce")
-    setenv("COMPILER_VER",os.getenv("CRAY_CC_VERSION"))
+    local MAALI_LOADED_PRGENV = 'PrgEnv-cray'
+    local COMPILER = 'cce'
+    local COMPILER_VER = os.getenv("CRAY_CC_VERSION")
   end
   if (isloaded("PrgEnv-gnu") ~= true) then
-    setenv("MAALI_LOADED_PRGENV","PrgEnv-gnu")
-    setenv("COMPILER","gcc")
-    setenv("COMPILER_VER",os.getenv("GCC_VERSION"))
+    local MAALI_LOADED_PRGENV = 'PrgEnv-gnu'
+    local COMPILER = 'gcc'
+    local COMPILER_VER",os.getenv("GCC_VERSION")
   end
   if (isloaded("PrgEnv-intel") ~= true) then
-    setenv("MAALI_LOADED_PRGENV","PrgEnv-intel")
-    setenv("COMPILER","intel")
-    setenv("COMPILER_VER",os.getenv("INTEL_VERSION"))
+    local MAALI_LOADED_PRGENV = 'PrgEnv-intel'
+    local COMPILER = 'intel'
+    local COMPILER_VER",os.getenv("INTEL_VERSION")
   end
   if (isloaded("PrgEnv-pgi") ~= true) then
-    setenv("MAALI_LOADED_PRGENV","PrgEnv-pgi")
-    setenv("COMPILER","pgi")
-    setenv("COMPILER_VER",os.getenv("PGI_VERSION"))
+    local MAALI_LOADED_PRGENV = 'PrgEnv-pgi'
+    local COMPILER = 'pgi'
+    local COMPILER_VER = os.getenv("PGI_VERSION")
   end
   if (os.getenv("MAALI_LOADED_PRGENV") ~= "") then
     if ((mode() == "load") or (mode() == "switch")) then
