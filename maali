@@ -491,7 +491,6 @@ if { [ info exists MAALI_LOADED_PRGENV ] } {
 EOF
   fi
 
-echo $MAALI_TOOL_CPU_TARGET
   for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
     # this is to allow us to compile python software with a Cray environment
     MAALI_PREREQ_MODULE_NAME=`echo "$MAALI_PREREQ_MODULE" | cut -d '/' -f 1`
@@ -547,13 +546,8 @@ EOF
         done
       done
 
-#    elif [[ "$MAALI_PRE_CPU_TARGET" != "" ]] && [[ "$MAALI_PREREQ_MODULE_NAME" =~ "$MAALI_PRE_CPU_TARGET" ]]; then
-#
-#      MAALI_TOOL_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
-#
     fi # if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
    done
-echo $MAALI_TOOL_CPU_TARGET
 
 
   # conflict for PrgEnv
@@ -1107,10 +1101,6 @@ EOF
         done
       done
 
-#    elif [[ "$MAALI_PRE_CPU_TARGET" != "" ]] && [[ "$MAALI_PREREQ_MODULE_NAME" =~ "$MAALI_PRE_CPU_TARGET" ]]; then
-#
-#      MAALI_TOOL_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
-#
     fi # if [ "$MAALI_PREREQ_MODULE_NAME" == "gcc" ]; then
    done
 
@@ -2269,6 +2259,30 @@ fi
 
 # Save the MAALI_TOOL_COMPILERS for the cray builds
 MAALI_CRAY_TOOL_COMPILERS="$MAALI_TOOL_COMPILERS"
+
+#For the ugly cases where a CPU_TARGET is in the prerequisites, add it to MAALI_TOOL_CPU_TARGET
+for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
+  # set MAALI_TOOL_CPU_TARGET if one is in the prerequisites.  It only makes sense to have one seeing it's a prerequisite.
+  MAALI_PREREQ_MODULE_NAME=`echo $MAALI_PREREQ_MODULE | cut -d '/' -f 1`
+  MAALI_CPU_TARGET_FOUND_MATCH=0
+  for MAALI_CPU_TARGET_TYPE in $MAALI_SUPPORTED_CPU_TARGETS; do
+    if [ "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET_TYPE" == "$MAALI_PREREQ_MODULE_NAME" ]; then
+      # prerequisite is a cpu target
+      MAALI_CPU_TARGET_FOUND_MATCH=1
+    fi
+  done
+
+  if [ $MAALI_CPU_TARGET_FOUND_MATCH -eq 1 ]; then
+    if [ $MAALI_TOOL_CPU_TARGET == "na" ]; then
+      MAALI_TOOL_CPU_TARGET=`echo $MAALI_PREREQ_MODULE_NAME | cut -d '-' -f 2`
+    else
+      MAALI_TOOL_CPU_TARGET+=" "
+      MAALI_TOOL_CPU_TARGET+=`echo " $MAALI_PREREQ_MODULE_NAME" | cut -d '-' -f 2`
+    fi
+  fi
+done
+##############################################
+
 
 if [ $MAALI_REMODULE -eq 0 ]; then
   # need to build for every PrgENV that we support
