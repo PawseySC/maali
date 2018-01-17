@@ -450,8 +450,12 @@ EOF
 
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
-# need to move this out
-setenv CRAYOS_VERSION 6.0.4
+foreach module [split \$env(LOADEDMODULES) :] {
+  if {[string match PrgEnv-* \$module]} {
+    set PRGENV_NAME [lindex [split \$module /] 0 ]
+    set CRAYOS_VERSION [lindex [split \$module /] 1 ]
+  }
+}
 
 if { [module-info mode load] || [module-info mode switch] || [module-info mode remove] } {
 if { [ is-loaded PrgEnv-cray ] } {
@@ -479,10 +483,14 @@ if { [ info exists MAALI_LOADED_PRGENV ] } {
     setenv MAALI_LOADED_PRGENV \$MAALI_LOADED_PRGENV
     setenv COMPILER \$COMPILER
     setenv COMPILER_VER \$COMPILER_VER
+    setenv PRGENV_NAME \$PRGENV_NAME
+    setenv CRAYOS_VERSION \$CRAYOS_VERSION
   } elseif { [module-info mode remove] } {
     unsetenv MAALI_LOADED_PRGENV \$MAALI_LOADED_PRGENV
     unsetenv COMPILER \$COMPILER
     unsetenv COMPILER_VER \$COMPILER_VER
+    unsetenv CRAYOS_VERSION \$CRAYOS_VERSION
+    unsetenv PRGENV_NAME \$PRGENV_NAME
   }
 }
 }
