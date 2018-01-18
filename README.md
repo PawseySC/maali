@@ -53,7 +53,7 @@ long-term storage of executables, input data, important output data, and so on. 
 members within a project group have read and write access to the /group/[project] directory, 
 so it can be used for sharing files within a project. 
 
-MYGROUP = /group//$PAWSEY_PROJECT/$USER
+MYGROUP = /group/$PAWSEY_PROJECT/$USER
 
 In the maali script the ** DEFAULT ** MAALI_ROOT variable is set to
 MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
