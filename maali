@@ -298,7 +298,7 @@ function maali_makedir {
         echo "-- Making directory $MAALI_DIR_PATH" >> "$MAALI_TOOL_LOG"
       fi
 
-      mkdir "$MAALI_MKDIR_FLAGS" "$MAALI_DIR_PATH"
+      mkdir $MAALI_MKDIR_FLAGS "$MAALI_DIR_PATH"
 
       if [ "$PAWSEY_PROJECT" != "" ]; then
         if [[ ! "$MAALI_DIR_PATH" =~ "/home" ]]; then
