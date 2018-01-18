@@ -1017,36 +1017,53 @@ EOF
 
   if [[ $MAALI_CRAY -eq 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] && [[ $MAALI_PYTHON_TOOL -ne 1 ]] && [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]]; then
     cat <<EOF >> $MAALI_TOOL_MODULE
+
+local loadedmodules = os.getenv("LOADEDMODULES")
+local i,j = string.find(loadedmodules,"PrgEnv%-%w+/[^:]+")
+local PRGENV_NAME
+local CRAYOS_VERSION
+local MAALI_LOADED_PRGENV
+local COMPILER
+local COMPILER_VER
+if (i) then
+  k = string.find(loadedmodules,"/",i)
+  PRGENV_NAME = string.sub(loadedmodules,i,k-1)
+  CRAYOS_VERSION = string.sub(loadedmodules,k+1,j)
+end
 if ((mode() == "load") or (mode() == "switch") or (mode() == "remove")) then
-  if (isloaded("PrgEnv-cray") ~= true) then
-    local MAALI_LOADED_PRGENV = 'PrgEnv-cray'
-    local COMPILER = 'cce'
-    local COMPILER_VER = os.getenv("CRAY_CC_VERSION")
+  if (isloaded("PrgEnv-cray")) then
+    MAALI_LOADED_PRGENV = 'PrgEnv-cray'
+    COMPILER = 'cce'
+    COMPILER_VER = os.getenv("CRAY_CC_VERSION")
   end
-  if (isloaded("PrgEnv-gnu") ~= true) then
-    local MAALI_LOADED_PRGENV = 'PrgEnv-gnu'
-    local COMPILER = 'gcc'
-    local COMPILER_VER",os.getenv("GCC_VERSION")
+  if (isloaded("PrgEnv-gnu")) then
+    MAALI_LOADED_PRGENV = 'PrgEnv-gnu'
+    COMPILER = 'gcc'
+    COMPILER_VER = os.getenv("GCC_VERSION")
   end
-  if (isloaded("PrgEnv-intel") ~= true) then
-    local MAALI_LOADED_PRGENV = 'PrgEnv-intel'
-    local COMPILER = 'intel'
-    local COMPILER_VER",os.getenv("INTEL_VERSION")
+  if (isloaded("PrgEnv-intel")) then
+    MAALI_LOADED_PRGENV = 'PrgEnv-intel'
+    COMPILER = 'intel'
+    COMPILER_VER = os.getenv("INTEL_VERSION")
   end
-  if (isloaded("PrgEnv-pgi") ~= true) then
-    local MAALI_LOADED_PRGENV = 'PrgEnv-pgi'
-    local COMPILER = 'pgi'
-    local COMPILER_VER = os.getenv("PGI_VERSION")
+  if (isloaded("PrgEnv-pgi")) then
+    MAALI_LOADED_PRGENV = 'PrgEnv-pgi'
+    COMPILER = 'pgi'
+    COMPILER_VER = os.getenv("PGI_VERSION")
   end
   if (os.getenv("MAALI_LOADED_PRGENV") ~= "") then
     if ((mode() == "load") or (mode() == "switch")) then
-      setenv("MAALI_LOADED_PRGENV","\$MAALI_LOADED_PRGENV")
-      setenv("COMPILER","\$COMPILER")
-      setenv("COMPILER_VER","\$COMPILER_VER")
+      setenv("MAALI_LOADED_PRGENV",MAALI_LOADED_PRGENV)
+      setenv("COMPILER",COMPILER)
+      setenv("COMPILER_VER",COMPILER_VER)
+      setenv("PRGENV_NAME",PRGENV_NAME)
+      setenv("CRAYOS_VERSION",CRAYOS_VERSION)
     elseif (mode() == "remove") then
-      unsetenv("MAALI_LOADED_PRGENV","\$MAALI_LOADED_PRGENV")
-      unsetenv("COMPILER","\$COMPILER")
-      unsetenv("COMPILER_VER","\$COMPILER_VER")
+      unsetenv("MAALI_LOADED_PRGENV",MAALI_LOADED_PRGENV)
+      unsetenv("COMPILER",COMPILER)
+      unsetenv("COMPILER_VER",COMPILER_VER)
+      unsetenv("PRGENV_NAME",PRGENV_NAME)
+      unsetenv("CRAYOS_VERSION",CRAYOS_VERSION)
     end
   end
 end
