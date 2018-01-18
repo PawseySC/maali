@@ -34,8 +34,7 @@ MAALI_DEFAULT_PYTHON='python/2.6.9 python/2.7.10' \
 ./maali -t maali -v 1.0b1
 ```
 
-
-Some assumptions made with maali one is that you are setting up a hierachral module 
+Some assumptions made with maali one is that you are setting up a hierachical module 
 environment. This requires that you add in some cases set additional environment
 variables the COMPILER and COMPILER_VER are used throughout for defined the install
 path for most applications the major execption is python.
@@ -60,12 +59,12 @@ MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
 
 So if you wish to use maali for your own project
 in your $HOME/.bashrc export the MYGROUP variable to what matches up to your ** group file** system
-as defined for the Pawsey Supercomputing Centre.
+as it is defined for the Pawsey Supercomputing Centre.
  
 ```
 export MYGROUP=/your_testgroup/[project_name]/$USER
 ```
-#NOTE you need make sure that you have chmod and chown the path you have defined for MYGROUP!
+#NOTE you need make sure that you have set the permissions via the  **chmod** command and the ownerships via **chown ** command to the path you have defined for the MYGROUP environment variable!
 #
 
 
