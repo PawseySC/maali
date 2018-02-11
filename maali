@@ -1012,8 +1012,10 @@ function removefile {
 
 function maali_modify_modulepath {
    echo "! "
-   echo "! UPDATE THE MODULEPATH environment variable module path is $MODULEPATH"
-   echo "! " 
+   echo "! UPDATE THE MODULEPATH environment variable module path it is currently"
+   echo "! $MODULEPATH"
+   echo "! "
+   echo "! the MAALI_MODULE_DIR is ${MAALI_MODULE_DIR}" 
    echo "!!!add this directory $MAALI_MODULE_DIR to $MODULEPATH" 
    if [ "`echo $MODULEPATH | grep "devel"`"  == "devel" ]; then
      echo "!!!!Module path has devel"
@@ -1056,18 +1058,19 @@ function install_default_compiler_modules {
 	       echo "!! no compiler ${COMP_ID} module exsists - install ${COMP_ID} module "
 	       if [[ ${COMP_NAME} == "gnu" ]] || [[ ${COMP_NAME} == "gcc" ]]; then
 		   echo " call create gnu compiler module" 
-		   if [ ! -d ${MAALI_MODULE_DIR/devel ]; then
+		   if [ ! -d ${MAALI_MODULE_DIR}/devel ]; then
 
-		       maali_makedir "$MAALI_MODULE_DIR/devel"
+		       maali_makedir "${MAALI_MODULE_DIR}/devel"
 		       create_gcc_compiler_module $COMP_ID	
 		   else
 		       echo "compiler module already exists "
 		       echo "!! maali installation failed"
 		       echo "install default compiler module"
-		       exit
+		       exit 1
 		   fi
 	       fi
 	   else
+	       echo "Found ${COMP_ID} in modulepath ${lvar}"
 	       maali_wiki "Found ${COMP_ID} in modulepath ${lvar}"
 	       break
 	   fi
@@ -1358,8 +1361,40 @@ elif [[ -z "${MAALI_OS}" ]]; then
 fi
 echo `module list`
 maali_wiki "The operating system is $MAALI_OS"
+#######################################################################
 
-##############################################################################
+echo "mygroup dir $MYGROUP "
+if [ ! $MYGROUP ]; then
+   maali_wiki " MYGROUP is not defined as a system environment variable! "
+   maali_wiki " This is not on the Pawsey HPC file system"
+   maali_wiki " The Maali root directory is $MAALI_ROOT as set by ${MAALI_CONFIG}.config file"
+else 
+# At the Pawsey Supercomputing Center MYGROUP is a custom system variable
+# /group/projectID where /group is parallel filesystem for storing job outputs
+# This allows users to install applications in their own group directory
+   MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
+   echo "The system wide alias MYGROUP is set the default root path used for maali "
+   echo "application builds and installation.  MYGROUP is use to define the default "
+   echo "MAALI_ROOT variable. "
+   echo "The default environment variable MYGROUP is set to ${MYGROUP}."
+   echo "A maali.config file can be used to redefine the MAALI_ROOT variable. "   
+fi
+
+if [[ -z $MAALI_ROOT ]]; then
+    echo "MAALI_ROOT is UNDEFINED, check your config file!"
+    exit 1
+fi 
+
+echo MAALI_ROOT is set to $MAALI_ROOT 
+######################################################################
+maali_wiki "default module path here is $MODULEPATH"
+
+# user and group builds derive the following through MAALI_ROOT
+MAALI_BUILD_DIR="$MAALI_ROOT/build"
+MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
+MAALI_SRC="$MAALI_ROOT/src"
+
+######################################################################
 # these are global
 
 #MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet/master"
@@ -1375,16 +1410,17 @@ MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 
 maali_wiki "!!  test for maali config file $MAALI_CONFIG maali module is $MAALI_IS_LOADED"
 
-if [ ${MAALI_IS_LOADED} == true ]; then
-  maali_wiki "maali module is loaded"
-else 
-  maali_wiki "maali module is not loaded "
-fi 
+#if [ ${MAALI_IS_LOADED} == true ]; then
+#  maali_wiki "maali module is loaded"
+#else 
+#  maali_wiki "maali module is not loaded "
+#fi 
 
+# -z ${VAR} true if VAR = 0 length 
 if [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" != "maali" ]]; then
    echo " ! Using a local maali configuration file in the user's home directory .maali "
    echo "   to install ${MAALI_TOOL_NAME} " 
-  # allow us to override the config
+# allow us to override the config
 # Test to see if it in the users directory this means maali is installed!
   if [ -f "$HOME/.maali/$MAALI_CONFIG.config" ]; then
      . "$HOME/.maali/$MAALI_CONFIG.config"
@@ -1393,6 +1429,7 @@ if [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" != "maali" ]]; then
      MAALI_LOG_PREFIX="$MAALI_CONFIG-"
   fi  
 
+# we have a config file -C option used and we are installing maali
 elif [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then 
     echo " ! this is for a users account"
     echo " ! this will attempt to create and gnu compiler module "
@@ -1408,24 +1445,21 @@ elif [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then
 
     # Since this is an initial install what else can we do?  
     # Try to auto generate module files for compilers!
-      if [ ! -d ${MAALI_MODULE_DIR}  ]; then
- 	maali_wiki "!! The module devel directory has been created $MAALI_MODULE_DIR"
+      if [ ! -d ${MAALI_MODULE_DIR} ]; then
         install_default_compiler_modules 
       else
- 	echo " $MAALI_MODULE_DIR does not exist line 1318"
+ 	echo " $MAALI_MODULE_DIR does not exist!"
       fi
 
     fi 
-#  else
-#    echo "Could not open $HOME/.maali/$MAALI_CONFIG.config!";
-#    exit 1;
-#  fi
+# there is no config file and we are installing maali
 elif [[ -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then
   echo " !  this is the default workstation build "
   echo " !! test for module dir and install default compiler modules "
-  echo " !! the maali module directory is ${MAALI_MODULE_DIR}"
+  echo " !! the maali module directory is: "
+  echo " ${MAALI_MODULE_DIR}"
   echo " "
-  if [ -z ${MAALI_DEFAULT_COMPILERS} ]; then
+  if [[ -z ${MAALI_DEFAULT_COMPILERS} ]]; then
       echo " NO Default compilers defined, installation will fail"
       echo " the installation command for maali should look like this...."
       echo " MAALI_DEFAULT_COMPILERS=\"gcc/4.8.3 intel/15.0.0\" ./maali -t maali -v 1.0.1"
@@ -1433,10 +1467,10 @@ elif [[ -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then
   else 
       echo "!!!!!"
       echo "  Install maali with the default compilers ${MAALI_DEFAULT_COMPILERS} and "
-      echo "  check modulepath environment variable line 1352 "
+      echo "  check modulepath environment variable line 1465 "
       echo "  the module path here is $MODULEPATH"
       echo "!!!!!"
-      echo " "
+     
       install_default_compiler_modules 
   fi
 fi
@@ -1445,33 +1479,8 @@ maali_wiki " exit test for maali.config file"
 ######################################################################
 
 
-if [ ! $MYGROUP ]; then
-   maali_wiki " MYGROUP is not defined as a system environment variable! "
-   maali_wiki " This is not on the Pawsey HPC file system"
-   maali_wiki " The Maali root directory is $MAALI_ROOT as set by ${MAALI_CONFIG}.config file"
-else 
-# At the Pawsey Supercomputing Center MYGROUP is a custom system variable
-# /group/projectID where /group is parallel filesystem for storing job outputs
-# This allows users to install applications in their own group directory
-   MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
-   echo "The system wide alias MYGROUP is set the default root path used for maali "
-   echo "application builds and installation.  MYGROUP is use to define the default "
-   echo "MAALI_ROOT variable. "
-   echo "The default environment variable MYGROUP is set to ${MYGROUP}."
-   echo "A maali.config file can be used to redefine the MAALI_ROOT variable. " 
-   
-fi
-
 MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
 MAALI_WGET_CMD="wget"
-
-if [[ -z $MAALI_ROOT ]]; then
-    echo "MAALI_ROOT is UNDEFINED, check your config file!
-    exit 1
-fi 
-
-echo MAALI_ROOT is set to $MAALI_ROOT 
-######################################################################
 
 if [ -z $TMPDIR ]; then
   TMPDIR=/tmp
@@ -1484,12 +1493,6 @@ if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
   maali_wiki "The maali script is running in this dir `pwd`"
 fi
 
-maali_wiki "default module path here is $MODULEPATH"
-
-# user and group builds derive the following through MAALI_ROOT
-MAALI_BUILD_DIR="$MAALI_ROOT/build"
-MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
-MAALI_SRC="$MAALI_ROOT/src"
 
 # Why can't SLES file the module command?
 if [ -f "/etc/SuSE-release" ]; then
@@ -1573,8 +1576,6 @@ MAALI_TOOL_NAME_UPPERCASE=$(echo "$MAALI_TOOL_NAME" | tr '[:lower:]' '[:upper:]'
 
 # chicken and egg
 MAALI_PYTHON_FIRSTLETTER=`echo "$MAALI_TOOL_NAME_ORIG" | cut -b 1`
-
-
 
 # system builds require MAALI_BUILDER_UID to be defined
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
