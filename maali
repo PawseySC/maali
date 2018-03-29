@@ -50,7 +50,7 @@ fi
 ##############################################################################
 # these are global
 
-MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet/master"
+MAALI_CYGNET_FILES_URL=${MAALI_CYGNET_FILES_URL:-"https://raw.githubusercontent.com/Pawseyops/maali-cygnet/master"}
 MAALI_CYGNET_DIR_NAME='cygnet_files'
 MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 
@@ -1649,6 +1649,7 @@ OPTIONS:
    -u      unistall by hiding the module
    -x      expunge tool from history
    -n      NVIDIA mode; compile software with cuda support
+   -p      use the project branch for cygnet files
 EOF
 }
 
@@ -1759,6 +1760,9 @@ do
          l)
              MAALI_LUA_MODULE=1
              MAALI_MODULE_DEFAULT_FILENAME='.modulerc'
+             ;;
+         p)
+             MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet/$PAWSEY_PROJECT"
              ;;
          ?)
              usage
