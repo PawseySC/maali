@@ -918,9 +918,10 @@ function maali_module_lua {
 
   MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   MAALI_APP_HOME="$MAALI_APPS_DIR"
-  [ "$MAALI_TOOL_CRAY_PRGENV" != "na" ] && MAALI_APP_HOME+='/"..os.getenv("MAALI_LOADED_PRGENV").."/"..os.getenv("CRAYOS_VERSION")..'
+  MAALI_APP_HOME+='"..'
+  [ "$MAALI_TOOL_CRAY_PRGENV" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("MAALI_LOADED_PRGENV").."/"..os.getenv("CRAYOS_VERSION")..'
   if [[ $MAALI_CRAY -eq 0 ]] ;  then
-    [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='/"..os.getenv("CPU_TARGET")..'
+    [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("CPU_TARGET")..'
   fi
   if [ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" -o "$MAALI_TOOL_COMPILERS" == "binary" ]; then
     MAALI_APP_HOME+="/$MAALI_TOOL_COMPILERS"
@@ -935,11 +936,7 @@ function maali_module_lua {
     [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("CRAY_CPU_TARGET")..'
   fi
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+='"/cuda/"..os.getenv("CUDA_VER")..'
-  if [[ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]] && [[ "$MAALI_TOOL_COMPILERS" != "binary" ]] ; then
-    MAALI_APP_HOME+='"/'$MAALI_TOOL_NAME
-  else 
-    MAALI_APP_HOME+='/'$MAALI_TOOL_NAME
-  fi
+  MAALI_APP_HOME+='"/'$MAALI_TOOL_NAME
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="-gpu"
   MAALI_APP_HOME+="/$MAALI_TOOL_VERSION"
 
