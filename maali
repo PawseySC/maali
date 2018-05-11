@@ -795,6 +795,8 @@ EOF
           # TODO: get perl version from perl
           MAALI_MODULE_VARIABLE_DIR="lib/perl5/site_perl/5.10.1"
           ;;
+        CLASSPATH)
+          ;;
         INTEL_PATH)
           ;;
         R_LIBS)
@@ -806,6 +808,8 @@ EOF
           MAALI_MODULE_VARIABLE_NAME='LD_LIBRARY_PATH'
           MAALI_MODULE_VARIABLE_TCL="append-path"
           MAALI_MODULE_VARIABLE_DIR="lib"
+          ;;
+        MIC_LD_LIBRARY_PATH)
           ;;
         LIBRARY_PATH)
           MAALI_MODULE_VARIABLE_DIR="lib"
@@ -821,6 +825,8 @@ EOF
           ;;
         MANPATH)
           MAALI_MODULE_VARIABLE_DIR="share/man"
+          ;;
+        NLSPATH)
           ;;
         OMP_NUM_THREADS | MKL_NUM_THREADS)
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
@@ -1350,6 +1356,8 @@ EOF
           # TODO: get perl version from perl
           MAALI_MODULE_VARIABLE_DIR="lib/perl5/site_perl/5.10.1"
           ;;
+        CLASSPATH)
+          ;;
         INTEL_PATH)
           ;;
         R_LIBS)
@@ -1361,6 +1369,8 @@ EOF
           MAALI_MODULE_VARIABLE_NAME='LD_LIBRARY_PATH'
           MAALI_MODULE_VARIABLE_LUA="append_path"
           MAALI_MODULE_VARIABLE_DIR="lib"
+          ;;
+        MIC_LD_LIBRARY_PATH)
           ;;
         LIBRARY_PATH)
           MAALI_MODULE_VARIABLE_DIR="lib"
@@ -1376,6 +1386,8 @@ EOF
           ;;
         MANPATH)
           MAALI_MODULE_VARIABLE_DIR="share/man"
+          ;;
+        NLSPATH)
           ;;
         OMP_NUM_THREADS | MKL_NUM_THREADS)
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
