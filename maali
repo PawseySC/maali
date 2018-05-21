@@ -772,16 +772,14 @@ EOF
     MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
     MAALI_MODULE_VARIABLE_TCL="prepend-path"
 
-    MAALI_MODULE_VARIABLE_PREPREND_OFF="MAALI_MODULE_PREPEND_${MAALI_MODULE_VARIABLE_NAME}"
-    MAALI_MODULE_VARIABLE_PREPREND_OFF_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_PREPREND_OFF}"`
+    MAALI_MODULE_VARIABLE_PREPREND_SWITCH="MAALI_MODULE_PREPEND_${MAALI_MODULE_VARIABLE_NAME}"
+    MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_PREPREND_SWITCH}"`
+
+    MAALI_MODULE_VARIABLE_TYPE="MAALI_MODULE_TYPE_${MAALI_MODULE_VARIABLE_NAME}"
+    MAALI_MODULE_VARIABLE_TYPE_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_TYPE}"`
 
     MAALI_MODULE_VARIABLE_LIST_OFF="MAALI_MODULE_LIST_${MAALI_MODULE_VARIABLE_NAME}"
     MAALI_MODULE_VARIABLE_LIST_OFF_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_LIST_OFF}"`
-
-    # turn the prepending off
-    if [ "$MAALI_MODULE_VARIABLE_PREPREND_OFF_VALUE" == "off" ]; then
-      MAALI_MODULE_VARIABLE_PREPREND=""
-    fi
 
     if [ "${!MAALI_MODULE_VARIABLE}" != "" ]; then
       case $MAALI_MODULE_VARIABLE_NAME in
@@ -795,8 +793,6 @@ EOF
           # TODO: get perl version from perl
           MAALI_MODULE_VARIABLE_DIR="lib/perl5/site_perl/5.10.1"
           ;;
-        CLASSPATH)
-          ;;
         INTEL_PATH)
           ;;
         R_LIBS)
@@ -808,8 +804,6 @@ EOF
           MAALI_MODULE_VARIABLE_NAME='LD_LIBRARY_PATH'
           MAALI_MODULE_VARIABLE_TCL="append-path"
           MAALI_MODULE_VARIABLE_DIR="lib"
-          ;;
-        MIC_LD_LIBRARY_PATH)
           ;;
         LIBRARY_PATH)
           MAALI_MODULE_VARIABLE_DIR="lib"
@@ -825,8 +819,6 @@ EOF
           ;;
         MANPATH)
           MAALI_MODULE_VARIABLE_DIR="share/man"
-          ;;
-        NLSPATH)
           ;;
         OMP_NUM_THREADS | MKL_NUM_THREADS)
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
@@ -857,6 +849,23 @@ EOF
           MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
         esac
+
+        # turn the prepending on/off
+        if [ "$MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE" == "off" ]; then
+          MAALI_MODULE_VARIABLE_PREPREND=""
+        elif [ "$MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE" == "on" ]; then
+          MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
+        fi
+
+        # change type of variable declaration
+        if [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "prepend" ]; then
+          MAALI_MODULE_VARIABLE_TCL="prepend-path"
+        elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "append" ]; then
+          MAALI_MODULE_VARIABLE_TCL="append-path"
+        elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "setenv" ]; then
+          MAALI_MODULE_VARIABLE_TCL="setenv"
+        fi
+
         # don't treat value as a list
         if [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "off" ]; then
           MAALI_MODULE_VARIABLE_WORDS="1"
@@ -1333,16 +1342,14 @@ EOF
     MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
     MAALI_MODULE_VARIABLE_LUA="prepend_path"
 
-    MAALI_MODULE_VARIABLE_PREPREND_OFF="MAALI_MODULE_PREPEND_${MAALI_MODULE_VARIABLE_NAME}"
-    MAALI_MODULE_VARIABLE_PREPREND_OFF_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_PREPREND_OFF}"`
+    MAALI_MODULE_VARIABLE_PREPREND_SWITCH="MAALI_MODULE_PREPEND_${MAALI_MODULE_VARIABLE_NAME}"
+    MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_PREPREND_SWITCH}"`
+
+    MAALI_MODULE_VARIABLE_TYPE="MAALI_MODULE_TYPE_${MAALI_MODULE_VARIABLE_NAME}"
+    MAALI_MODULE_VARIABLE_TYPE_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_TYPE}"`
 
     MAALI_MODULE_VARIABLE_LIST_OFF="MAALI_MODULE_LIST_${MAALI_MODULE_VARIABLE_NAME}"
     MAALI_MODULE_VARIABLE_LIST_OFF_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_LIST_OFF}"`
-
-    # turn the prepending off
-    if [ "$MAALI_MODULE_VARIABLE_PREPREND_OFF_VALUE" == "off" ]; then
-      MAALI_MODULE_VARIABLE_PREPREND=""
-    fi
 
     if [ "${!MAALI_MODULE_VARIABLE}" != "" ]; then
       case $MAALI_MODULE_VARIABLE_NAME in
@@ -1356,8 +1363,6 @@ EOF
           # TODO: get perl version from perl
           MAALI_MODULE_VARIABLE_DIR="lib/perl5/site_perl/5.10.1"
           ;;
-        CLASSPATH)
-          ;;
         INTEL_PATH)
           ;;
         R_LIBS)
@@ -1369,8 +1374,6 @@ EOF
           MAALI_MODULE_VARIABLE_NAME='LD_LIBRARY_PATH'
           MAALI_MODULE_VARIABLE_LUA="append_path"
           MAALI_MODULE_VARIABLE_DIR="lib"
-          ;;
-        MIC_LD_LIBRARY_PATH)
           ;;
         LIBRARY_PATH)
           MAALI_MODULE_VARIABLE_DIR="lib"
@@ -1386,8 +1389,6 @@ EOF
           ;;
         MANPATH)
           MAALI_MODULE_VARIABLE_DIR="share/man"
-          ;;
-        NLSPATH)
           ;;
         OMP_NUM_THREADS | MKL_NUM_THREADS)
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
@@ -1418,6 +1419,23 @@ EOF
           MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
         esac
+
+        # turn the prepending on/off
+        if [ "$MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE" == "off" ]; then
+          MAALI_MODULE_VARIABLE_PREPREND=""
+        elif [ "$MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE" == "on" ]; then
+          MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
+        fi
+
+        # change type of variable declaration
+        if [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "prepend" ]; then
+          MAALI_MODULE_VARIABLE_LUA="prepend-path"
+        elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "append" ]; then
+          MAALI_MODULE_VARIABLE_LUA="append-path"
+        elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "setenv" ]; then
+          MAALI_MODULE_VARIABLE_LUA="setenv"
+        fi
+
         # don't treat value as a list
         if [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "off" ]; then
           MAALI_MODULE_VARIABLE_WORDS="1"
