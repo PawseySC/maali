@@ -1429,9 +1429,9 @@ EOF
 
         # change type of variable declaration
         if [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "prepend" ]; then
-          MAALI_MODULE_VARIABLE_LUA="prepend-path"
+          MAALI_MODULE_VARIABLE_LUA="prepend_path"
         elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "append" ]; then
-          MAALI_MODULE_VARIABLE_LUA="append-path"
+          MAALI_MODULE_VARIABLE_LUA="append_path"
         elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "setenv" ]; then
           MAALI_MODULE_VARIABLE_LUA="setenv"
         fi
