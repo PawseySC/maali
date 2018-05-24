@@ -1812,6 +1812,7 @@ fi
 MAALI_BUILD_DIR="$MAALI_ROOT/build"
 MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
 MAALI_SRC="$MAALI_ROOT/src"
+MAALI_TOOL_MPI_COMPILERS="na"
 
 # Why can't SLES file the module command?
 if [ -f "/etc/SuSE-release" ]; then
@@ -2476,6 +2477,23 @@ if [ $MAALI_REMODULE -eq 0 ]; then
           fi # 
         fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
 
+        for MAALI_TOOL_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
+
+          if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
+            # load the MPI environment
+
+            if [ $DEBUG ]; then
+              echo " .. before module load \$MAALI_TOOL_MPI_COMPILER"
+              module list
+            fi # if [ $DEBUG ]; then
+            maali_load_module "$MAALI_TOOL_MPI_COMPILER"
+            if [ $DEBUG ]; then
+              echo " .. after module load \$MAALI_TOOL_MPI_COMPILER"
+              module list
+            fi # if [ $DEBUG ]; then 
+
+          fi # if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
+
           for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
 
             if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
@@ -2619,6 +2637,13 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
 
           done # for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
+
+          if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
+            # unload the MPI environment
+
+            module unload "$MAALI_TOOL_MPI_COMPILER"
+          fi # if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
+        done # for MAALI_TOOL_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
 
         if [ "$MAALI_CPU_TARGET" != "na" ]; then
           module unload "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET"
