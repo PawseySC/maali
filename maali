@@ -2561,6 +2561,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             if [[ $MAALI_CRAY -eq 1 ]] ;  then
             [ "$MAALI_CPU_TARGET" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_CPU_TARGET"
             fi
+            [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_MPI_COMPILER"
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_CUDA_COMPILER"
             MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_NAME"
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="-gpu"
