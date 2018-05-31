@@ -1027,6 +1027,11 @@ EOF
       echo "whatis( [[Compiled for $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET]] )" >> $MAALI_TOOL_MODULE
     done
   fi
+  if [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ]; then
+    for MAALI_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
+      echo "whatis( [[Compiled for MPI with $MAALI_MPI_COMPILER]] )" >> $MAALI_TOOL_MODULE
+    done
+  fi
   if [ "$MAALI_TOOL_CUDA_COMPILERS" != "na" ]; then
     for MAALI_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
       echo "whatis( [[Compiled for CUDA with $MAALI_CUDA_COMPILER]] )" >> $MAALI_TOOL_MODULE
@@ -1236,6 +1241,32 @@ EOF
     fi # if [ "$MAALI_COMPILER_TYPE" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
   fi
 
+  # MPI conflict
+  if [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ]; then
+    MAALI_SYSTEM_MPI_LIST=''
+    MAALI_SYSTEM_MPI_LIST+=`module --redirect -t -r avail "^openmpi/" | tail -n +3 | xargs`    ; MAALI_SYSTEM_MPI_LIST+=' ' #marco: hard list of possible MPI names processed in these lines .. can it be improved?
+    MAALI_SYSTEM_MPI_LIST+=`module --redirect -t -r avail "^intel%-mpi/" | tail -n +3 | xargs` ; MAALI_SYSTEM_MPI_LIST+=' '
+
+    for MAALI_SYSTEM_MPI_VERSION in $MAALI_SYSTEM_MPI_LIST ; do
+
+      MAALI_SYSTEM_MPI_VERSION_MATCH=0
+
+      for MAALI_TOOL_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
+        if [ "$MAALI_SYSTEM_MPI_VERSION" == "$MAALI_TOOL_MPI_COMPILER" ]; then
+            MAALI_SYSTEM_MPI_VERSION_MATCH=1
+        fi
+      done
+
+      if [ $MAALI_SYSTEM_MPI_VERSION_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict("$MAALI_SYSTEM_MPI_VERSION")
+EOF
+      fi
+
+    done
+
+  fi
+
   # CUDA conflict
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
     MAALI_SYSTEM_CUDA_LIST=`module --redirect -t -r avail "^cuda/" | tail -n +3 | xargs`
@@ -1254,7 +1285,7 @@ EOF
       # if not found in list, force conflict
       if [ $MAALI_SYSTEM_CUDA_VERSION_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict($MAALI_SYSTEM_CUDA_VERSION)
+conflict("$MAALI_SYSTEM_CUDA_VERSION")
 EOF
       fi
 
@@ -1262,7 +1293,7 @@ EOF
 
   fi
 
-  if [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ]; then #marco: at the moment there is an hard list of possible MPI names in the if statement below .. can be improved?
+  if [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ]; then #marco: hard list of possible MPI names in if statement below .. can it be improved?
     cat <<EOF >> $MAALI_TOOL_MODULE
 
 if (mode() == "load") then
