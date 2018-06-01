@@ -61,6 +61,7 @@ MAALI_WGET_CMD="wget"
 MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray PrgEnv-pgi"
 MAALI_SUPPORTED_CPU_TARGETS="sandybridge ivybridge haswell broadwell knl"
 MAALI_SUPPORTED_COMPILERS="gcc intel cce pgi" # This gets overwritten for python
+MAALI_SUPPORTED_MPI="openmpi intel-mpi cray-mpich"
 
 ##############################################################################
 
@@ -1243,25 +1244,28 @@ EOF
 
   # MPI conflict
   if [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ]; then
-    MAALI_SYSTEM_MPI_LIST=''
-    MAALI_SYSTEM_MPI_LIST+=`module --redirect -t -r avail "^openmpi/" | tail -n +3 | xargs`    ; MAALI_SYSTEM_MPI_LIST+=' ' #marco: hard list of possible MPI names processed in these lines .. can it be improved?
-    MAALI_SYSTEM_MPI_LIST+=`module --redirect -t -r avail "^intel%-mpi/" | tail -n +3 | xargs` ; MAALI_SYSTEM_MPI_LIST+=' '
 
-    for MAALI_SYSTEM_MPI_VERSION in $MAALI_SYSTEM_MPI_LIST ; do
+    for MAALI_MPI_TYPE in $MAALI_SUPPORTED_MPI ; do
 
-      MAALI_SYSTEM_MPI_VERSION_MATCH=0
+      MAALI_SYSTEM_MPI_LIST=`module --redirect -t avail $MAALI_MPI_TYPE 2>&1 | xargs -n1 | grep "^$MAALI_MPI_TYPE/" | xargs`
 
-      for MAALI_TOOL_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
-        if [ "$MAALI_SYSTEM_MPI_VERSION" == "$MAALI_TOOL_MPI_COMPILER" ]; then
-            MAALI_SYSTEM_MPI_VERSION_MATCH=1
-        fi
-      done
-
-      if [ $MAALI_SYSTEM_MPI_VERSION_MATCH -eq 0 ]; then
-          cat <<EOF >> $MAALI_TOOL_MODULE
+      for MAALI_SYSTEM_MPI_VERSION in $MAALI_SYSTEM_MPI_LIST ; do
+  
+        MAALI_SYSTEM_MPI_VERSION_MATCH=0
+  
+        for MAALI_TOOL_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
+          if [ "$MAALI_SYSTEM_MPI_VERSION" == "$MAALI_TOOL_MPI_COMPILER" ]; then
+              MAALI_SYSTEM_MPI_VERSION_MATCH=1
+          fi
+        done
+  
+        if [ $MAALI_SYSTEM_MPI_VERSION_MATCH -eq 0 ]; then
+            cat <<EOF >> $MAALI_TOOL_MODULE
 conflict("$MAALI_SYSTEM_MPI_VERSION")
 EOF
-      fi
+        fi
+
+      done
 
     done
 
@@ -2043,6 +2047,21 @@ if [ "$MAALI_DEFAULT_PYTHON" != "" ]; then
       eval $varname="$MAALI_DEFAULT_PYTHON_COMPILER"
     else
       eval "$varname+=\" $MAALI_DEFAULT_PYTHON_COMPILER\""
+    fi
+  done
+fi
+
+# need to set MAALI_DEFAULT_OPENMPI_MPI, etc
+if [ "$MAALI_DEFAULT_MPI" != "" ]; then
+  for MAALI_DEFAULT_MPI_WRAPPER in $MAALI_DEFAULT_MPI; do
+    MAALI_DEFAULT_MPI_WRAPPER_NAME=`echo "$MAALI_DEFAULT_MPI_WRAPPER" | cut -d '/' -f 1 | tr '[:lower:]' '[:upper:]' | sed -e 's/-//g' | sed -e 's/+/PLUS/g'`
+
+    varname=MAALI_DEFAULT_${MAALI_DEFAULT_MPI_WRAPPER_NAME}_MPI
+
+    if [ "${!varname}" == "" ]; then
+      eval $varname="$MAALI_DEFAULT_MPI_WRAPPER"
+    else
+      eval "$varname+=\" $MAALI_DEFAULT_MPI_WRAPPER\""
     fi
   done
 fi
