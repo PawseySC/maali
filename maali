@@ -932,6 +932,8 @@ function maali_module_lua {
   # determine the default versions of a number of tools
   MAALI_SYSTEM_DEFAULT_PYTHON=`module -dt avail python | xargs -n1 | grep '^python/' | cut -d '/' -f 2`
   MAALI_SYSTEM_DEFAULT_R=`module -dt avail r | xargs -n1 | grep '^r/' | cut -d '/' -f 2`
+  MAALI_SYSTEM_DEFAULT_MPI_NAME='openmpi' #marco: maybe retrived from some env variable?
+  MAALI_SYSTEM_DEFAULT_MPI=`module -dt avail $MAALI_SYSTEM_DEFAULT_MPI_NAME | xargs -n1 | grep "^$MAALI_SYSTEM_DEFAULT_MPI_NAME/" | cut -d '/' -f 2`
   MAALI_SYSTEM_DEFAULT_CUDA=`module -dt avail cuda | xargs -n1 | grep '^cuda/' | cut -d '/' -f 2`
 
   MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
@@ -1023,6 +1025,11 @@ EOF
   if [ "$MAALI_TOOL_CPU_TARGET" != "na" ]; then
     for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
       echo "whatis( [[Compiled for $MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET]] )" >> $MAALI_TOOL_MODULE
+    done
+  fi
+  if [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ]; then
+    for MAALI_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
+      echo "whatis( [[Compiled for MPI with $MAALI_MPI_COMPILER]] )" >> $MAALI_TOOL_MODULE
     done
   fi
   if [ "$MAALI_TOOL_CUDA_COMPILERS" != "na" ]; then
@@ -1234,6 +1241,32 @@ EOF
     fi # if [ "$MAALI_COMPILER_TYPE" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
   fi
 
+  # MPI conflict
+  if [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ]; then
+    MAALI_SYSTEM_MPI_LIST=''
+    MAALI_SYSTEM_MPI_LIST+=`module --redirect -t -r avail "^openmpi/" | tail -n +3 | xargs`    ; MAALI_SYSTEM_MPI_LIST+=' ' #marco: hard list of possible MPI names processed in these lines .. can it be improved?
+    MAALI_SYSTEM_MPI_LIST+=`module --redirect -t -r avail "^intel%-mpi/" | tail -n +3 | xargs` ; MAALI_SYSTEM_MPI_LIST+=' '
+
+    for MAALI_SYSTEM_MPI_VERSION in $MAALI_SYSTEM_MPI_LIST ; do
+
+      MAALI_SYSTEM_MPI_VERSION_MATCH=0
+
+      for MAALI_TOOL_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
+        if [ "$MAALI_SYSTEM_MPI_VERSION" == "$MAALI_TOOL_MPI_COMPILER" ]; then
+            MAALI_SYSTEM_MPI_VERSION_MATCH=1
+        fi
+      done
+
+      if [ $MAALI_SYSTEM_MPI_VERSION_MATCH -eq 0 ]; then
+          cat <<EOF >> $MAALI_TOOL_MODULE
+conflict("$MAALI_SYSTEM_MPI_VERSION")
+EOF
+      fi
+
+    done
+
+  fi
+
   # CUDA conflict
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
     MAALI_SYSTEM_CUDA_LIST=`module --redirect -t -r avail "^cuda/" | tail -n +3 | xargs`
@@ -1252,12 +1285,23 @@ EOF
       # if not found in list, force conflict
       if [ $MAALI_SYSTEM_CUDA_VERSION_MATCH -eq 0 ]; then
           cat <<EOF >> $MAALI_TOOL_MODULE
-conflict($MAALI_SYSTEM_CUDA_VERSION)
+conflict("$MAALI_SYSTEM_CUDA_VERSION")
 EOF
       fi
 
     done
 
+  fi
+
+  if [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ]; then #marco: hard list of possible MPI names in if statement below .. can it be improved?
+    cat <<EOF >> $MAALI_TOOL_MODULE
+
+if (mode() == "load") then
+  if (isloaded("openmpi") ~= true and isloaded("intel-mpi") ~= true) then
+    load("$MAALI_SYSTEM_DEFAULT_MPI_NAME/$MAALI_SYSTEM_DEFAULT_MPI")
+  end
+end
+EOF
   fi
 
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
@@ -2561,6 +2605,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             if [[ $MAALI_CRAY -eq 1 ]] ;  then
             [ "$MAALI_CPU_TARGET" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_CPU_TARGET"
             fi
+            [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_MPI_COMPILER"
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_CUDA_COMPILER"
             MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_NAME"
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="-gpu"
