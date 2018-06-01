@@ -2053,15 +2053,15 @@ fi
 
 # need to set MAALI_DEFAULT_OPENMPI_MPI, etc
 if [ "$MAALI_DEFAULT_MPI" != "" ]; then
-  for MAALI_DEFAULT_MPI_WRAPPER in $MAALI_DEFAULT_MPI; do
-    MAALI_DEFAULT_MPI_WRAPPER_NAME=`echo "$MAALI_DEFAULT_MPI_WRAPPER" | cut -d '/' -f 1 | tr '[:lower:]' '[:upper:]' | sed -e 's/-//g' | sed -e 's/+/PLUS/g'`
+  for MAALI_DEFAULT_MPI_COMPILER in $MAALI_DEFAULT_MPI; do
+    MAALI_DEFAULT_MPI_COMPILER_NAME=`echo "$MAALI_DEFAULT_MPI_COMPILER" | cut -d '/' -f 1 | tr '[:lower:]' '[:upper:]' | sed -e 's/-//g' | sed -e 's/+/PLUS/g'`
 
-    varname=MAALI_DEFAULT_${MAALI_DEFAULT_MPI_WRAPPER_NAME}_MPI
+    varname=MAALI_DEFAULT_${MAALI_DEFAULT_MPI_COMPILER_NAME}_MPI
 
     if [ "${!varname}" == "" ]; then
-      eval $varname="$MAALI_DEFAULT_MPI_WRAPPER"
+      eval $varname="$MAALI_DEFAULT_MPI_COMPILER"
     else
-      eval "$varname+=\" $MAALI_DEFAULT_MPI_WRAPPER\""
+      eval "$varname+=\" $MAALI_DEFAULT_MPI_COMPILER\""
     fi
   done
 fi
@@ -2271,6 +2271,7 @@ if [[ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" ]] ; then
   fi
 elif [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] || [[ $MAALI_PYTHON_TOOL -eq 1 ]] ; then
   MAALI_TOOL_CPU_TARGET="na"
+  MAALI_TOOL_MPI_COMPILERS="na"
 fi
 if [ "$MAALI_TOOL_CPU_TARGET" == "" ]; then
   maali_die "MAALI_TOOL_CPU_TARGET is not set, and this is not a binary, python or system gcc install"
