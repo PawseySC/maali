@@ -1,12 +1,6 @@
-# maali
-Pawsey Supercomputing Centre Build System
-Maali is used to automate the make/cmake builds and the creation of environment modules.
-The build scripts are called by maali to configure, compile and install software for HPC systems.
-Maali is the result of efforts led by Chris Bording, Christopher Harris and  David Schibeci
-You should be able to install maali on any of the Pawsey Supercomputing Resources by using:
-
 ##  Maali installation instructions 
 Maali uses itself to install Maali. 
+
 Some assumptions made with maali one is that you are setting up a hierachral module 
 environment. This requires that you add in some cases set additional environment
 variables the COMPILER and COMPILER_VER are used throughout for defined the install
@@ -34,7 +28,8 @@ MAALI_DEFAULT_PYTHON='python/2.6.9 python/2.7.10' \
 ./maali -t maali -v 1.0b1
 ```
 
-Some assumptions made with maali one is that you are setting up a hierachical module 
+
+Some assumptions made with maali one is that you are setting up a hierachral module 
 environment. This requires that you add in some cases set additional environment
 variables the COMPILER and COMPILER_VER are used throughout for defined the install
 path for most applications the major execption is python.
@@ -52,19 +47,19 @@ long-term storage of executables, input data, important output data, and so on. 
 members within a project group have read and write access to the /group/[project] directory, 
 so it can be used for sharing files within a project. 
 
-MYGROUP = /group/$PAWSEY_PROJECT/$USER
+MYGROUP = /group//$PAWSEY_PROJECT/$USER
 
 In the maali script the ** DEFAULT ** MAALI_ROOT variable is set to
 MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
 
 So if you wish to use maali for your own project
 in your $HOME/.bashrc export the MYGROUP variable to what matches up to your ** group file** system
-as it is defined for the Pawsey Supercomputing Centre.
+as defined for the Pawsey Supercomputing Centre.
  
 ```
 export MYGROUP=/your_testgroup/[project_name]/$USER
 ```
-#NOTE you need make sure that you have set the permissions via the  **chmod** command and the ownerships via **chown ** command to the path you have defined for the MYGROUP environment variable!
+#NOTE you need make sure that you have chmod and chown the path you have defined for MYGROUP!
 #
 
 
@@ -124,23 +119,4 @@ then run ** add_builder ** to create the list of users who can install software
 ```
 
 ./add_builder fgump "Forrest Gump" Forrest.Gump@email.com
-```
-
-# Extra notes
-```
-/proc/cpuinfo - is a file that has detailed information about the local cpu 
-lscpu - list information about the CPU
-lspci | grep NVIDIA - will show what GPUs are installed
-
-These variable match up to this way in cygnet files.
-```
-# specify which PrgEnv we want to build the tool with
-MAALI_TOOL_CRAY_PRGENV="$MAALI_DEFAULT_CRAY_GCC_PRGENV $MAALI_DEFAULT_CRAY_INTEL_PRGENV"
-
-# specify which cpus to target
-MAALI_TOOL_CRAY_CPU_TARGET="$MAALI_DEFAULT_CRAY_PES"
-
-# specify which compilers we want to build the tool with
-MAALI_TOOL_COMPILERS="$MAALI_DEFAULT_COMPILERS"
-
 ```

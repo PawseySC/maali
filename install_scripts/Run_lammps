@@ -1,0 +1,14 @@
+ module load gnu/5.4.0 lammps/18Oct16
+
+ cp -r ${MAALI_LAMMPS_HOME}/examples/accelerate /mnt/.
+
+ cd /mnt/accelerate
+# to run openmp 
+ lmp_nectar -sf omp -pk omp 3 < in.lj 
+ 
+ lmp_nectar -sf omp -pk omp 3 -in in.lj 
+ 
+# to run hybrid parallel mpi and openMP
+ mpirun -np 4 lmp_nectar -sf omp -pk omp 3 -in in.ij
+ mpirun -np 4 lmp_nectar -sf omp -pk omp 3 -in in.lj
+

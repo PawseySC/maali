@@ -9,76 +9,18 @@ MAALI_CMD_LINE="$0 $*"
 ##############################################################################
 function maali_wiki {
   # echo to screen and add to wiki
-  echo $1
+#  echo $1
 
   if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
     if [ $MAALI_REMODULE -eq 0 ]; then
       echo $1 >> $MAALI_WIKI_SRC
     fi
+  elif [ "$MAALI_TEST_INSTALL" == "YES" ]; then
+     echo $1 >> maali_test_install.log
+     echo " " >> maali_test_install.log
   fi
 }
 
-##############################################################################
-# Rudimentary Operating System detecting which can be overriden by setting
-# MAALI_OS to a value of your choosing
-
-# by default we are not a cray
-MAALI_CRAY=0
-
-if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
-  # We are a Cray
-  MAALI_OS_VERSION=`grep CLERELEASE /etc/opt/cray/release/CLEinfo | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]`
-
-  MAALI_OS="cle$MAALI_OS_VERSION"
-
-  MAALI_CRAY=1
-elif [ -f "/etc/SuSE-release" ]; then
-  # We are running SLES
-  MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
-  MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
-  MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
-
-elif [ -f "/etc/os-release" ]; then
- # This works for centos, debian, fedora and  ubuntu linux images
-    NAME=`grep ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g' ` 
-
-    if [[ "${NAME}" == "ubuntu" ]]; then
-	MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
-	MAALI_OS="ubuntu$MAALI_OS_VERSION"
-
-    elif [[ "$NAME" == "fedora" ]]; then
-	MAALI_OS_VERSION=`grep -w VERSION_ID /etc/os-release | cut -d '=' -f 2 `
-	MAALI_OS="fedora$MAALI_OS_VERSION"
-
-    elif [[ "$NAME" == "debian" ]]; then
-	MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
-	MAALI_OS="debian$MAALI_OS_VERSION"
-
-    elif [[ "$NAME" == "centos" ]]; then
-	MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
-        MAALI_OS="centos$MAALI_OS_VERSION"
-    fi
-
-#elif [ -f "/etc/redhat-release" ]; then
-#  MAALI_OS_VERSION=`cat /etc/redhat-release | awk '{print $4;}'`
-#  MAALI_OS="scientific_linux$MAALI_OS_VERSION"
-elif [[ -z "${MAALI_OS}" ]]; then
-  echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
-  exit 1
-fi
-
-maali_wiki "The operating system is $MAALI_OS"
-
-##############################################################################
-# these are global
-
-MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet/master"
-MAALI_CYGNET_DIR_NAME='cygnet_files'
-MAALI_CYGNET_BUILD_FILE_EXT='cyg'
-
-MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
-MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
-MAALI_WGET_CMD="wget"
 
 ##############################################################################
 
@@ -87,7 +29,7 @@ function maali_pre_build {
 
   cd "$MAALI_TOOL_BUILD_DIR"
   #maali_run "patch bla bla bla"
-}
+} # end function maali_pre_build
 
 ##############################################################################
 
@@ -96,7 +38,8 @@ function maali_post_build {
 
   cd "$MAALI_TOOL_BUILD_DIR"
   #maali_run "patch bla bla bla"
-}
+} # end function maali_post_build
+
 
 ##############################################################################
 
@@ -106,11 +49,22 @@ function maali_build {
   # allows late evaluation
   MAALI_TOOL_CONFIGURE_EVAL=`eval echo "$MAALI_TOOL_CONFIGURE"`
 
-  cd "$MAALI_TOOL_BUILD_DIR"
-  maali_run "./configure --prefix=$MAALI_INSTALL_DIR $MAALI_TOOL_CONFIGURE_EVAL"
-  maali_run "make -j $MAALI_CORES"
-  maali_run "make install"
-}
+  if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
+      maali_wiki "The configure flags used ${MAALI_TOOL_CONFIGURE_EVAL}"
+      maali_wiki "The default prefix install dir ${MAALI_INSTALL_DIR}"
+      maali_wiki "The defined build directory is ${MAALI_TOOL_BUILD_DIR}"
+  else
+      
+      cd "$MAALI_TOOL_BUILD_DIR"
+      maali_run "./configure --prefix=$MAALI_INSTALL_DIR $MAALI_TOOL_CONFIGURE_EVAL"
+      maali_run "make -j $MAALI_CORES"
+      if [ "$MAALI_MAKE_TEST" == "YES" ]; then
+	  maali_run "make test"
+      fi
+      maali_run "make install"
+  fi
+
+}  # end function maali_build
 
 ##############################################################################
 
@@ -131,7 +85,8 @@ function maali_cmake_build {
     maali_run "make -j $MAALI_CORES"
   fi
   maali_run "make install"
-}
+
+}  # end function maali_cmake_build
 
 ##############################################################################
 
@@ -192,7 +147,8 @@ function maali_download {
       $MAALI_WGET_CMD $MAALI_WGET_EXTRA -O $MAALI_TMP_DST $MAALI_TMP_URL
     fi
   done
-}
+ 
+} # end function maali_download
 
 ##############################################################################
 
@@ -203,7 +159,9 @@ function maali_genpkgconfig {
     if [ ! -f "$MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc" ]; then
       cat <<EOF > $MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc
 Name: $MAALI_TOOL_NAME
+
 Description: $MAALI_TOOL_NAME\'s library ${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}
+
 Version: $MAALI_TOOL_VERSION
 
 prefix=$MAALI_INSTALL_DIR
@@ -215,7 +173,8 @@ Libs: -L\${libdir} -l${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]} `eval echo ${MAALI
 EOF
     fi
   done
-}
+
+} # end function maali_genpkgconfig
 
 ##############################################################################
 
@@ -259,7 +218,7 @@ function maali_git_download {
     fi
   fi
 
-}
+}  # end function maali_git_download
 
 ##############################################################################
 
@@ -291,7 +250,7 @@ function maali_load_module {
 
   fi
 
-}
+} # end function maali_load_module
 
 ##############################################################################
 
@@ -319,8 +278,12 @@ function maali_makedir {
         echo "-- Making directory $MAALI_DIR_PATH" >> "$MAALI_TOOL_LOG"
       fi
 
-      mkdir "$MAALI_DIR_PATH"
-
+      if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
+	  echo " $MAALI_DIR_PATH " >> maali_test_install.log
+      else 
+	  mkdir "$MAALI_DIR_PATH"
+      fi 
+	  
       if [ "$PAWSEY_PROJECT" != "" ]; then
         if [[ ! "$MAALI_DIR_PATH" =~ "/home" ]]; then
           if [[ "$MAALI_TOOL_LOG" != "" ]] && [[ -f "$MAALI_TOOL_LOG" ]]; then
@@ -337,7 +300,7 @@ function maali_makedir {
 
   # reset IFS
   IFS=$MAALI_IFS
-} 
+} # end function maali_makedir
 
 ##############################################################################
 
@@ -375,12 +338,15 @@ function maali_module {
       fi
     fi
   fi
+  echo " " 
+  echo "Maali app home is the same as the Maali install dir = $MAALI_INSTALL_DIR"
+  echo " "
 
   # used to make the module look pretty
   MAALI_MODULE_MAX_VARIABLE=${#MAALI_APP_HOME_NAME}
 
   cat <<EOF >$MAALI_TOOL_MODULE
-#%Module######################################################################
+#%Module1.0######################################################################
 #
 # $MAALI_TOOL_NAME modulefile
 #
@@ -1009,14 +975,20 @@ function maali_unpack {
   done
 }  # end function maali_unpack
 
-
 ##############################################################################
 
+
 function log {
-  echo "#####################################################################" >>$MAALI_TOOL_LOG
-  echo "$1" >>$MAALI_TOOL_LOG
-  echo "#####################################################################" >>$MAALI_TOOL_LOG
+    if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
+	maali_wiki " log data line -- $1 "
+    else
+	
+	echo "#####################################################################" >>$MAALI_TOOL_LOG
+	echo "$1" >>$MAALI_TOOL_LOG
+	echo "#####################################################################" >>$MAALI_TOOL_LOG
+    fi
 } # end function log
+
 
 ##############################################################################
 
@@ -1034,14 +1006,155 @@ function removefile {
   if [ -f "$1" ]; then
     rm -f "$1"
   fi
-}  # end function removefile
+
+}  # end function removefile 
+##############################################################################
+
+function maali_modify_modulepath {
+   echo "! "
+   echo "! UPDATE THE MODULEPATH environment variable module path it is currently"
+   echo "! $MODULEPATH"
+   echo "! "
+   echo "! the MAALI_MODULE_DIR is ${MAALI_MODULE_DIR}" 
+   echo "!!!add this directory $MAALI_MODULE_DIR to $MODULEPATH" 
+   if [ "`echo $MODULEPATH | grep "devel"`"  == "devel" ]; then
+     echo "!!!!Module path has devel"
+   else 
+     echo "!!!!Module path does not have devel"
+     if [ -f ${HOME}/.bashrc ]; then
+	 NEWPATH=""
+         MOD_TOOL_LIST="devel libs apps bio-apps tools" 
+       for MOD_DIR in ${MOD_TOOL_LIST}; do
+         NEWPATH=$NEWPATH:$MAALI_MODULE_DIR/${MOD_DIR}
+       done
+         echo newpath is $NEWPATH
+         echo "# add maali module \" $MOD_TOOL_LIST \" directories to MODULEPATH" >> ${HOME}/.bashrc
+         echo "export MODULEPATH=$MODULEPATH${NEWPATH}" >> ${HOME}/.bashrc
+     fi
+   fi
+   echo " exit maali_modify_modulepath" 
+   echo ""
+} # maali_modify_modulepath
 
 ##############################################################################
+
+function install_default_compiler_modules {
+  
+  if [ ! -z "$MAALI_DEFAULT_COMPILERS" ]; then
+    echo " "
+    maali_wiki "list of default compilers to install $MAALI_DEFAULT_COMPILERS"    
+    echo " "
+#    maali_makedir "$MAALI_MODULE_DIR/devel"
+    maali_wiki " call maali_modify_modulepath - from install_default_compiler_modules function"
+    maali_modify_modulepath 
+    for COMP_ID in $MAALI_DEFAULT_COMPILERS; do 
+       COMP_NAME=`echo ${COMP_ID} |  cut -d '/' -f 1 `
+       IFS=: read -r -d '' -a mpath_list < <(printf '%s:\0' "$MODULEPATH")
+       for lvar in ${mpath_list[@]}; do
+	   echo $lvar
+	   echo "Compiler name is ${COMP_NAME}"
+#           if [ ! -f "$MAALI_MODULE_DIR/devel/${COMP_ID}" ]; then 
+	   if [ ! -f "${lvar}/${COMP_ID}" ]; then
+	       echo "!! no compiler ${COMP_ID} module exsists - install ${COMP_ID} module "
+	       if [[ ${COMP_NAME} == "gnu" ]] || [[ ${COMP_NAME} == "gcc" ]]; then
+		   echo " call create gnu compiler module" 
+		   if [ ! -d ${MAALI_MODULE_DIR}/devel ]; then
+
+		       maali_makedir "${MAALI_MODULE_DIR}/devel"
+		       create_gcc_compiler_module $COMP_ID	
+		   else
+		       echo "compiler module already exists "
+		       echo "!! maali installation failed"
+		       echo "install default compiler module"
+		       exit 1
+		   fi
+	       fi
+	   else
+	       echo "Found ${COMP_ID} in modulepath ${lvar}"
+	       maali_wiki "Found ${COMP_ID} in modulepath ${lvar}"
+	       break
+	   fi
+       done
+    done
+    maali_wiki " function install_default_compiler_modules "
+    maali_wiki " installed ${MAALI_DEFAULT_COMPILERS} "
+  else
+    maali_wiki " no default compiler set"
+    maali_wiki " exit install default compiler modules "
+  fi
+} # end function install default compiler modules
+
+
+##############################################################################
+
+function create_gcc_compiler_module {
+    maali_wiki "create gnu module ${1}"
+ 
+    COMP_NAME=`echo $1 | cut -d '/' -f 1`
+    COMP_VER=`echo $1 | cut -d '/' -f 2`
+#    echo " name $COMP_NAME ver $COMP_VER"
+    CHECK_VER=`gcc -v &> tmp; grep -E "gcc version" tmp | awk '{print $3;}'`
+    if [[ "${CHECK_VER}" != "${COMP_VER}" ]]; then
+      COMP_VER=${CHECK_VER}
+    fi
+    rm tmp
+
+    echo " will install $COMP_NAME ver $COMP_VER"
+    echo " in  $MAALI_MODULE_DIR/devel/${COMP_NAME}"
+
+    maali_makedir "${MAALI_MODULE_DIR}/devel/${COMP_NAME}"
+    
+    if [ -d "${MAALI_MODULE_DIR}/devel/${COMP_NAME}" ]; then
+      echo "compiler director was created "
+    fi
+    echo ""
+
+    if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
+       COMPILER_MODULE=maali_test_install.log
+    fi
+
+    cat <<EOF >>${MAALI_MODULE_DIR}/devel/${COMP_NAME}/${COMP_VER}
+#%Module1.0######################################################################
+#
+# $MAALI_TOOL_NAME modulefile
+#
+proc ModulesHelp { } {
+  puts stderr "\t[module-info name] - Loads the compiler env variables"
+  puts stderr "\tThe following env variables are set:"
+  puts stderr "\t\$COMPILER, \$COMPILER_VER, \$CC, \$FC, \$F77, \$F90, \$F95 and \$F9X"
+  puts stderr "\t The following env variables are modified:"
+  puts stderr "\t\t\$PATH, \$MANPATH, \$LD_LIBRARY_PATH"
+}
+
+# conflict compilers
+
+module-whatis "Loads the [module-info name] environment"
+
+# Tcl script use only
+set     prefix                  /usr/bin
+
+prepend-path MANPATH 		/usr/share/man
+setenv  MAALI_SYSTEMGCC_HOME    /usr
+setenv 	COMPILER 		$COMP_NAME
+setenv	COMPILER_VER  	        $COMP_VER
+setenv  CC			\$prefix/gcc
+setenv  FC			\$prefix/gfortran
+setenv  CXX			\$prefix/g++
+setenv  F77			\$prefix/gfortran
+setenv  F95                     \$prefix/gfortran
+setenv  F9X                     \$prefix/gfortran
+
+EOF
+
+} # end function create gcc compiler module
+
+##############################################################################
+
 
 usage()
 {
 cat << EOF
-usage: $0 -t toolname -v toolversion [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b] [-g] [-s] [-w] [-a] [-u] [-x]
+usage: $0 -t toolname -v toolversion [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b] [-g] [-s] [-w] [-a] [-u] [-x] [-T] [-V]
 
 maali - Pawsey Supercomputing Centre Build System
 
@@ -1062,6 +1175,8 @@ OPTIONS:
    -f      force download from github
    -u      unistall by hiding the module
    -x      expunge tool from history
+   -T      used for maali installation developement and testing
+   -V      flag to run make test or make check prior to make install
    -n      NVIDIA mode; compile software with cuda support
 EOF
 }
@@ -1079,6 +1194,7 @@ MAALI_REBUILD_COMPILER=
 MAALI_REMODULE=0
 MAALI_BUILDONLY=
 MAALI_SYSTEM_BUILD=NO
+MAALI_WS_BUILD=0
 MAALI_CMAKE_PATH=".."
 MAALI_MAKE_VERSION_DEFAULT=0
 MAALI_FORCE_DOWNLOAD_FROM_GITHUB=0
@@ -1105,7 +1221,7 @@ MAALI_MODULE_PE_PKGCONFIG_NAME=
 MAALI_MODULE_PE_PKGCONFIG_CFLAGS=
 MAALI_MODULE_PE_PKGCONFIG_LIBS=
 
-while getopts "ht:v:pdc:mr:bgswafuxn" OPTION
+while getopts "ht:v:pdc:mr:bgswafuxTn:V" OPTION
 do
      case $OPTION in
          h)
@@ -1145,6 +1261,7 @@ do
              ;;
          w)
              MAALI_ROOT="$HOME/software/$MAALI_OS"
+             MAALI_WS_BUILD=1
              ;;
          a)
              MAALI_MAKE_VERSION_DEFAULT=1
@@ -1164,6 +1281,14 @@ do
          n)
              MAALI_CUDA_BUILD=1
              ;;
+	 T)
+	     # This is for testing the default system installation of maali
+             MAALI_TEST_INSTALL="YES"
+             ;;
+	 V) 
+	     # This is to run either make check  or make test as prior to the make install
+             MAALI_MAKE_TEST="YES"
+	     ;;
          ?)
              usage
              exit
@@ -1171,14 +1296,203 @@ do
      esac
 done
 
-if [ -z $TMPDIR ]; then
-  TMPDIR=/tmp
+##############################################################################
+#
+# Rudimentary Operating System detecting which can be overriden by setting
+# MAALI_OS to a value of your choosing
+
+# by default we are not a Cray or IBM power
+MAALI_CRAY=0
+MAALI_POWER=0
+
+if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
+  # We are a Cray
+  MAALI_OS_VERSION=`grep CLERELEASE /etc/opt/cray/release/CLEinfo | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]`
+
+  MAALI_OS="cle$MAALI_OS_VERSION"
+
+  MAALI_CRAY=1
+
+elif [ -f "/etc/SuSE-release" ]; then
+  # We are running SLES
+  MAALI_OS_VERSION=`grep VERSION /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
+  MAALI_OS_PATCH_LEVEL=`grep PATCHLEVEL /etc/SuSE-release | cut -d '=' -f 2 | sed -e 's/ //g'`
+  MAALI_OS="sles${MAALI_OS_VERSION}sp${MAALI_OS_PATCH_LEVEL}"
+
+elif [[ -f "/etc/os-release" ]]; then
+  # This works for ubuntu, fedora and debian linux images
+  NAME=`grep -w ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g' `
+
+  if [[ "${NAME}" == "ubuntu" ]]; then
+      MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
+      MAALI_OS="ubuntu$MAALI_OS_VERSION"
+
+  elif [[ "$NAME" == "fedora" ]]; then
+      MAALI_OS_VERSION=`grep -w VERSION_ID /etc/os-release | cut -d '=' -f 2`
+      MAALI_OS="fedora$MAALI_OS_VERSION"
+
+  elif [[ "$NAME" == "debian" ]]; then
+      MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
+      MAALI_OS="debian$MAALI_OS_VERSION"   
+    
+  elif [[ "${NAME}" == "centos" ]]; then
+      MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e's/"//g'`
+      MAALI_OS="centos${MAALI_OS_VERSION}"
+
+  elif [[ "$NAME" == "rhel" ]]; then 
+	echo ${NAME}
+	MAALI_OS_VERSION=`grep VERSION_ID /etc/os-release | cut -d '=' -f 2 | sed -e 's/"//g'`
+        MAALI_OS="${NAME}${MAALI_OS_VERSION}"
+        if [ `uname -m` == "ppc64le" ]; then
+        # We are on a IBM power system
+           echo "found the POWER!"
+	   MAALI_POWER=1
+        fi 
+  fi
+  
+#elif [ -f "/etc/redhat-release" ]; then
+#  MAALI_OS_VERSION=`cat /etc/redhat-release | awk '{print $4;}'`
+#  MAALI_OS="scientific_linux$MAALI_OS_VERSION"
+#fi    
+
+elif [[ -z "${MAALI_OS}" ]]; then
+  echo "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
+  exit 1
 fi
+echo `module list`
+maali_wiki "The operating system is $MAALI_OS"
+#######################################################################
+
+echo "mygroup dir $MYGROUP "
+if [ ! $MYGROUP ]; then
+   maali_wiki " MYGROUP is not defined as a system environment variable! "
+   maali_wiki " This is not on the Pawsey HPC file system"
+   maali_wiki " The Maali root directory is $MAALI_ROOT as set by ${MAALI_CONFIG}.config file"
+else 
+# At the Pawsey Supercomputing Center MYGROUP is a custom system variable
+# /group/projectID where /group is parallel filesystem for storing job outputs
+# This allows users to install applications in their own group directory
+   MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
+   echo "The system wide alias MYGROUP is set the default root path used for maali "
+   echo "application builds and installation.  MYGROUP is use to define the default "
+   echo "MAALI_ROOT variable. "
+   echo "The default environment variable MYGROUP is set to ${MYGROUP}."
+   echo "A maali.config file can be used to redefine the MAALI_ROOT variable. "   
+fi
+
+if [[ -z $MAALI_ROOT ]]; then
+    echo "MAALI_ROOT is UNDEFINED, check your config file!"
+    exit 1
+fi 
+
+echo MAALI_ROOT is set to $MAALI_ROOT 
+######################################################################
+maali_wiki "default module path here is $MODULEPATH"
 
 # user and group builds derive the following through MAALI_ROOT
 MAALI_BUILD_DIR="$MAALI_ROOT/build"
 MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
 MAALI_SRC="$MAALI_ROOT/src"
+
+######################################################################
+# these are global
+
+#MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet/master"
+MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/chrisbpawsey/maali-cygnet/master"
+MAALI_CYGNET_DIR_NAME='cygnet_files'
+MAALI_CYGNET_BUILD_FILE_EXT='cyg'
+
+######################################################################
+# If using a MAALI_CONFIG file find it and source it.
+# will either be in the maali directory during maali initial installation
+# or it will be it the users $HOME/.maali directory.
+#
+
+maali_wiki "!!  test for maali config file $MAALI_CONFIG maali module is $MAALI_IS_LOADED"
+
+#if [ ${MAALI_IS_LOADED} == true ]; then
+#  maali_wiki "maali module is loaded"
+#else 
+#  maali_wiki "maali module is not loaded "
+#fi 
+
+# -z ${VAR} true if VAR = 0 length 
+if [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" != "maali" ]]; then
+   echo " ! Using a local maali configuration file in the user's home directory .maali "
+   echo "   to install ${MAALI_TOOL_NAME} " 
+# allow us to override the config
+# Test to see if it in the users directory this means maali is installed!
+  if [ -f "$HOME/.maali/$MAALI_CONFIG.config" ]; then
+     . "$HOME/.maali/$MAALI_CONFIG.config"
+
+     # use the name of our config file to create a different log file
+     MAALI_LOG_PREFIX="$MAALI_CONFIG-"
+  fi  
+
+# we have a config file -C option used and we are installing maali
+elif [[ ! -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then 
+    echo " ! this is for a users account"
+    echo " ! this will attempt to create and gnu compiler module "
+    maali_wiki " using config file in current directory to do a custom installation of maali!"
+    maali_wiki " we are installing maali in the workstation ${MAALI_OS} "  
+ 
+    if [ ! -d ${HOME}/.maali ]; then    
+    # copy the MAALI_CONFIG.config file copy to user home and source
+     maali_makedir "${HOME}/.maali"
+     maali_wiki " created the ${HOME}/.maali"
+     cp ${MAALI_CONFIG}.config ${HOME}/.maali
+     . "${HOME}/.maali/${MAALI_CONFIG}.config"
+
+    # Since this is an initial install what else can we do?  
+    # Try to auto generate module files for compilers!
+      if [ ! -d ${MAALI_MODULE_DIR} ]; then
+        install_default_compiler_modules 
+      else
+ 	echo " $MAALI_MODULE_DIR does not exist!"
+      fi
+
+    fi 
+# there is no config file and we are installing maali
+elif [[ -z ${MAALI_CONFIG} ]] && [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then
+  echo " !  this is the default workstation build "
+  echo " !! test for module dir and install default compiler modules "
+  echo " !! the maali module directory is: "
+  echo " ${MAALI_MODULE_DIR}"
+  echo " "
+  if [[ -z ${MAALI_DEFAULT_COMPILERS} ]]; then
+      echo " NO Default compilers defined, installation will fail"
+      echo " the installation command for maali should look like this...."
+      echo " MAALI_DEFAULT_COMPILERS=\"gcc/4.8.3 intel/15.0.0\" ./maali -t maali -v 1.0.1"
+      exit 1
+  else 
+      echo "!!!!!"
+      echo "  Install maali with the default compilers ${MAALI_DEFAULT_COMPILERS} and "
+      echo "  check modulepath environment variable line 1465 "
+      echo "  the module path here is $MODULEPATH"
+      echo "!!!!!"
+     
+      install_default_compiler_modules 
+  fi
+fi
+maali_wiki " exit test for maali.config file" 
+
+######################################################################
+
+
+MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
+MAALI_WGET_CMD="wget"
+
+if [ -z $TMPDIR ]; then
+  TMPDIR=/tmp
+fi
+
+if [ "$MAALI_TEST_INSTALL" == "YES" ]; then
+  if [ -f "maali_test_install.log" ]; then
+    rm -f  maali_test_install.log
+  fi 
+  maali_wiki "The maali script is running in this dir `pwd`"
+fi
+
 
 # Why can't SLES file the module command?
 if [ -f "/etc/SuSE-release" ]; then
@@ -1210,6 +1524,7 @@ for MAALI_MODULE in $MAALI_LOADEDMODULES; do
 
   if [ "$MAALI_MODULE_NAME" == "maali" ]; then
     MAALI_IS_LOADED=1
+    maali_wiki "!!! Found the maali module !!!"
   fi
 done
 
@@ -1262,20 +1577,6 @@ MAALI_TOOL_NAME_UPPERCASE=$(echo "$MAALI_TOOL_NAME" | tr '[:lower:]' '[:upper:]'
 # chicken and egg
 MAALI_PYTHON_FIRSTLETTER=`echo "$MAALI_TOOL_NAME_ORIG" | cut -b 1`
 
-if [ "$MAALI_CONFIG" != "" ]; then
-  # allow us to override the config
-  if [ -f "$HOME/.maali/$MAALI_CONFIG.config" ]; then
-     . "$HOME/.maali/$MAALI_CONFIG.config"
-
-
-     # use the name of our config file to create a different log file
-     MAALI_LOG_PREFIX="$MAALI_CONFIG-"
-  else
-    echo "Could not open $HOME/.maali/$MAALI_CONFIG.config!";
-    exit 1;
-  fi
-fi
-
 # system builds require MAALI_BUILDER_UID to be defined
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   if [ -z $MAALI_BUILDER_UID ]; then
@@ -1307,6 +1608,7 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
     fi
   fi
 fi
+maali_wiki " exit test for system_build to set MAALI_BUILDER_UID - line 1522" 
 
 # need to set MAALI_DEFAULT_CRAY_GCC_PRGENV, MAALI_DEFAULT_CRAY_INTEL_PRGENV and MAALI_DEFAULT_CRAY_CCE_PRGENV
 if [ "$MAALI_DEFAULT_CRAY_PRGENVS" != "" ]; then
@@ -1450,7 +1752,7 @@ if [ $MAALI_FORCE_DOWNLOAD_FROM_GITHUB -eq 0 ]; then
         break
       fi
     elif [ -f "$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT" ]; then
-      echo "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT for tool configuration information"
+      maali_wiki "Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT for tool configuration information"
       MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
       MAALI_CYGNET_FILESIZE=$(stat -c%s "$MAALI_CYGNET_FILEPATH")
       if [ $MAALI_CYGNET_FILESIZE -eq 0 ]; then
@@ -1467,7 +1769,7 @@ fi
 if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   # try and download it from github
 
-  # make sure the drectory is there
+  # make sure the directory is there
   if [ ! -d "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME" ]; then
     maali_makedir "$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME"
   fi
@@ -1475,7 +1777,7 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   MAALI_CYGNET_FILEPATH="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
   MAALI_FILES_PATH="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME"
 
-  echo "Downloading cygnet file from $MAALI_CYGNET_FILES_URL to $MAALI_CYGNET_FILEPATH"
+  maali_wiki "Downloading cygnet file from $MAALI_CYGNET_FILES_URL to $MAALI_CYGNET_FILEPATH"
 
 
   maali_git_download "$MAALI_FILES_PATH" "$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
@@ -1483,6 +1785,7 @@ if [ $MAALI_FOUND_CYGENT -eq 0 ]; then
   MAALI_FOUND_CYGENT=1
 
 fi
+maali_wiki " exit test and download cygnet files line 1699 "
 
 # source the cygnet file
 . $MAALI_CYGNET_FILEPATH
@@ -1574,9 +1877,12 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
   fi
 done
 
+# Default MAALI_TOOL_TYPE to apps if not set in cygnet files
 if [ -z $MAALI_TOOL_TYPE ]; then
   MAALI_TOOL_TYPE="apps"
 fi
+
+maali_wiki " set tool type to ${MAALI_TOOL_TYPE} line-1810"
 
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   # create a wiki page to help David
@@ -1596,6 +1902,7 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
         MAALI_COMPILER_VERSION="N/A"
         MAALI_WIKI_COMPILER_STRING="N/A"
       else
+
         maali_load_module "$MAALI_COMPILER"
 
         if [ $MAALI_PYTHON_TOOL ]; then
@@ -1660,7 +1967,7 @@ $ maali $MAALI_CMDLINE
 Using $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT for tool configuration information
 EOF
   fi
-
+  maali_wiki " setup maali app dir and module dir line 1880 "
   # where the software is installed is based on the tool type
   MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
 
@@ -1670,15 +1977,41 @@ EOF
   else
     MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_TYPE/$MAALI_TOOL_NAME"
   fi
+
+#elif [[ ! -z ${MAALI_CONFIG} ]] && [[ ${MAALI_WS_BUILD} -eq 1 ]]; then
+elif [[ ${MAALI_WS_BUILD} -eq 1 ]]; then
+   # this is a workstation
+   # where the software is installed is based on the tool type
+   # 
+  MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
+  maali_wiki " " 
+  maali_wiki " !!!!!!   This is a workstation build install the maali module "
+  maali_wiki " Maali will install $MAALI_TOOL_NAME in ${MAALI_APPS_DIR} directory! " 
+  maali_wiki " " 
+ # this is now based on tool type
+  if [ $MAALI_CUDA_BUILD -eq 1 ]; then
+    MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_TYPE/$MAALI_TOOL_NAME-gpu"
+  else
+    MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_TYPE/$MAALI_TOOL_NAME"
+    # This being set during the intial maali install so all the paths come out right"
+    if [[ "${MAALI_TOOL_NAME}" == "maali" ]]; then         
+	MAALI_TOOL_TYPE="tools"
+    fi
+    MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
+    MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_TYPE/$MAALI_TOOL_NAME" 
+  fi
 else
-  echo "Warning: non-system build detected, overriding MAALI_TOOL_TYPE (currently $MAALI_TOOL_TYPE) and setting to tool type to 'apps'"
-  # for user builds we want them to be able to include a single module path
+  maali_wiki "Warning: non-system build detected, overriding MAALI_TOOL_TYPE (currently $MAALI_TOOL_TYPE) "
+  maali_wiki "and setting to tool type to 'apps'"
+  maali_wiki " "
+  # for user builds we want them to be able to include a single module path from $MYGROUP/
   MAALI_TOOL_TYPE="apps"
   MAALI_APPS_DIR="$MAALI_ROOT/$MAALI_TOOL_TYPE"
+
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
     MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_NAME-gpu"
   else
-    MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_NAME"
+    MAALI_TOOL_MODULE_DIR="$MAALI_MODULE_DIR/$MAALI_TOOL_NAME"    
   fi
 fi
 
@@ -2012,19 +2345,23 @@ if [ $MAALI_UNINSTALL_REMOVE -eq 1 ]; then
 fi
 
 if [ $MAALI_REMODULE -eq 0 ]; then
-  maali_wiki "creating module in $MAALI_TOOL_MODULE_DIR"
+  maali_wiki " "
+  maali_wiki "creating a new module install  $MAALI_TOOL_MODULE_DIR line 2097"
 else
+  maali_wiki " "
+  maali_wiki " Re-create the module and install in  $MAALI_TOOL_MODULE_DIR line 2100"
   if [ $MAALI_UNINSTALL_REMOVE -eq 1 ]; then
     echo "purging the module from $MAALI_TOOL_MODULE_DIR"
   elif [ $MAALI_UNINSTALL_HIDE -eq 1 ]; then
     echo "hiding the module in $MAALI_TOOL_MODULE_DIR"
   else
-    echo "creating module in $MAALI_TOOL_MODULE_DIR"
+    echo "creating module in $MAALI_TOOL_MODULE_DIR line 2055 "
   fi
 fi
 
 if [ $MAALI_BUILDONLY ]; then
   echo "skipping module creation"
+  maali_wiki "build application only skipping module creation"
 else
 
   # make the module
@@ -2053,11 +2390,11 @@ else
 
     # make sure we have a module directory
     maali_makedir "$MAALI_TOOL_MODULE_DIR"
-
+    
     if [ -f "$MAALI_TOOL_MODULE" ]; then
       cp $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
     fi
-
+    # call the maali_module function 
     maali_module
 
     # make this version the default if there is no other

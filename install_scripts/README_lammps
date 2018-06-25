@@ -1,0 +1,39 @@
+#on a new ubuntu16.04 instance 
+#you have to installed "ninja" maali
+
+#prerequisites
+sudo apt-get update
+sudo apt-get install git
+
+git clone https://github.com/chrisbpawsey/maali.git
+
+cd ~/maali/install_scripts
+# install minimal packages required for maali to work
+
+./Install_maali_ubuntu.sh 
+
+#change the directory into the maali directory
+
+cd ~/maali	
+
+#to install maali
+./maali -t maali -v 1.0.6 -c nectar -v
+
+# edit the default nectar.config file located in /home/ubuntu/.maali/ 
+# "in your home directory" edit  ~/.maali/nectar.config
+
+#So the last couple of line should look like this 
+MAALI_DEFAULT_COMPILERS="gnu/5.4.0"
+MAALI_DEFAULT_GCC_COMPILERS="gnu/5.4.0"
+#MAALI_DEFAULT_PYTHON=""
+MAALI_DEFAULT_MPI="openmpi/2.0.1"
+MAALI_CORES=4
+
+#log out and log back in to your instance
+#this is to pick up all the environment changes for environment modules
+
+# to install lammps
+cd ~/maali/install_scripts
+# run this script to install lammps!
+./Install_lammps_ubuntu.sh
+ 
