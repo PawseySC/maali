@@ -2771,7 +2771,9 @@ else
   MAALI_TOOL_MODULE="$MAALI_TOOL_MODULE_DIR/$MAALI_TOOL_VERSION"
   if [ $MAALI_LUA_MODULE -eq 1 ]; then
     MAALI_TOOL_MODULE="${MAALI_TOOL_MODULE}.lua"
-    MAALI_MODULE_DEFAULT_FILENAME='.modulerc'
+### in principle, the following should be enabled. 
+### however, LUA modules on Zeus currently have .version, and this is working properly
+#    MAALI_MODULE_DEFAULT_FILENAME='.modulerc'
   fi
 
 
