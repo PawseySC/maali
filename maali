@@ -1719,7 +1719,7 @@ function removefile {
 usage()
 {
 cat << EOF
-usage: $0 -t toolname -v toolversion [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b] [-g] [-s] [-w] [-a] [-u] [-x]
+usage: $0 -t toolname -v toolversion [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b] [-g] [-w] [-a] [-f] [-u] [-x] [-n] [-p]
 
 maali - Pawsey Supercomputing Centre Build System
 
@@ -1728,13 +1728,12 @@ OPTIONS:
    -v      tool version
    -h      show this message
    -d      run in debug mode
-   -c      maali configuration file
+   -c      maali configuration file (system build)
    -m      just create the module file
    -l      create LUA modules
    -r      build with the specified compiler (and no others)
    -b      build the tool, but don't create a module file
    -g      group build in /group/$PAWSEY_PROJECT/software/$MAALI_OS
-   -s      activate system build
    -w      workstation build in $HOME/software/$MAALI_OS
    -a      activate this version as the default version
    -f      force download from github
@@ -1822,11 +1821,6 @@ do
              MAALI_ROOT="/group/$PAWSEY_PROJECT/software/$MAALI_OS"
              MAALI_GROUP_BUILD="YES"
              MAALI_MKDIR_FLAGS=${MAALI_MKDIR_FLAGS:-"--mode=a=rwx,g=rwxs,o="}
-             ;;
-         s)
-             # how do we reset MAALI_ROOT, MAALI_BUILD_DIR and MAALI_MODULE_DIR
-             # for system builds?
-             MAALI_SYSTEM_BUILD="YES"
              ;;
          w)
              MAALI_ROOT="$HOME/software/$MAALI_OS"
