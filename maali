@@ -933,8 +933,8 @@ function maali_module_lua {
   # determine the default versions of a number of tools
   MAALI_SYSTEM_DEFAULT_PYTHON=`module -dt avail python | xargs -n1 | grep '^python/' | cut -d '/' -f 2`
   MAALI_SYSTEM_DEFAULT_R=`module -dt avail r | xargs -n1 | grep '^r/' | cut -d '/' -f 2`
-  MAALI_SYSTEM_DEFAULT_MPI_NAME='openmpi' #our default MPI name
-  MAALI_SYSTEM_DEFAULT_MPI=`module -dt avail $MAALI_SYSTEM_DEFAULT_MPI_NAME | xargs -n1 | grep "^$MAALI_SYSTEM_DEFAULT_MPI_NAME/" | cut -d '/' -f 2`
+  MAALI_SYSTEM_DEFAULT_MPI_NAME=`echo $MAALI_DEFAULT_MPI | cut -d '/' -f 1`
+  MAALI_SYSTEM_DEFAULT_MPI=`echo $MAALI_DEFAULT_MPI | cut -d '/' -f 2`
   MAALI_SYSTEM_DEFAULT_CUDA=`module -dt avail cuda | xargs -n1 | grep '^cuda/' | cut -d '/' -f 2`
 
   MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
@@ -2061,12 +2061,12 @@ if [ "$MAALI_DEFAULT_PYTHON" != "" ]; then
   done
 fi
 
-# need to set MAALI_DEFAULT_OPENMPI_MPI, etc
-if [ "$MAALI_DEFAULT_MPI" != "" ]; then
-  for MAALI_DEFAULT_MPI_COMPILER in $MAALI_DEFAULT_MPI; do
+# need to set MAALI_DEFAULT_OPENMPI_MPI_COMPILERS, etc
+if [ "$MAALI_DEFAULT_MPI_COMPILERS" != "" ]; then
+  for MAALI_DEFAULT_MPI_COMPILER in $MAALI_DEFAULT_MPI_COMPILERS; do
     MAALI_DEFAULT_MPI_COMPILER_NAME=`echo "$MAALI_DEFAULT_MPI_COMPILER" | cut -d '/' -f 1 | tr '[:lower:]' '[:upper:]' | sed -e 's/-//g' | sed -e 's/+/PLUS/g'`
 
-    varname=MAALI_DEFAULT_${MAALI_DEFAULT_MPI_COMPILER_NAME}_MPI
+    varname=MAALI_DEFAULT_${MAALI_DEFAULT_MPI_COMPILER_NAME}_MPI_COMPILERS
 
     if [ "${!varname}" == "" ]; then
       eval $varname="$MAALI_DEFAULT_MPI_COMPILER"
