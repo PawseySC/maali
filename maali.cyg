@@ -26,7 +26,7 @@ MAALI_MODULE_SET_PATH=1
 
 function maali_unpack {
   if [ ! -f "$MAALI_SRC/$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.tar.gz" ]; then
-    wget --no-check-certificate -O $MAALI_SRC/$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.tar.gz -q https://github.com/Pawseyops/$MAALI_TOOL_NAME/archive/$MAALI_TOOL_VERSION.tar.gz
+    wget --no-check-certificate -O $MAALI_SRC/$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.tar.gz -q https://github.com/PawseySC/$MAALI_TOOL_NAME/archive/$MAALI_TOOL_VERSION.tar.gz
   fi
 
   cd $MAALI_BUILD_DIR
