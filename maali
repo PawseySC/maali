@@ -945,7 +945,7 @@ function maali_module_lua {
     [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("CPU_TARGET")..'
   fi
   if [ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" -o "$MAALI_TOOL_COMPILERS" == "binary" ]; then
-    MAALI_APP_HOME+="/$MAALI_TOOL_COMPILERS"
+    MAALI_APP_HOME+="\"/$MAALI_TOOL_COMPILERS\".."
   elif [ $MAALI_PYTHON_TOOL ]; then
     MAALI_APP_HOME+='"/python/"..os.getenv("PYTHON_VERSION")..'
   elif [ $MAALI_R_TOOL ]; then
