@@ -44,13 +44,13 @@ elif [ -f "/etc/redhat-release" ]; then
 
   MAALI_OS="rhel$MAALI_OS_VERSION"
 else
-  maali_die "Your Operating System is not support by maali, please lodge a ticket at https://github/Pawseyops/maali"
+  maali_die "Your Operating System is not support by maali, please lodge a ticket at https://github/PawseySC/maali"
 fi
 
 ##############################################################################
 # these are global
 
-MAALI_CYGNET_FILES_URL=${MAALI_CYGNET_FILES_URL:-"https://raw.githubusercontent.com/Pawseyops/maali-cygnet/master"}
+MAALI_CYGNET_FILES_URL=${MAALI_CYGNET_FILES_URL:-"https://raw.githubusercontent.com/PawseySC/maali-cygnet/master"}
 MAALI_CYGNET_DIR_NAME='cygnet_files'
 MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 
@@ -1666,7 +1666,7 @@ function maali_unpack {
     elif [ "$MAALI_TYPE" = "ASCII C program text" ]; then
       cp "$MAALI_INDIVIDUAL_DST" "$MAALI_TOOL_BUILD_DIR"
     else
-      maali_die "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please please lodge a ticket at https://github/Pawseyops/maali."
+      maali_die "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please please lodge a ticket at https://github/PawseySC/maali."
     fi
 
     if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
@@ -1854,7 +1854,7 @@ do
              MAALI_MODULE_DEFAULT_FILENAME='.modulerc'
              ;;
          p)
-             MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/Pawseyops/maali-cygnet/$PAWSEY_PROJECT"
+             MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/PawseySC/maali-cygnet/$PAWSEY_PROJECT"
              ;;
          ?)
              usage
