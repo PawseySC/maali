@@ -161,7 +161,11 @@ function maali_download {
     MAALI_TMP_DST=${MAALI_DST_ARRAY[$i]}
 
     if [ $DEBUG ]; then
-      echo " .. need to download $MAALI_TMP_URL to $MAALI_TMP_DST"
+      if [ -f "$MAALI_TMP_DST" ]; then
+        echo " .. $MAALI_TMP_DST exists so will not download $MAALI_TMP_URL"
+      else
+        echo " .. need to download $MAALI_TMP_URL to $MAALI_TMP_DST"
+      fi
     fi
 
     if [ ! -f "$MAALI_TMP_DST" ]; then
