@@ -1719,7 +1719,7 @@ function removefile {
 usage()
 {
 cat << EOF
-usage: $0 -t toolname -v toolversion [-h] [-d] [-c maali config file] [-m] [-l] [-r compiler/version] [-b] [-g] [-s] [-w] [-a] [-u] [-x]
+usage: $0 -t toolname -v toolversion [-h] [OTHER OPTIONS]
 
 maali - Pawsey Supercomputing Centre Build System
 
