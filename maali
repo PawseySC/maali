@@ -171,6 +171,10 @@ function maali_download {
       cd $MAALI_SRC
 
       $MAALI_WGET_CMD $MAALI_WGET_EXTRA -O $MAALI_TMP_DST $MAALI_TMP_URL
+    else
+      if [ $DEBUG ]; then
+        echo " .. $MAALI_TMP_DST exists so will not download $MAALI_TMP_URL"
+      fi
     fi
   done
 }
