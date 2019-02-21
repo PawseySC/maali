@@ -1855,7 +1855,6 @@ do
              ;;
          l)
              MAALI_LUA_MODULE=1
-             MAALI_MODULE_DEFAULT_FILENAME='.modulerc'
              ;;
          p)
              MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/PawseySC/maali-cygnet/$PAWSEY_PROJECT"
@@ -2776,6 +2775,9 @@ else
   MAALI_TOOL_MODULE="$MAALI_TOOL_MODULE_DIR/$MAALI_TOOL_VERSION"
   if [ $MAALI_LUA_MODULE -eq 1 ]; then
     MAALI_TOOL_MODULE="${MAALI_TOOL_MODULE}.lua"
+### the default filename for LMOD is .modulerc
+### however, .version is also accepted, and currently all LMOD modules at Pawsey are using this
+#    MAALI_MODULE_DEFAULT_FILENAME='.modulerc'
   fi
 
 
