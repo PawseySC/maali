@@ -717,7 +717,7 @@ EOF
   fi
 
   if [ "$MAALI_MODULE_CONFLICT" != "" ]; then
-      (IFS=","; for MAALI_PKG in $MAALI_MODULE_CONFLICT
+      (for MAALI_PKG in $MAALI_MODULE_CONFLICT
       do
           cat <<EOF >> $MAALI_TOOL_MODULE
 conflict $MAALI_PKG
@@ -726,7 +726,7 @@ EOF
   fi
 
   if [ "$MAALI_MODULE_PREREQ" != "" ]; then
-      (IFS=","; for MAALI_PKG in $MAALI_MODULE_PREREQ
+      (for MAALI_PKG in $MAALI_MODULE_PREREQ
       do
           cat <<EOF >> $MAALI_TOOL_MODULE
 prereq $MAALI_PKG
@@ -1356,7 +1356,7 @@ EOF
   fi
 
   if [ "$MAALI_MODULE_CONFLICT" != "" ]; then
-      (IFS=","; for MAALI_PKG in $MAALI_MODULE_CONFLICT
+      (for MAALI_PKG in $MAALI_MODULE_CONFLICT
       do
           cat <<EOF >> $MAALI_TOOL_MODULE
 conflict("$MAALI_PKG")
@@ -1365,7 +1365,7 @@ EOF
   fi
 
   if [ "$MAALI_MODULE_PREREQ" != "" ]; then
-      (IFS=","; for MAALI_PKG in $MAALI_MODULE_PREREQ
+      (for MAALI_PKG in $MAALI_MODULE_PREREQ
       do
           cat <<EOF >> $MAALI_TOOL_MODULE
 prereq("$MAALI_PKG")
