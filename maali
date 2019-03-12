@@ -1939,6 +1939,7 @@ fi
 # helpful for building URL
 MAALI_TOOL_MAJOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1`
 MAALI_TOOL_MAJOR_MINOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1,2`
+MAALI_TOOL_MINOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 2`
 
 # for use for make -j $MAALI_CORES
 if [ -z $PBS_NODEFILE ]; then
