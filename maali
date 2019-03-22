@@ -1212,7 +1212,7 @@ EOF
     if [ "$MAALI_TOOL_COMPILERS" != "$MAALI_DEFAULT_SYSTEM_GCC" ]; then
       # if we have compiled with the system compiler, do we need conflict resolution?
       for MAALI_COMPILER_TYPE in $MAALI_SUPPORTED_COMPILERS; do
-        MAALI_SYSTEM_COMPILER_LIST=`module --redirect -t -r avail "^$MAALI_COMPILER_TYPE/" | tail -n +3 | xargs`
+        MAALI_SYSTEM_COMPILER_LIST=`module -t avail $MAALI_COMPILER_TYPE 2>&1 | xargs -n1 | grep "^$MAALI_COMPILER_TYPE/" | xargs`
 
         if [ "$MAALI_SYSTEM_COMPILER_LIST" != "" ]; then
           for MAALI_SYSTEM_COMPILER in $MAALI_SYSTEM_COMPILER_LIST; do
@@ -1251,7 +1251,7 @@ EOF
 
     for MAALI_MPI_TYPE in $MAALI_SUPPORTED_MPI ; do
 
-      MAALI_SYSTEM_MPI_LIST=`module --redirect -t avail $MAALI_MPI_TYPE 2>&1 | xargs -n1 | grep "^$MAALI_MPI_TYPE/" | xargs`
+      MAALI_SYSTEM_MPI_LIST=`module -t avail $MAALI_MPI_TYPE 2>&1 | xargs -n1 | grep "^$MAALI_MPI_TYPE/" | xargs`
 
       for MAALI_SYSTEM_MPI_VERSION in $MAALI_SYSTEM_MPI_LIST ; do
   
@@ -1277,7 +1277,7 @@ EOF
 
   # CUDA conflict
   if [ $MAALI_CUDA_BUILD -eq 1 ]; then
-    MAALI_SYSTEM_CUDA_LIST=`module --redirect -t -r avail "^cuda/" | tail -n +3 | xargs`
+    MAALI_SYSTEM_CUDA_LIST=`module -t avail cuda 2>&1 | xargs -n1 | grep "^cuda/" | xargs`
 
     for MAALI_SYSTEM_CUDA_VERSION in $MAALI_SYSTEM_CUDA_LIST; do
 
