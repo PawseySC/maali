@@ -854,10 +854,9 @@ EOF
           MAALI_MODULE_VARIABLE_TCL="append-path"
           ;;
         *)
-          # the default is to setenv a single variable
+          # the default is to setenv
           MAALI_MODULE_VARIABLE_TCL="setenv"
           MAALI_MODULE_VARIABLE_PREPREND=""
-          MAALI_MODULE_VARIABLE_WORDS="1"
           ;;
         esac
 
@@ -1491,10 +1490,9 @@ EOF
           MAALI_MODULE_VARIABLE_LUA="append_path"
           ;;
         *)
-          # the default is to setenv a single variable
+          # the default is to setenv
           MAALI_MODULE_VARIABLE_LUA="setenv"
           MAALI_MODULE_VARIABLE_PREPREND=""
-          MAALI_MODULE_VARIABLE_WORDS="1"
           ;;
         esac
 
