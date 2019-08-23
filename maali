@@ -776,6 +776,7 @@ EOF
     MAALI_MODULE_VARIABLE_DIR=""
     MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
     MAALI_MODULE_VARIABLE_TCL="prepend-path"
+    MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
 
     MAALI_MODULE_VARIABLE_PREPREND_SWITCH="MAALI_MODULE_PREPEND_${MAALI_MODULE_VARIABLE_NAME}"
     MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_PREPREND_SWITCH}"`
@@ -832,6 +833,7 @@ EOF
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
           MAALI_MODULE_VARIABLE_TCL="setenv"
           MAALI_MODULE_VARIABLE_PREPREND=""
+          MAALI_MODULE_VARIABLE_WORDS="1"
           ;;
         LUA_CPATH)
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
@@ -852,9 +854,10 @@ EOF
           MAALI_MODULE_VARIABLE_TCL="append-path"
           ;;
         *)
-          # the default is to setenv
+          # the default is to setenv a single variable
           MAALI_MODULE_VARIABLE_TCL="setenv"
           MAALI_MODULE_VARIABLE_PREPREND=""
+          MAALI_MODULE_VARIABLE_WORDS="1"
           ;;
         esac
 
@@ -877,7 +880,7 @@ EOF
         # don't treat value as a list
         if [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "off" ]; then
           MAALI_MODULE_VARIABLE_WORDS="1"
-        else
+        elif [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "on" ]; then
           MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
         fi
 
@@ -1410,6 +1413,7 @@ EOF
     MAALI_MODULE_VARIABLE_DIR=""
     MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
     MAALI_MODULE_VARIABLE_LUA="prepend_path"
+    MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
 
     MAALI_MODULE_VARIABLE_PREPREND_SWITCH="MAALI_MODULE_PREPEND_${MAALI_MODULE_VARIABLE_NAME}"
     MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE=`eval echo "${!MAALI_MODULE_VARIABLE_PREPREND_SWITCH}"`
@@ -1466,6 +1470,7 @@ EOF
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
           MAALI_MODULE_VARIABLE_LUA="setenv"
           MAALI_MODULE_VARIABLE_PREPREND=""
+          MAALI_MODULE_VARIABLE_WORDS="1"
           ;;
         LUA_CPATH)
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
@@ -1486,9 +1491,10 @@ EOF
           MAALI_MODULE_VARIABLE_LUA="append_path"
           ;;
         *)
-          # the default is to setenv
+          # the default is to setenv a single variable
           MAALI_MODULE_VARIABLE_LUA="setenv"
           MAALI_MODULE_VARIABLE_PREPREND=""
+          MAALI_MODULE_VARIABLE_WORDS="1"
           ;;
         esac
 
@@ -1511,7 +1517,7 @@ EOF
         # don't treat value as a list
         if [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "off" ]; then
           MAALI_MODULE_VARIABLE_WORDS="1"
-        else
+        elif [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "on" ]; then
           MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
         fi
 
