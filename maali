@@ -858,6 +858,7 @@ EOF
           ;;
         *)
           # the default is to setenv
+          MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
           MAALI_MODULE_VARIABLE_TCL="setenv"
           MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
@@ -1509,6 +1510,7 @@ EOF
           ;;
         *)
           # the default is to setenv
+          MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
           MAALI_MODULE_VARIABLE_LUA="setenv"
           MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
