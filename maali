@@ -353,7 +353,7 @@ function maali_module {
   fi
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="/cuda/\$env(CUDA_VER)"
   MAALI_APP_HOME+="/$MAALI_TOOL_NAME"
-  [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="-gpu"
+  [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="${MAALI_CUDA_SUFFIX}"
   MAALI_APP_HOME+="/$MAALI_TOOL_VERSION"
 
   #Clobber MAALI_APP_HOME if MAALI_INSTALL_DIR set in cygnet file.
@@ -379,7 +379,7 @@ EOF
 
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
   cat <<EOF >>$MAALI_TOOL_MODULE
-set tool    $MAALI_TOOL_NAME-gpu
+set tool    $MAALI_TOOL_NAME${MAALI_CUDA_SUFFIX}
 EOF
 else
   cat <<EOF >>$MAALI_TOOL_MODULE
@@ -988,7 +988,7 @@ function maali_module_lua {
   [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("MPI_NAME").."/"..os.getenv("MPI_VER")..'
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+='"/cuda/"..os.getenv("CUDA_VER")..'
   MAALI_APP_HOME+='"/'$MAALI_TOOL_NAME
-  [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="-gpu"
+  [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="${MAALI_CUDA_SUFFIX}"
   MAALI_APP_HOME+="/$MAALI_TOOL_VERSION"
 
   # Clobber MAALI_APP_HOME if MAALI_INSTALL_DIR set in cygnet file.
@@ -1004,7 +1004,7 @@ EOF
 
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
   cat <<EOF >>$MAALI_TOOL_MODULE
-local tool = '$MAALI_TOOL_NAME-gpu'
+local tool = '$MAALI_TOOL_NAME${MAALI_CUDA_SUFFIX}'
 EOF
 else
   cat <<EOF >>$MAALI_TOOL_MODULE
@@ -1823,6 +1823,7 @@ MAALI_UNINSTALL_REMOVE=0
 MAALI_SYSTEM_CYGNET_FILE=0
 MAALI_CUDA_BUILD=0
 MAALI_CUDA_SUPPORT=0
+MAALI_CUDA_SUFFIX=${MAALI_CUDA_SUFFIX:-"-gpu"}
 MAALI_LUA_MODULE=${MAALI_LUA_MODULE:-0}
 MAALI_PYTHON3_SKIP=0
 
@@ -1927,7 +1928,6 @@ fi
 MAALI_BUILD_DIR="$MAALI_ROOT/build"
 MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
 MAALI_SRC="$MAALI_ROOT/src"
-MAALI_TOOL_MPI_COMPILERS="na"
 
 # Why can't SLES file the module command?
 if [ -f "/etc/SuSE-release" ]; then
@@ -2338,10 +2338,14 @@ if [[ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" ]] ; then
   fi
 elif [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] || [[ $MAALI_PYTHON_TOOL -eq 1 ]] ; then
   MAALI_TOOL_CPU_TARGET="na"
-  MAALI_TOOL_MPI_COMPILERS="na"
 fi
 if [ "$MAALI_TOOL_CPU_TARGET" == "" ]; then
   maali_die "MAALI_TOOL_CPU_TARGET is not set, and this is not a binary, python or system gcc install"
+fi
+
+MAALI_TOOL_MPI_COMPILERS=${MAALI_TOOL_MPI_COMPILERS:-"na"}
+if [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] ; then
+  MAALI_TOOL_MPI_COMPILERS="na"
 fi
 
 if [ -z $MAALI_TOOL_TYPE ]; then
@@ -2416,12 +2420,12 @@ fi
 #Finish setting up MAALI_TOOL_MODULE_DIR
 MAALI_TOOL_MODULE_DIR+="/$MAALI_TOOL_NAME"
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
-  MAALI_TOOL_MODULE_DIR+="-gpu"
+  MAALI_TOOL_MODULE_DIR+="${MAALI_CUDA_SUFFIX}"
 fi
 
 # make sure we have a directory to log
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
-  MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-gpu-$MAALI_TOOL_VERSION.log"
+  MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME${MAALI_CUDA_SUFFIX}-$MAALI_TOOL_VERSION.log"
 else
   MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.log"
 fi
@@ -2695,7 +2699,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_MPI_COMPILER"
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_CUDA_COMPILER"
             MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_NAME"
-            [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="-gpu"
+            [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="${MAALI_CUDA_SUFFIX}"
 
             if [ $MAALI_SYSTEM_CYGNET_FILE -ne 1 ]; then
               # system-intel sets this, others may as well
