@@ -51,18 +51,20 @@ fi
 ##############################################################################
 # these are global
 
-MAALI_CYGNET_FILES_URL=${MAALI_CYGNET_FILES_URL:-"https://raw.githubusercontent.com/PawseySC/maali-cygnet/master"}
+MAALI_CYGNET_FILES_ROOT=${MAALI_CYGNET_FILES_ROOT:-"https://raw.githubusercontent.com/PawseySC/maali-cygnet"}
+MAALI_CYGNET_FILES_URL="${MAALI_CYGNET_FILES_ROOT}/master"
 MAALI_CYGNET_DIR_NAME='cygnet_files'
 MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 
+MAALI_PROJECT=${MAALI_PROJECT:-"$PAWSEY_PROJECT"}
 MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
 MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
 MAALI_WGET_CMD="wget"
 
-MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray PrgEnv-pgi"
-MAALI_SUPPORTED_CPU_TARGETS="sandybridge ivybridge haswell broadwell cascadelake knl"
-MAALI_SUPPORTED_COMPILERS="gcc intel cce pgi" # This gets overwritten for python
-MAALI_SUPPORTED_MPI="openmpi intel-mpi cray-mpich"
+MAALI_SUPPORTED_CRAY_PRGENVS=${MAALI_SUPPORTED_CRAY_PRGENVS:-"PrgEnv-gnu PrgEnv-intel PrgEnv-cray PrgEnv-pgi"}
+MAALI_SUPPORTED_CPU_TARGETS=${MAALI_SUPPORTED_CPU_TARGETS:-"sandybridge ivybridge haswell broadwell cascadelake knl"}
+MAALI_SUPPORTED_COMPILERS=${MAALI_SUPPORTED_COMPILERS:-"gcc intel cce pgi"} # This gets overwritten for python
+MAALI_SUPPORTED_MPI=${MAALI_SUPPORTED_MPI:-"openmpi intel-mpi cray-mpich"}
 
 ##############################################################################
 
@@ -306,13 +308,13 @@ function maali_makedir {
 
       mkdir $MAALI_MKDIR_FLAGS "$MAALI_DIR_PATH"
 
-      if [ "$PAWSEY_PROJECT" != "" ]; then
+      if [ "$MAALI_PROJECT" != "" ]; then
         if [[ ! "$MAALI_DIR_PATH" =~ "/home" ]]; then
           if [[ "$MAALI_TOOL_LOG" != "" ]] && [[ -f "$MAALI_TOOL_LOG" ]]; then
-            echo "-- Changing group ownership to $PAWSEY_PROJECT and setting sticky bit" >> "$MAALI_TOOL_LOG"
+            echo "-- Changing group ownership to $MAALI_PROJECT and setting sticky bit" >> "$MAALI_TOOL_LOG"
           fi
 
-          chgrp $PAWSEY_PROJECT "$MAALI_DIR_PATH"
+          chgrp $MAALI_PROJECT "$MAALI_DIR_PATH"
           chmod g+s "$MAALI_DIR_PATH"
         fi
       fi
@@ -1727,7 +1729,7 @@ function maali_unpack {
     fi
 
     if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
-      if [ "$PAWSEY_PROJECT" != "" ]; then
+      if [ "$MAALI_PROJECT" != "" ]; then
         # this is only needed for /group
         find $MAALI_TOOL_BUILD_DIR -type d -exec chmod g+s {} \;
       fi
@@ -1790,7 +1792,7 @@ OPTIONS:
    -l      create LUA modules
    -r      build with the specified compiler (and no others)
    -b      build the tool, but don't create a module file
-   -g      group build in /group/$PAWSEY_PROJECT/software/$MAALI_OS
+   -g      group build in /group/$MAALI_PROJECT/software/$MAALI_OS
    -s      activate system build
    -w      workstation build in $HOME/software/$MAALI_OS
    -a      activate this version as the default version
@@ -1877,7 +1879,7 @@ do
              MAALI_REBUILD=1
              ;;
          g)
-             MAALI_ROOT="/group/$PAWSEY_PROJECT/software/$MAALI_OS"
+             MAALI_ROOT="/group/$MAALI_PROJECT/software/$MAALI_OS"
              MAALI_GROUP_BUILD="YES"
              MAALI_MKDIR_FLAGS=${MAALI_MKDIR_FLAGS:-"--mode=a=rwx,g=rwxs,o="}
              ;;
@@ -1911,7 +1913,7 @@ do
              MAALI_LUA_MODULE=1
              ;;
          p)
-             MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/PawseySC/maali-cygnet/$PAWSEY_PROJECT"
+             MAALI_CYGNET_FILES_URL="${MAALI_CYGNET_FILES_ROOT}/$MAALI_PROJECT"
              ;;
          ?)
              usage
