@@ -63,6 +63,7 @@ MAALI_WGET_CMD="wget"
 MAALI_ROOT_DEFAULT=${MAALI_ROOT_DEFAULT:-"$MYGROUP/software/$MAALI_OS"}
 MAALI_ROOT_GROUP=${MAALI_ROOT_GROUP:-"/group/$MAALI_PROJECT/software/$MAALI_OS"}
 MAALI_ROOT_WORKST=${MAALI_ROOT_WORKST:-"$HOME/software/$MAALI_OS"}
+MAALI_ROOT_SYSTEM=${MAALI_ROOT_SYSTEM:-"/pawsey/$MAALI_OS"}
 MAALI_ROOT="$MAALI_ROOT_DEFAULT"
 
 MAALI_SUPPORTED_CRAY_PRGENVS=${MAALI_SUPPORTED_CRAY_PRGENVS:-"PrgEnv-gnu PrgEnv-intel PrgEnv-cray PrgEnv-pgi"}
@@ -1888,9 +1889,8 @@ do
              MAALI_MKDIR_FLAGS=${MAALI_MKDIR_FLAGS:-"--mode=a=rwx,g=rwxs,o="}
              ;;
          s)
-             # how do we reset MAALI_ROOT, MAALI_BUILD_DIR and MAALI_MODULE_DIR
-             # for system builds?
              MAALI_SYSTEM_BUILD="YES"
+             MAALI_ROOT="$MAALI_ROOT_SYSTEM"
              ;;
          w)
              MAALI_ROOT="$MAALI_ROOT_WORKST"
