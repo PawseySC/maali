@@ -57,9 +57,13 @@ MAALI_CYGNET_DIR_NAME='cygnet_files'
 MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 
 MAALI_PROJECT=${MAALI_PROJECT:-"$PAWSEY_PROJECT"}
-MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
 MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
 MAALI_WGET_CMD="wget"
+
+MAALI_ROOT_DEFAULT=${MAALI_ROOT_DEFAULT:-"$MYGROUP/software/$MAALI_OS"}
+MAALI_ROOT_GROUP=${MAALI_ROOT_GROUP:-"/group/$MAALI_PROJECT/software/$MAALI_OS"}
+MAALI_ROOT_WORKST=${MAALI_ROOT_WORKST:-"$HOME/software/$MAALI_OS"}
+MAALI_ROOT="$MAALI_ROOT_DEFAULT"
 
 MAALI_SUPPORTED_CRAY_PRGENVS=${MAALI_SUPPORTED_CRAY_PRGENVS:-"PrgEnv-gnu PrgEnv-intel PrgEnv-cray PrgEnv-pgi"}
 MAALI_SUPPORTED_CPU_TARGETS=${MAALI_SUPPORTED_CPU_TARGETS:-"sandybridge ivybridge haswell broadwell cascadelake knl"}
@@ -1879,7 +1883,7 @@ do
              MAALI_REBUILD=1
              ;;
          g)
-             MAALI_ROOT="/group/$MAALI_PROJECT/software/$MAALI_OS"
+             MAALI_ROOT="$MAALI_ROOT_GROUP"
              MAALI_GROUP_BUILD="YES"
              MAALI_MKDIR_FLAGS=${MAALI_MKDIR_FLAGS:-"--mode=a=rwx,g=rwxs,o="}
              ;;
@@ -1889,7 +1893,7 @@ do
              MAALI_SYSTEM_BUILD="YES"
              ;;
          w)
-             MAALI_ROOT="$HOME/software/$MAALI_OS"
+             MAALI_ROOT="$MAALI_ROOT_WORKST"
              ;;
          a)
              MAALI_MAKE_VERSION_DEFAULT=1
