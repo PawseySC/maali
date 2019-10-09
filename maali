@@ -1927,7 +1927,6 @@ fi
 MAALI_BUILD_DIR="$MAALI_ROOT/build"
 MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
 MAALI_SRC="$MAALI_ROOT/src"
-MAALI_TOOL_MPI_COMPILERS="na"
 
 # Why can't SLES file the module command?
 if [ -f "/etc/SuSE-release" ]; then
@@ -2338,10 +2337,14 @@ if [[ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" ]] ; then
   fi
 elif [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] || [[ $MAALI_PYTHON_TOOL -eq 1 ]] ; then
   MAALI_TOOL_CPU_TARGET="na"
-  MAALI_TOOL_MPI_COMPILERS="na"
 fi
 if [ "$MAALI_TOOL_CPU_TARGET" == "" ]; then
   maali_die "MAALI_TOOL_CPU_TARGET is not set, and this is not a binary, python or system gcc install"
+fi
+
+MAALI_TOOL_MPI_COMPILERS=${MAALI_TOOL_MPI_COMPILERS:-"na"}
+if [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] ; then
+  MAALI_TOOL_MPI_COMPILERS="na"
 fi
 
 if [ -z $MAALI_TOOL_TYPE ]; then
