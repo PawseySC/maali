@@ -2373,27 +2373,20 @@ elif [ $MAALI_R_TOOL ]; then
   MAALI_SUPPORTED_COMPILERS="r"
 fi
 
-if [[ $MAALI_CRAY -eq 1 ]] ; then
-  # Support legacy MAALI_TOOL_CRAY_CPU_TARGET
-  MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_TOOL_CRAY_CPU_TARGET"}
-fi
-MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_DEFAULT_TOOL_CPU_TARGET"}
-
-if [[ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" ]] ; then
-  if [[ "$MAALI_TOOL_CPU_TARGET" == "" ]]; then
-    MAALI_TOOL_CPU_TARGET="na"
+if [[ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" ]] || [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] || [[ $MAALI_PYTHON_TOOL -eq 1 ]] [[ $MAALI_R_TOOL -eq 1 ]] ; then
+  MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"na"}
+else
+  if [[ $MAALI_CRAY -eq 1 ]] ; then
+    # Support legacy MAALI_TOOL_CRAY_CPU_TARGET
+    MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_TOOL_CRAY_CPU_TARGET"}
   fi
-elif [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] || [[ $MAALI_PYTHON_TOOL -eq 1 ]] ; then
-  MAALI_TOOL_CPU_TARGET="na"
+  MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_DEFAULT_TOOL_CPU_TARGET"}
 fi
 if [ "$MAALI_TOOL_CPU_TARGET" == "" ]; then
   maali_die "MAALI_TOOL_CPU_TARGET is not set, and this is not a binary, python or system gcc install"
 fi
 
 MAALI_TOOL_MPI_COMPILERS=${MAALI_TOOL_MPI_COMPILERS:-"na"}
-if [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] ; then
-  MAALI_TOOL_MPI_COMPILERS="na"
-fi
 
 if [ -z $MAALI_TOOL_TYPE ]; then
   MAALI_TOOL_TYPE="apps"
