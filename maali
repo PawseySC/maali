@@ -61,8 +61,8 @@ MAALI_WGET_CMD="wget"
 
 MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray PrgEnv-pgi"
 MAALI_SUPPORTED_CPU_TARGETS="sandybridge ivybridge haswell broadwell cascadelake knl"
-MAALI_SUPPORTED_COMPILERS="gcc intel cce pgi" # This gets overwritten for python
-MAALI_SUPPORTED_MPI="openmpi intel-mpi cray-mpich"
+MAALI_SUPPORTED_COMPILERS="gcc intel cce pgi clang" # This gets overwritten for python
+MAALI_SUPPORTED_MPI="openmpi intel-mpi cray-mpich openmpi-ucx openmpi-ucx-gpu"
 
 ##############################################################################
 
