@@ -2373,7 +2373,7 @@ elif [ $MAALI_R_TOOL ]; then
   MAALI_SUPPORTED_COMPILERS="r"
 fi
 
-if [[ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" ]] || [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] || [[ $MAALI_PYTHON_TOOL -eq 1 ]] [[ $MAALI_R_TOOL -eq 1 ]] ; then
+if [[ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" ]] || [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] || [[ $MAALI_PYTHON_TOOL -eq 1 ]] || [[ $MAALI_R_TOOL -eq 1 ]] ; then
   MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"na"}
 else
   if [[ $MAALI_CRAY -eq 1 ]] ; then
