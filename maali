@@ -2378,10 +2378,12 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
   fi
 done
 
-#Overwrite MAALI_SUPPORTED_COMPILERS for python
+#Overwrite MAALI_SUPPORTED_COMPILERS for python and R
 if [ $MAALI_PYTHON_TOOL ]; then
   MAALI_SUPPORTED_COMPILERS="python"
-fi # if [ $MAALI_PYTHON_TOOL ]; then
+elif [ $MAALI_R_TOOL ]; then
+  MAALI_SUPPORTED_COMPILERS="r"
+fi
 
 if [[ $MAALI_CRAY -eq 1 ]] ; then
   # Support legacy MAALI_TOOL_CRAY_CPU_TARGET
