@@ -851,12 +851,6 @@ EOF
         MANPATH)
           MAALI_MODULE_VARIABLE_DIR="share/man"
           ;;
-        OMP_NUM_THREADS | MKL_NUM_THREADS)
-          MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
-          MAALI_MODULE_VARIABLE_TCL="setenv"
-          MAALI_MODULE_VARIABLE_PREPREND=""
-          MAALI_MODULE_VARIABLE_WORDS="1"
-          ;;
         LUA_CPATH)
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
           MAALI_MODULE_VARIABLE_DIR="lib/lua/${MAALI_LUA_LIB_VERSION}/?.so"
@@ -1532,12 +1526,6 @@ EOF
           ;;
         MANPATH)
           MAALI_MODULE_VARIABLE_DIR="share/man"
-          ;;
-        OMP_NUM_THREADS | MKL_NUM_THREADS)
-          MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
-          MAALI_MODULE_VARIABLE_LUA="setenv"
-          MAALI_MODULE_VARIABLE_PREPREND=""
-          MAALI_MODULE_VARIABLE_WORDS="1"
           ;;
         LUA_CPATH)
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
