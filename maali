@@ -333,6 +333,23 @@ function maali_module {
   MAALI_SYSTEM_DEFAULT_R=`module display r 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
   MAALI_SYSTEM_DEFAULT_CUDA=`module display cuda 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
 
+  # if system defaults are not used by tool, need to find another sensible default
+  if [ $MAALI_PYTHON_TOOL ] && [[ "$MAALI_TOOL_COMPILERS" != *"python/$MAALI_SYSTEM_DEFAULT_PYTHON"* ]] ; then
+    MAALI_TOOL_DEFAULT_PYTHON=`echo $MAALI_TOOL_COMPILERS | xargs -n1 | grep '^python/' | head -1 | cut -d '/' -f 2`
+  else
+    MAALI_TOOL_DEFAULT_PYTHON="$MAALI_SYSTEM_DEFAULT_PYTHON"
+  fi
+  if [ $MAALI_R_TOOL ] && [[ "$MAALI_TOOL_COMPILERS" != *"r/$MAALI_SYSTEM_DEFAULT_R"* ]] ; then
+    MAALI_TOOL_DEFAULT_R=`echo $MAALI_TOOL_COMPILERS | xargs -n1 | grep '^r/' | head -1 | cut -d '/' -f 2`
+  else
+    MAALI_TOOL_DEFAULT_R="$MAALI_SYSTEM_DEFAULT_R"
+  fi
+  if [ $MAALI_CUDA_BUILD -eq 1 ] && [[ "$MAALI_TOOL_CUDA_COMPILERS" != *"cuda/$MAALI_SYSTEM_DEFAULT_CUDA"* ]] ; then
+    MAALI_TOOL_DEFAULT_CUDA=`echo $MAALI_TOOL_CUDA_COMPILERS | xargs -n1 | grep '^cuda/' | head -1 | cut -d '/' -f 2`
+  else
+    MAALI_TOOL_DEFAULT_CUDA="$MAALI_SYSTEM_DEFAULT_CUDA"
+  fi
+
   MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   MAALI_APP_HOME="$MAALI_APPS_DIR"
   [ "$MAALI_TOOL_CRAY_PRGENV" != "na" ] && MAALI_APP_HOME+="/\$env(MAALI_LOADED_PRGENV)/\$env(CRAYOS_VERSION)"
@@ -687,7 +704,7 @@ EOF
 if { [ module-info mode load ] } {
   if {! [is-loaded cuda] } {
     # this allows us support multiple cuda versions, but have a sensible default
-    module load cuda/$MAALI_SYSTEM_DEFAULT_CUDA
+    module load cuda/$MAALI_TOOL_DEFAULT_CUDA
   }
 }
 EOF
@@ -699,7 +716,7 @@ EOF
 if { [ module-info mode load ] } {
   if {! [is-loaded python] } {
     # this allows us support multiple python versions, but have a sensible default
-    module load python/$MAALI_SYSTEM_DEFAULT_PYTHON
+    module load python/$MAALI_TOOL_DEFAULT_PYTHON
   }
 }
 EOF
@@ -711,7 +728,7 @@ EOF
 if { [ module-info mode load ] } {
   if {! [is-loaded r] } {
     # this allows us support multiple R versions, but have a sensible default
-    module load r/$MAALI_SYSTEM_DEFAULT_R
+    module load r/$MAALI_TOOL_DEFAULT_R
   }
 }
 EOF
@@ -962,9 +979,30 @@ function maali_module_lua {
   # determine the default versions of a number of tools
   MAALI_SYSTEM_DEFAULT_PYTHON=`module -dt avail python 2>&1 | xargs -n1 | grep '^python/' | cut -d '/' -f 2`
   MAALI_SYSTEM_DEFAULT_R=`module -dt avail r 2>&1 | xargs -n1 | grep '^r/' | cut -d '/' -f 2`
-  MAALI_SYSTEM_DEFAULT_MPI_NAME=`echo $MAALI_DEFAULT_MPI | cut -d '/' -f 1`
-  MAALI_SYSTEM_DEFAULT_MPI=`echo $MAALI_DEFAULT_MPI | cut -d '/' -f 2`
   MAALI_SYSTEM_DEFAULT_CUDA=`module -dt avail cuda 2>&1 | xargs -n1 | grep '^cuda/' | cut -d '/' -f 2`
+  MAALI_SYSTEM_DEFAULT_MPI_MODULE="$MAALI_DEFAULT_MPI"
+
+  # if system defaults are not used by tool, need to find another sensible default
+  if [ $MAALI_PYTHON_TOOL ] && [[ "$MAALI_TOOL_COMPILERS" != *"python/$MAALI_SYSTEM_DEFAULT_PYTHON"* ]] ; then
+    MAALI_TOOL_DEFAULT_PYTHON=`echo $MAALI_TOOL_COMPILERS | xargs -n1 | grep '^python/' | head -1 | cut -d '/' -f 2`
+  else
+    MAALI_TOOL_DEFAULT_PYTHON="$MAALI_SYSTEM_DEFAULT_PYTHON"
+  fi
+  if [ $MAALI_R_TOOL ] && [[ "$MAALI_TOOL_COMPILERS" != *"r/$MAALI_SYSTEM_DEFAULT_R"* ]] ; then
+    MAALI_TOOL_DEFAULT_R=`echo $MAALI_TOOL_COMPILERS | xargs -n1 | grep '^r/' | head -1 | cut -d '/' -f 2`
+  else
+    MAALI_TOOL_DEFAULT_R="$MAALI_SYSTEM_DEFAULT_R"
+  fi
+  if [ $MAALI_CUDA_BUILD -eq 1 ] && [[ "$MAALI_TOOL_CUDA_COMPILERS" != *"cuda/$MAALI_SYSTEM_DEFAULT_CUDA"* ]] ; then
+    MAALI_TOOL_DEFAULT_CUDA=`echo $MAALI_TOOL_CUDA_COMPILERS | xargs -n1 | grep '^cuda/' | head -1 | cut -d '/' -f 2`
+  else
+    MAALI_TOOL_DEFAULT_CUDA="$MAALI_SYSTEM_DEFAULT_CUDA"
+  fi
+  if [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && [[ "$MAALI_TOOL_MPI_COMPILERS" != *"$MAALI_SYSTEM_DEFAULT_MPI_MODULE"* ]] ; then
+    MAALI_TOOL_DEFAULT_MPI_MODULE=`echo $MAALI_TOOL_MPI_COMPILERS | xargs -n1 | head -1`
+  else
+    MAALI_TOOL_DEFAULT_MPI_MODULE="$MAALI_SYSTEM_DEFAULT_MPI_MODULE"
+  fi
 
   MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   MAALI_APP_HOME="$MAALI_APPS_DIR"
@@ -1341,7 +1379,7 @@ EOF
 
 if (mode() == "load") then
 $checkstring
-    load("$MAALI_SYSTEM_DEFAULT_MPI_NAME/$MAALI_SYSTEM_DEFAULT_MPI")
+    load("$MAALI_TOOL_DEFAULT_MPI_MODULE")
   end
 end
 EOF
@@ -1352,7 +1390,7 @@ EOF
 
 if (mode() == "load") then
   if (isloaded("cuda") ~= true) then
-    load("cuda/$MAALI_SYSTEM_DEFAULT_CUDA")
+    load("cuda/$MAALI_TOOL_DEFAULT_CUDA")
   end
 end
 EOF
@@ -1363,7 +1401,7 @@ EOF
 
 if (mode() == "load") then
   if (isloaded("python") ~= true) then
-    load("python/$MAALI_SYSTEM_DEFAULT_PYTHON")
+    load("python/$MAALI_TOOL_DEFAULT_PYTHON")
   end
 end
 EOF
@@ -1374,7 +1412,7 @@ EOF
 
 if (mode() == "load") then
   if (isloaded("r") ~= true) then
-    load("r/$MAALI_SYSTEM_DEFAULT_R")
+    load("r/$MAALI_TOOL_DEFAULT_R")
   end
 end
 EOF
