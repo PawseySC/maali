@@ -8,6 +8,7 @@ export MAALI_MODULE_SET_MAALI_DEFAULT_MPI='openmpi/2.1.2'
 export MAALI_MODULE_SET_MAALI_DEFAULT_CUDA_COMPILERS="cuda/8.0"
 export MAALI_MODULE_SET_MAALI_DEFAULT_PYTHON='python/2.7.14 python/3.6.3'
 export MAALI_MODULE_SET_MAALI_LUA_MODULE=1
+export MAALI_LUA_MODULE=1
 
 if [ $# -lt 1 ] ; then
   echo "Please provide the maali version as an argument. Exiting now."
