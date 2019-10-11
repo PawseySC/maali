@@ -2897,7 +2897,7 @@ else
 
     if [ -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" ]; then
       # check if it is the default version
-      MAALI_TOOL_VERSION_CURRENT_DEFAULT=`grep \"^$MAALI_TOOL_VERSION\" $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME | wc -l`
+      MAALI_TOOL_VERSION_CURRENT_DEFAULT=`grep -i version $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME | grep $MAALI_TOOL_VERSION | wc -l`
 
       # check if it is the only version available on the system
       MAALI_TOOL_AVAILABLE_VERSIONS=`ls -1 $MAALI_TOOL_MODULE_DIR/ | grep -v '~$' | wc -l`
