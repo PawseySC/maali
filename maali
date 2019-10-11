@@ -785,7 +785,7 @@ EOF
 if {! [module-info mode whatis] } {
 EOF
 
-  printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "setenv" $MAALI_APP_HOME_NAME $MAALI_APP_HOME >> $MAALI_TOOL_MODULE
+  printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" "setenv" $MAALI_APP_HOME_NAME $MAALI_APP_HOME >> $MAALI_TOOL_MODULE
 
   # main loop for defining environment variables
   for MAALI_MODULE_VARIABLE in $MAALI_MODULE_VARIABLES_LIST
