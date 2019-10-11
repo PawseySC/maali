@@ -1940,9 +1940,8 @@ do
              MAALI_MKDIR_FLAGS=${MAALI_MKDIR_FLAGS:-"--mode=a=rwx,g=rwxs,o="}
              ;;
          s)
-             # how do we reset MAALI_ROOT, MAALI_BUILD_DIR and MAALI_MODULE_DIR
-             # for system builds?
              MAALI_SYSTEM_BUILD="YES"
+             MAALI_ROOT="/pawsey/$MAALI_OS"
              ;;
          w)
              MAALI_ROOT="$HOME/software/$MAALI_OS"
