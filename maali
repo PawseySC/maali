@@ -333,6 +333,23 @@ function maali_module {
   MAALI_SYSTEM_DEFAULT_R=`module display r 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
   MAALI_SYSTEM_DEFAULT_CUDA=`module display cuda 2>&1 | head -2 | tail -1 | rev | cut -d '/' -f 1 | rev | cut -d ':' -f 1`
 
+  # if system defaults are not used by tool, need to find another sensible default
+  if [ $MAALI_PYTHON_TOOL ] && [[ "$MAALI_TOOL_COMPILERS" != *"python/$MAALI_SYSTEM_DEFAULT_PYTHON"* ]] ; then
+    MAALI_TOOL_DEFAULT_PYTHON=`echo $MAALI_TOOL_COMPILERS | xargs -n1 | grep '^python/' | head -1 | cut -d '/' -f 2`
+  else
+    MAALI_TOOL_DEFAULT_PYTHON="$MAALI_SYSTEM_DEFAULT_PYTHON"
+  fi
+  if [ $MAALI_R_TOOL ] && [[ "$MAALI_TOOL_COMPILERS" != *"r/$MAALI_SYSTEM_DEFAULT_R"* ]] ; then
+    MAALI_TOOL_DEFAULT_R=`echo $MAALI_TOOL_COMPILERS | xargs -n1 | grep '^r/' | head -1 | cut -d '/' -f 2`
+  else
+    MAALI_TOOL_DEFAULT_R="$MAALI_SYSTEM_DEFAULT_R"
+  fi
+  if [ $MAALI_CUDA_BUILD -eq 1 ] && [[ "$MAALI_TOOL_CUDA_COMPILERS" != *"cuda/$MAALI_SYSTEM_DEFAULT_CUDA"* ]] ; then
+    MAALI_TOOL_DEFAULT_CUDA=`echo $MAALI_TOOL_CUDA_COMPILERS | xargs -n1 | grep '^cuda/' | head -1 | cut -d '/' -f 2`
+  else
+    MAALI_TOOL_DEFAULT_CUDA="$MAALI_SYSTEM_DEFAULT_CUDA"
+  fi
+
   MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   MAALI_APP_HOME="$MAALI_APPS_DIR"
   [ "$MAALI_TOOL_CRAY_PRGENV" != "na" ] && MAALI_APP_HOME+="/\$env(MAALI_LOADED_PRGENV)/\$env(CRAYOS_VERSION)"
@@ -687,7 +704,7 @@ EOF
 if { [ module-info mode load ] } {
   if {! [is-loaded cuda] } {
     # this allows us support multiple cuda versions, but have a sensible default
-    module load cuda/$MAALI_SYSTEM_DEFAULT_CUDA
+    module load cuda/$MAALI_TOOL_DEFAULT_CUDA
   }
 }
 EOF
@@ -699,7 +716,7 @@ EOF
 if { [ module-info mode load ] } {
   if {! [is-loaded python] } {
     # this allows us support multiple python versions, but have a sensible default
-    module load python/$MAALI_SYSTEM_DEFAULT_PYTHON
+    module load python/$MAALI_TOOL_DEFAULT_PYTHON
   }
 }
 EOF
@@ -711,7 +728,7 @@ EOF
 if { [ module-info mode load ] } {
   if {! [is-loaded r] } {
     # this allows us support multiple R versions, but have a sensible default
-    module load r/$MAALI_SYSTEM_DEFAULT_R
+    module load r/$MAALI_TOOL_DEFAULT_R
   }
 }
 EOF
@@ -768,7 +785,7 @@ EOF
 if {! [module-info mode whatis] } {
 EOF
 
-  printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "setenv" $MAALI_APP_HOME_NAME $MAALI_APP_HOME >> $MAALI_TOOL_MODULE
+  printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" "setenv" $MAALI_APP_HOME_NAME $MAALI_APP_HOME >> $MAALI_TOOL_MODULE
 
   # main loop for defining environment variables
   for MAALI_MODULE_VARIABLE in $MAALI_MODULE_VARIABLES_LIST
@@ -776,6 +793,7 @@ EOF
     MAALI_MODULE_VARIABLE_NAME=`echo $MAALI_MODULE_VARIABLE | sed -e 's/MAALI_MODULE_SET_//g'`
     MAALI_MODULE_VARIABLE_DIR=""
     MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
+    MAALI_MODULE_VARIABLE_APPEND=""
     MAALI_MODULE_VARIABLE_TCL="prepend-path"
     MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
 
@@ -833,12 +851,6 @@ EOF
         MANPATH)
           MAALI_MODULE_VARIABLE_DIR="share/man"
           ;;
-        OMP_NUM_THREADS | MKL_NUM_THREADS)
-          MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
-          MAALI_MODULE_VARIABLE_TCL="setenv"
-          MAALI_MODULE_VARIABLE_PREPREND=""
-          MAALI_MODULE_VARIABLE_WORDS="1"
-          ;;
         LUA_CPATH)
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
           MAALI_MODULE_VARIABLE_DIR="lib/lua/${MAALI_LUA_LIB_VERSION}/?.so"
@@ -857,68 +869,85 @@ EOF
           MAALI_MODULE_VARIABLE_NAME='LUA_PATH'
           MAALI_MODULE_VARIABLE_TCL="append-path"
           ;;
+        MPI_NAME)
+          MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
+          MAALI_MODULE_VARIABLE_TCL="setenv"
+          MAALI_MODULE_VARIABLE_PREPREND=""
+          if [ $MAALI_CUDA_BUILD -eq 1 ] ; then
+            MAALI_MODULE_VARIABLE_APPEND="$MAALI_CUDA_SUFFIX"
+          fi
+          ;;
         *)
           # the default is to setenv
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
           MAALI_MODULE_VARIABLE_TCL="setenv"
           MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
-        esac
+      esac
 
-        # turn the prepending on/off
-        if [ "$MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE" == "off" ]; then
-          MAALI_MODULE_VARIABLE_PREPREND=""
-        elif [ "$MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE" == "on" ]; then
-          MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
-        fi
+      # turn the prepending on/off
+      if [ "$MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE" == "off" ]; then
+        MAALI_MODULE_VARIABLE_PREPREND=""
+      elif [ "$MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE" == "on" ]; then
+        MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
+      fi
 
-        # change type of variable declaration
-        if [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "prepend" ]; then
-          MAALI_MODULE_VARIABLE_TCL="prepend-path"
-        elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "append" ]; then
-          MAALI_MODULE_VARIABLE_TCL="append-path"
-        elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "setenv" ]; then
-          MAALI_MODULE_VARIABLE_TCL="setenv"
-        fi
+      # change type of variable declaration
+      if [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "prepend" ]; then
+        MAALI_MODULE_VARIABLE_TCL="prepend-path"
+      elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "append" ]; then
+        MAALI_MODULE_VARIABLE_TCL="append-path"
+      elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "setenv" ]; then
+        MAALI_MODULE_VARIABLE_TCL="setenv"
+      fi
 
-        # don't treat value as a list
-        if [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "off" ]; then
-          MAALI_MODULE_VARIABLE_WORDS="1"
-        elif [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "on" ]; then
-          MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
-        fi
+      # don't treat value as a list
+      if [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "off" ]; then
+        MAALI_MODULE_VARIABLE_WORDS="1"
+      elif [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "on" ]; then
+        MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
+      fi
 
-        if [ "$MAALI_MODULE_VARIABLE_KEY_VALUE" != "" ] ; then
-          MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
-          for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
-            MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
+      if [ "$MAALI_MODULE_VARIABLE_KEY_VALUE" != "" ] ; then
+        for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
+          MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
+          if [[ $MAALI_MODULE_VARIABLE_QUOTES_OFF_VALUE == "off" ]]; then
             cat <<EOF >> $MAALI_TOOL_MODULE
 if { "\$env($MAALI_MODULE_VARIABLE_KEY_VALUE)" eq "${MAALI_MODULE_VARIABLE_EVAL%:*}" } {
-  setenv $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND${MAALI_MODULE_VARIABLE_EVAL#*:}
+  setenv $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND${MAALI_MODULE_VARIABLE_EVAL#*:}$MAALI_MODULE_VARIABLE_APPEND
 }
 EOF
-          done
-        else
-          if [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_DEFAULT_' ]] || [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_REQUIRED_' ]]; then
-            printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
-          elif [ $MAALI_MODULE_VARIABLE_WORDS -gt 1 ]; then
-            for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
-              MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
-              printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
-            done
-          elif [[ ${!MAALI_MODULE_VARIABLE} == "1" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
-            printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR >> $MAALI_TOOL_MODULE
-          elif [[ ${!MAALI_MODULE_VARIABLE} == "toplevel" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
-            printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
-          elif [[ $MAALI_MODULE_VARIABLE_QUOTES_OFF_VALUE == "off" ]]; then
-            MAALI_MODULE_VARIABLE_EVAL=`eval echo "${!MAALI_MODULE_VARIABLE}"`
-            printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
           else
-            # this is the same as 2
-            MAALI_MODULE_VARIABLE_EVAL=`eval echo "${!MAALI_MODULE_VARIABLE}"`
-            printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
+            cat <<EOF >> $MAALI_TOOL_MODULE
+if { "\$env($MAALI_MODULE_VARIABLE_KEY_VALUE)" eq "${MAALI_MODULE_VARIABLE_EVAL%:*}" } {
+  setenv $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND${MAALI_MODULE_VARIABLE_EVAL#*:}$MAALI_MODULE_VARIABLE_APPEND"
+}
+EOF
           fi
-        fi
+        done
+      elif [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_DEFAULT_' ]] || [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_REQUIRED_' ]]; then
+        printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" $MAALI_MODULE_VARIABLE_TCL $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
+      elif [ $MAALI_MODULE_VARIABLE_WORDS -gt 1 ]; then
+        for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
+          MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
+          if [[ $MAALI_MODULE_VARIABLE_QUOTES_OFF_VALUE == "off" ]]; then
+            printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL$MAALI_MODULE_VARIABLE_APPEND >> $MAALI_TOOL_MODULE
+          else
+            printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL$MAALI_MODULE_VARIABLE_APPEND >> $MAALI_TOOL_MODULE
+          fi
+        done
+      elif [[ ${!MAALI_MODULE_VARIABLE} == "1" ]]; then
+        printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR$MAALI_MODULE_VARIABLE_APPEND >> $MAALI_TOOL_MODULE
+      elif [[ ${!MAALI_MODULE_VARIABLE} == "toplevel" ]]; then
+        printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
+      elif [[ $MAALI_MODULE_VARIABLE_QUOTES_OFF_VALUE == "off" ]]; then
+        MAALI_MODULE_VARIABLE_EVAL=`eval echo "${!MAALI_MODULE_VARIABLE}"`
+        printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s %s\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL$MAALI_MODULE_VARIABLE_APPEND" >> $MAALI_TOOL_MODULE
+      else
+        # this is the same as 2
+        MAALI_MODULE_VARIABLE_EVAL=`eval echo "${!MAALI_MODULE_VARIABLE}"`
+        printf "%-12s %-${MAALI_MODULE_MAX_VARIABLE}s \"%s\"\n" "$MAALI_MODULE_VARIABLE_TCL" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL$MAALI_MODULE_VARIABLE_APPEND" >> $MAALI_TOOL_MODULE
+      fi
     fi
   done
 
@@ -962,9 +991,30 @@ function maali_module_lua {
   # determine the default versions of a number of tools
   MAALI_SYSTEM_DEFAULT_PYTHON=`module -dt avail python 2>&1 | xargs -n1 | grep '^python/' | cut -d '/' -f 2`
   MAALI_SYSTEM_DEFAULT_R=`module -dt avail r 2>&1 | xargs -n1 | grep '^r/' | cut -d '/' -f 2`
-  MAALI_SYSTEM_DEFAULT_MPI_NAME=`echo $MAALI_DEFAULT_MPI | cut -d '/' -f 1`
-  MAALI_SYSTEM_DEFAULT_MPI=`echo $MAALI_DEFAULT_MPI | cut -d '/' -f 2`
   MAALI_SYSTEM_DEFAULT_CUDA=`module -dt avail cuda 2>&1 | xargs -n1 | grep '^cuda/' | cut -d '/' -f 2`
+  MAALI_SYSTEM_DEFAULT_MPI_MODULE="$MAALI_DEFAULT_MPI"
+
+  # if system defaults are not used by tool, need to find another sensible default
+  if [ $MAALI_PYTHON_TOOL ] && [[ "$MAALI_TOOL_COMPILERS" != *"python/$MAALI_SYSTEM_DEFAULT_PYTHON"* ]] ; then
+    MAALI_TOOL_DEFAULT_PYTHON=`echo $MAALI_TOOL_COMPILERS | xargs -n1 | grep '^python/' | head -1 | cut -d '/' -f 2`
+  else
+    MAALI_TOOL_DEFAULT_PYTHON="$MAALI_SYSTEM_DEFAULT_PYTHON"
+  fi
+  if [ $MAALI_R_TOOL ] && [[ "$MAALI_TOOL_COMPILERS" != *"r/$MAALI_SYSTEM_DEFAULT_R"* ]] ; then
+    MAALI_TOOL_DEFAULT_R=`echo $MAALI_TOOL_COMPILERS | xargs -n1 | grep '^r/' | head -1 | cut -d '/' -f 2`
+  else
+    MAALI_TOOL_DEFAULT_R="$MAALI_SYSTEM_DEFAULT_R"
+  fi
+  if [ $MAALI_CUDA_BUILD -eq 1 ] && [[ "$MAALI_TOOL_CUDA_COMPILERS" != *"cuda/$MAALI_SYSTEM_DEFAULT_CUDA"* ]] ; then
+    MAALI_TOOL_DEFAULT_CUDA=`echo $MAALI_TOOL_CUDA_COMPILERS | xargs -n1 | grep '^cuda/' | head -1 | cut -d '/' -f 2`
+  else
+    MAALI_TOOL_DEFAULT_CUDA="$MAALI_SYSTEM_DEFAULT_CUDA"
+  fi
+  if [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && [[ "$MAALI_TOOL_MPI_COMPILERS" != *"$MAALI_SYSTEM_DEFAULT_MPI_MODULE"* ]] ; then
+    MAALI_TOOL_DEFAULT_MPI_MODULE=`echo $MAALI_TOOL_MPI_COMPILERS | xargs -n1 | head -1`
+  else
+    MAALI_TOOL_DEFAULT_MPI_MODULE="$MAALI_SYSTEM_DEFAULT_MPI_MODULE"
+  fi
 
   MAALI_APP_HOME_NAME="MAALI_"$MAALI_TOOL_NAME_UPPERCASE"_HOME"
   MAALI_APP_HOME="$MAALI_APPS_DIR"
@@ -1341,7 +1391,7 @@ EOF
 
 if (mode() == "load") then
 $checkstring
-    load("$MAALI_SYSTEM_DEFAULT_MPI_NAME/$MAALI_SYSTEM_DEFAULT_MPI")
+    load("$MAALI_TOOL_DEFAULT_MPI_MODULE")
   end
 end
 EOF
@@ -1352,7 +1402,7 @@ EOF
 
 if (mode() == "load") then
   if (isloaded("cuda") ~= true) then
-    load("cuda/$MAALI_SYSTEM_DEFAULT_CUDA")
+    load("cuda/$MAALI_TOOL_DEFAULT_CUDA")
   end
 end
 EOF
@@ -1363,7 +1413,7 @@ EOF
 
 if (mode() == "load") then
   if (isloaded("python") ~= true) then
-    load("python/$MAALI_SYSTEM_DEFAULT_PYTHON")
+    load("python/$MAALI_TOOL_DEFAULT_PYTHON")
   end
 end
 EOF
@@ -1374,7 +1424,7 @@ EOF
 
 if (mode() == "load") then
   if (isloaded("r") ~= true) then
-    load("r/$MAALI_SYSTEM_DEFAULT_R")
+    load("r/$MAALI_TOOL_DEFAULT_R")
   end
 end
 EOF
@@ -1428,6 +1478,7 @@ EOF
     MAALI_MODULE_VARIABLE_NAME=`echo $MAALI_MODULE_VARIABLE | sed -e 's/MAALI_MODULE_SET_//g'`
     MAALI_MODULE_VARIABLE_DIR=""
     MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
+    MAALI_MODULE_VARIABLE_APPEND=""
     MAALI_MODULE_VARIABLE_LUA="prepend_path"
     MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
 
@@ -1485,12 +1536,6 @@ EOF
         MANPATH)
           MAALI_MODULE_VARIABLE_DIR="share/man"
           ;;
-        OMP_NUM_THREADS | MKL_NUM_THREADS)
-          MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
-          MAALI_MODULE_VARIABLE_LUA="setenv"
-          MAALI_MODULE_VARIABLE_PREPREND=""
-          MAALI_MODULE_VARIABLE_WORDS="1"
-          ;;
         LUA_CPATH)
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
           MAALI_MODULE_VARIABLE_DIR="lib/lua/${MAALI_LUA_LIB_VERSION}/?.so"
@@ -1498,7 +1543,7 @@ EOF
           ;;
         LUA_CPATH_APPEND)
           MAALI_MODULE_VARIABLE_NAME='LUA_CPATH'
-          MAALI_MODULE_VARIABLE_TCL="append_path"
+          MAALI_MODULE_VARIABLE_LUA="append_path"
           ;;
         LUA_PATH)
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
@@ -1509,72 +1554,85 @@ EOF
           MAALI_MODULE_VARIABLE_NAME='LUA_PATH'
           MAALI_MODULE_VARIABLE_LUA="append_path"
           ;;
+        MPI_NAME)
+          MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
+          MAALI_MODULE_VARIABLE_LUA="setenv"
+          MAALI_MODULE_VARIABLE_PREPREND=""
+          if [ $MAALI_CUDA_BUILD -eq 1 ] ; then
+            MAALI_MODULE_VARIABLE_APPEND="$MAALI_CUDA_SUFFIX"
+          fi
+          ;;
         *)
           # the default is to setenv
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
           MAALI_MODULE_VARIABLE_LUA="setenv"
           MAALI_MODULE_VARIABLE_PREPREND=""
           ;;
-        esac
+      esac
 
-        # turn the prepending on/off
-        if [ "$MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE" == "off" ]; then
-          MAALI_MODULE_VARIABLE_PREPREND=""
-        elif [ "$MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE" == "on" ]; then
-          MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
-        fi
+      # turn the prepending on/off
+      if [ "$MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE" == "off" ]; then
+        MAALI_MODULE_VARIABLE_PREPREND=""
+      elif [ "$MAALI_MODULE_VARIABLE_PREPREND_SWITCH_VALUE" == "on" ]; then
+        MAALI_MODULE_VARIABLE_PREPREND="$MAALI_APP_HOME/"
+      fi
 
-        # change type of variable declaration
-        if [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "prepend" ]; then
-          MAALI_MODULE_VARIABLE_LUA="prepend_path"
-        elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "append" ]; then
-          MAALI_MODULE_VARIABLE_LUA="append_path"
-        elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "setenv" ]; then
-          MAALI_MODULE_VARIABLE_LUA="setenv"
-        fi
+      # change type of variable declaration
+      if [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "prepend" ]; then
+        MAALI_MODULE_VARIABLE_LUA="prepend_path"
+      elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "append" ]; then
+        MAALI_MODULE_VARIABLE_LUA="append_path"
+      elif [ "$MAALI_MODULE_VARIABLE_TYPE_VALUE" == "setenv" ]; then
+        MAALI_MODULE_VARIABLE_LUA="setenv"
+      fi
 
-        # don't treat value as a list
-        if [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "off" ]; then
-          MAALI_MODULE_VARIABLE_WORDS="1"
-        elif [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "on" ]; then
-          MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
-        fi
+      # don't treat value as a list
+      if [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "off" ]; then
+        MAALI_MODULE_VARIABLE_WORDS="1"
+      elif [ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" == "on" ]; then
+        MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
+      fi
 
-        if [ "$MAALI_MODULE_VARIABLE_KEY_VALUE" != "" ] ; then
-          MAALI_MODULE_VARIABLE_WORDS=`echo ${!MAALI_MODULE_VARIABLE} | wc -w`
-          for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
-            MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
+      if [ "$MAALI_MODULE_VARIABLE_KEY_VALUE" != "" ] ; then
+        for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
+          MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
+          if [[ $MAALI_MODULE_VARIABLE_QUOTES_OFF_VALUE == "off" ]]; then
             cat <<EOF >> $MAALI_TOOL_MODULE
 if (os.getenv("$MAALI_MODULE_VARIABLE_KEY_VALUE") == "${MAALI_MODULE_VARIABLE_EVAL%:*}" ) then
-  $MAALI_MODULE_VARIABLE_LUA("$MAALI_MODULE_VARIABLE_NAME","$MAALI_MODULE_VARIABLE_PREPREND${MAALI_MODULE_VARIABLE_EVAL#*:}")
+  $MAALI_MODULE_VARIABLE_LUA("$MAALI_MODULE_VARIABLE_NAME",$MAALI_MODULE_VARIABLE_PREPREND${MAALI_MODULE_VARIABLE_EVAL#*:}$MAALI_MODULE_VARIABLE_APPEND)
 end
 EOF
-          done
-        else
-          if [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_DEFAULT_' ]] || [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_REQUIRED_' ]]; then
-            printf "%s(\"%s\",\"%s\")\n" $MAALI_MODULE_VARIABLE_LUA $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
-          elif [ $MAALI_MODULE_VARIABLE_WORDS -gt 1 ]; then
-            for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
-              MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
-              if [[ $MAALI_MODULE_VARIABLE_QUOTES_OFF_VALUE == "off" ]]; then
-                printf "%s(\"%s\",%s)\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
-              else
-                printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL >> $MAALI_TOOL_MODULE
-              fi
-            done
-          elif [[ ${!MAALI_MODULE_VARIABLE} == "1" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
-            printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR" >> $MAALI_TOOL_MODULE
-          elif [[ ${!MAALI_MODULE_VARIABLE} == "toplevel" ]] && [[ "$MAALI_MODULE_VARIABLE_LIST_OFF_VALUE" != "off" ]]; then
-            printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
-          elif [[ $MAALI_MODULE_VARIABLE_QUOTES_OFF_VALUE == "off" ]]; then
-            MAALI_MODULE_VARIABLE_EVAL=`eval echo "${!MAALI_MODULE_VARIABLE}"`
-            printf "%s(\"%s\",%s)\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
           else
-            # this is the same as 2
-            MAALI_MODULE_VARIABLE_EVAL=`eval echo "${!MAALI_MODULE_VARIABLE}"`
-            printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL" >> $MAALI_TOOL_MODULE
+            cat <<EOF >> $MAALI_TOOL_MODULE
+if (os.getenv("$MAALI_MODULE_VARIABLE_KEY_VALUE") == "${MAALI_MODULE_VARIABLE_EVAL%:*}" ) then
+  $MAALI_MODULE_VARIABLE_LUA("$MAALI_MODULE_VARIABLE_NAME","$MAALI_MODULE_VARIABLE_PREPREND${MAALI_MODULE_VARIABLE_EVAL#*:}$MAALI_MODULE_VARIABLE_APPEND")
+end
+EOF
           fi
-        fi
+        done
+      elif [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_DEFAULT_' ]] || [[ "$MAALI_MODULE_VARIABLE_NAME" =~ 'MAALI_REQUIRED_' ]]; then
+        printf "%s(\"%s\",\"%s\")\n" $MAALI_MODULE_VARIABLE_LUA $MAALI_MODULE_VARIABLE_NAME "${!MAALI_MODULE_VARIABLE}" >> $MAALI_TOOL_MODULE
+      elif [ $MAALI_MODULE_VARIABLE_WORDS -gt 1 ]; then
+        for MAALI_MODULE_VARIABLE_VALUE in ${!MAALI_MODULE_VARIABLE} ; do
+          MAALI_MODULE_VARIABLE_EVAL=`eval echo "$MAALI_MODULE_VARIABLE_VALUE"`
+          if [[ $MAALI_MODULE_VARIABLE_QUOTES_OFF_VALUE == "off" ]]; then
+            printf "%s(\"%s\",%s)\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL$MAALI_MODULE_VARIABLE_APPEND >> $MAALI_TOOL_MODULE
+          else
+            printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL$MAALI_MODULE_VARIABLE_APPEND >> $MAALI_TOOL_MODULE
+          fi
+        done
+      elif [[ ${!MAALI_MODULE_VARIABLE} == "1" ]]; then
+        printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_DIR$MAALI_MODULE_VARIABLE_APPEND" >> $MAALI_TOOL_MODULE
+      elif [[ ${!MAALI_MODULE_VARIABLE} == "toplevel" ]]; then
+        printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME $MAALI_MODULE_VARIABLE_PREPREND >> $MAALI_TOOL_MODULE
+      elif [[ $MAALI_MODULE_VARIABLE_QUOTES_OFF_VALUE == "off" ]]; then
+        MAALI_MODULE_VARIABLE_EVAL=`eval echo "${!MAALI_MODULE_VARIABLE}"`
+        printf "%s(\"%s\",%s)\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL$MAALI_MODULE_VARIABLE_APPEND" >> $MAALI_TOOL_MODULE
+      else
+        # this is the same as 2
+        MAALI_MODULE_VARIABLE_EVAL=`eval echo "${!MAALI_MODULE_VARIABLE}"`
+        printf "%s(\"%s\",\"%s\")\n" "$MAALI_MODULE_VARIABLE_LUA" $MAALI_MODULE_VARIABLE_NAME "$MAALI_MODULE_VARIABLE_PREPREND$MAALI_MODULE_VARIABLE_EVAL$MAALI_MODULE_VARIABLE_APPEND" >> $MAALI_TOOL_MODULE
+      fi
     fi
   done
 
@@ -1882,9 +1940,8 @@ do
              MAALI_MKDIR_FLAGS=${MAALI_MKDIR_FLAGS:-"--mode=a=rwx,g=rwxs,o="}
              ;;
          s)
-             # how do we reset MAALI_ROOT, MAALI_BUILD_DIR and MAALI_MODULE_DIR
-             # for system builds?
              MAALI_SYSTEM_BUILD="YES"
+             MAALI_ROOT="/pawsey/$MAALI_OS"
              ;;
          w)
              MAALI_ROOT="$HOME/software/$MAALI_OS"
@@ -2240,6 +2297,7 @@ if [ $MAALI_CUDA_BUILD -eq 1 ]; then
   if [ $MAALI_CUDA_SUPPORT -eq 0 ]; then
     maali_die "${MAALI_TOOL_NAME} does not support CUDA builds"
   fi
+  MAALI_TOOL_CUDA_COMPILERS=${MAALI_TOOL_CUDA_COMPILERS:-"$MAALI_DEFAULT_CUDA_COMPILERS"}
 else
   MAALI_TOOL_CUDA_COMPILERS="na"
 fi
@@ -2321,32 +2379,27 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
   fi
 done
 
-#Overwrite MAALI_SUPPORTED_COMPILERS for python
+#Overwrite MAALI_SUPPORTED_COMPILERS for python and R
 if [ $MAALI_PYTHON_TOOL ]; then
   MAALI_SUPPORTED_COMPILERS="python"
-fi # if [ $MAALI_PYTHON_TOOL ]; then
-
-if [[ $MAALI_CRAY -eq 1 ]] ; then
-  # Support legacy MAALI_TOOL_CRAY_CPU_TARGET
-  MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_TOOL_CRAY_CPU_TARGET"}
+elif [ $MAALI_R_TOOL ]; then
+  MAALI_SUPPORTED_COMPILERS="r"
 fi
-MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_DEFAULT_TOOL_CPU_TARGET"}
 
-if [[ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" ]] ; then
-  if [[ "$MAALI_TOOL_CPU_TARGET" == "" ]]; then
-    MAALI_TOOL_CPU_TARGET="na"
+if [[ "$MAALI_TOOL_COMPILERS" == "$MAALI_DEFAULT_SYSTEM_GCC" ]] || [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] || [[ $MAALI_PYTHON_TOOL -eq 1 ]] || [[ $MAALI_R_TOOL -eq 1 ]] ; then
+  MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"na"}
+else
+  if [[ $MAALI_CRAY -eq 1 ]] ; then
+    # Support legacy MAALI_TOOL_CRAY_CPU_TARGET
+    MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_TOOL_CRAY_CPU_TARGET"}
   fi
-elif [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] || [[ $MAALI_PYTHON_TOOL -eq 1 ]] ; then
-  MAALI_TOOL_CPU_TARGET="na"
+  MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_DEFAULT_TOOL_CPU_TARGET"}
 fi
 if [ "$MAALI_TOOL_CPU_TARGET" == "" ]; then
   maali_die "MAALI_TOOL_CPU_TARGET is not set, and this is not a binary, python or system gcc install"
 fi
 
 MAALI_TOOL_MPI_COMPILERS=${MAALI_TOOL_MPI_COMPILERS:-"na"}
-if [[ "$MAALI_TOOL_COMPILERS" == "binary" ]] ; then
-  MAALI_TOOL_MPI_COMPILERS="na"
-fi
 
 if [ -z $MAALI_TOOL_TYPE ]; then
   MAALI_TOOL_TYPE="apps"
@@ -2843,10 +2896,14 @@ else
 
     if [ -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" ]; then
       # check if it is the default version
-      MAALI_TOOL_VERSION_CURRENT_DEFAULT=`grep \"^$MAALI_TOOL_VERSION\" $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME | wc -l`
+      MAALI_TOOL_VERSION_CURRENT_DEFAULT=`grep -i version $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME | grep $MAALI_TOOL_VERSION | wc -l`
 
-      if [ $MAALI_TOOL_VERSION_CURRENT_DEFAULT -eq 1 ]; then
+      # check if it is the only version available on the system
+      MAALI_TOOL_AVAILABLE_VERSIONS=`ls -1 $MAALI_TOOL_MODULE_DIR/ | grep -v '~$' | wc -l`
+
+      if [ $MAALI_TOOL_VERSION_CURRENT_DEFAULT -eq 1 ] || [ $MAALI_TOOL_AVAILABLE_VERSIONS -le 1 ]; then
         rm -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME"
+        rm -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~"
       fi
     fi
 
