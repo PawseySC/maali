@@ -2677,40 +2677,40 @@ if [ $MAALI_REMODULE -eq 0 ]; then
           fi # 
         fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
 
-        for MAALI_TOOL_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
+        for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
 
-          if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
-            # load the MPI environment
+          if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
+            # load the CUDA environment
 
             if [ $DEBUG ]; then
-              echo " .. before module load \$MAALI_TOOL_MPI_COMPILER"
+              echo " .. before module load \$MAALI_TOOL_CUDA_COMPILER"
               module list
             fi # if [ $DEBUG ]; then
-            maali_load_module "$MAALI_TOOL_MPI_COMPILER"
+            maali_load_module "$MAALI_TOOL_CUDA_COMPILER"
             if [ $DEBUG ]; then
-              echo " .. after module load \$MAALI_TOOL_MPI_COMPILER"
+              echo " .. after module load \$MAALI_TOOL_CUDA_COMPILER"
               module list
             fi # if [ $DEBUG ]; then 
 
-          fi # if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
+          fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
+  
+          for MAALI_TOOL_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
 
-          for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
-
-            if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
-              # load the CUDA environment
+            if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
+              # load the MPI environment
 
               if [ $DEBUG ]; then
-                echo " .. before module load \$MAALI_TOOL_CUDA_COMPILER"
+                echo " .. before module load \$MAALI_TOOL_MPI_COMPILER"
                 module list
               fi # if [ $DEBUG ]; then
-              maali_load_module "$MAALI_TOOL_CUDA_COMPILER"
+              maali_load_module "$MAALI_TOOL_MPI_COMPILER"
               if [ $DEBUG ]; then
-                echo " .. after module load \$MAALI_TOOL_CUDA_COMPILER"
+                echo " .. after module load \$MAALI_TOOL_MPI_COMPILER"
                 module list
               fi # if [ $DEBUG ]; then 
 
-            fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
-  
+            fi # if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
+
             for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
 
               # this is to allow us to compile python software with a Cray environment
@@ -2831,20 +2831,20 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               module unload $MAALI_PREREQ_MODULE
             done
 
-            if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
-              # unload the CUDA environment
+            if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
+              # unload the MPI environment
 
-              module unload "$MAALI_TOOL_CUDA_COMPILER"
-            fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
+              module unload "$MAALI_TOOL_MPI_COMPILER"
+            fi # if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
+          done # for MAALI_TOOL_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
 
-          done # for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
+          if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
+            # unload the CUDA environment
 
-          if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
-            # unload the MPI environment
+            module unload "$MAALI_TOOL_CUDA_COMPILER"
+          fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
 
-            module unload "$MAALI_TOOL_MPI_COMPILER"
-          fi # if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
-        done # for MAALI_TOOL_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
+        done # for MAALI_TOOL_CUDA_COMPILER in $MAALI_TOOL_CUDA_COMPILERS; do
 
         if [ "$MAALI_CPU_TARGET" != "na" ]; then
           module unload "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET"
