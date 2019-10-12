@@ -2189,6 +2189,21 @@ if [ "$MAALI_DEFAULT_MPI_COMPILERS" != "" ]; then
   done
 fi
 
+# need to set MAALI_DEFAULT_OPENMPI_CUDAMPI_COMPILERS, etc
+if [ "$MAALI_DEFAULT_CUDAMPI_COMPILERS" != "" ]; then
+  for MAALI_DEFAULT_CUDAMPI_COMPILER in $MAALI_DEFAULT_CUDAMPI_COMPILERS; do
+    MAALI_DEFAULT_CUDAMPI_COMPILER_NAME=`echo "$MAALI_DEFAULT_CUDAMPI_COMPILER" | cut -d '/' -f 1 | tr '[:lower:]' '[:upper:]' | sed -e 's/-//g' | sed -e 's/+/PLUS/g'`
+
+    varname=MAALI_DEFAULT_${MAALI_DEFAULT_CUDAMPI_COMPILER_NAME}_CUDAMPI_COMPILERS
+
+    if [ "${!varname}" == "" ]; then
+      eval $varname="$MAALI_DEFAULT_CUDAMPI_COMPILER"
+    else
+      eval "$varname+=\" $MAALI_DEFAULT_CUDAMPI_COMPILER\""
+    fi
+  done
+fi
+
 # we are running a rebuild - is this redundant?
 if [ $MAALI_REBUILD ]; then
   MAALI_REBUILD_COMPILER_LOG=`echo $MAALI_REBUILD_COMPILER | sed -e 's!/!-!g'`
