@@ -11,11 +11,10 @@ export MAALI_MODULE_SET_MAALI_REQUIRED_SYSTEM_MODULES="modules/3.2.10.6 craype/2
 export MAALI_MODULE_LIST_MAALI_REQUIRED_SYSTEM_MODULES="off"
 
 if [ $# -lt 1 ] ; then
-  echo "Please provide the maali version as an argument. Exiting now."
+  echo "Please provide at least the maali version as an argument. Exiting now."
   exit
 fi
 
-# the flag "-s" is for a system installation; remove it for any personal installation
-./maali -t maali -v $1 -s -d -a
+./maali -t maali -v "$@" -d -a
 
 exit
