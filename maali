@@ -2411,7 +2411,7 @@ else
     # Support legacy MAALI_TOOL_CRAY_CPU_TARGET
     MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_TOOL_CRAY_CPU_TARGET"}
   fi
-  MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_DEFAULT_TOOL_CPU_TARGET"}
+  MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_DEFAULT_CPU_TARGET"}
 fi
 if [ "$MAALI_TOOL_CPU_TARGET" == "" ]; then
   maali_die "MAALI_TOOL_CPU_TARGET is not set, and this is not a binary, python or system gcc install"
@@ -2746,6 +2746,9 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             done # for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
   
             # remove a stale tool build directory
+            if [ $DEBUG ]; then
+              echo " .. removing old build directory $MAALI_TOOL_BUILD_DIR"
+            fi
             removedir "$MAALI_TOOL_BUILD_DIR"
   
             if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
@@ -2778,6 +2781,9 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             fi
 
             # remove the previously installed version
+            if [ $DEBUG ]; then
+              echo " .. removing old installation directory $MAALI_INSTALL_DIR"
+            fi
             removedir "$MAALI_INSTALL_DIR"
 
             if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
@@ -2819,6 +2825,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               fi
   
               if [ ! $DEBUG ]; then
+                echo " .. removing build directory $MAALI_TOOL_BUILD_DIR"
                 removedir "$MAALI_TOOL_BUILD_DIR"
               fi
 
