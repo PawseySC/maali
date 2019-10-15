@@ -1822,9 +1822,12 @@ function log {
 
 function removedir {
   if [ -d "$1" ]; then
-    # make sure permissions on everything is correct
-    find $1 -exec chmod 700 {} \;
-    rm -fr "$1"
+    rm -fr "$1" &>/dev/null
+    if [ "$?" -ne 0 ] ; then
+      # make sure permissions on directories are correct
+      find $1 -type d -exec chmod 700 {} \;
+      rm -fr "$1"
+    fi
   fi
 }
 
