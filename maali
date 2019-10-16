@@ -2085,10 +2085,6 @@ if [ "$MAALI_CONFIG" != "" ]; then
   # allow us to override the config
   if [ -f "$HOME/.maali/$MAALI_CONFIG.$MAALI_CONFIG_FILE_EXT" ]; then
      . "$HOME/.maali/$MAALI_CONFIG.$MAALI_CONFIG_FILE_EXT"
-
-
-     # use the name of our config file to create a different log file
-     MAALI_LOG_PREFIX="$MAALI_CONFIG-"
   else
     maali_die "Could not open ${HOME}/.maali/${MAALI_CONFIG}.${MAALI_CONFIG_FILE_EXT}!";
   fi
@@ -2511,6 +2507,17 @@ if [[ $MAALI_REMODULE -eq 1 ]] || [[ $MAALI_UNINSTALL_REMOVE -eq 1 ]] ; then
     echo "uninstalling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
   else
     echo "just re-creating the module file"
+
+    removefile "$MAALI_TOOL_LOG"
+
+    log "$MAALI_TOOL_NAME $MAALI_TOOL_VERSION is being re-moduled by $MAALI_BUILDER_BUILD_CN"
+
+    log "Command line: $MAALI_CMD_LINE"
+
+    cat $MAALI_CYGNET_FILEPATH > $MAALI_TOOL_LOG.$MAALI_CYGNET_BUILD_FILE_EXT
+    if [ "$MAALI_CONFIG" != "" ]; then
+      cat $HOME/.maali/$MAALI_CONFIG.$MAALI_CONFIG_FILE_EXT > $MAALI_TOOL_LOG.$MAALI_CONFIG_FILE_EXT
+    fi
   fi
 else
   removefile "$MAALI_TOOL_LOG"
@@ -2518,6 +2525,11 @@ else
   log "$MAALI_TOOL_NAME $MAALI_TOOL_VERSION is being built by $MAALI_BUILDER_BUILD_CN"
 
   log "Command line: $MAALI_CMD_LINE"
+
+  cat $MAALI_CYGNET_FILEPATH > $MAALI_TOOL_LOG.$MAALI_CYGNET_BUILD_FILE_EXT
+  if [ "$MAALI_CONFIG" != "" ]; then
+    cat $HOME/.maali/$MAALI_CONFIG.$MAALI_CONFIG_FILE_EXT > $MAALI_TOOL_LOG.$MAALI_CONFIG_FILE_EXT
+  fi
 
   echo "downloading the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
   maali_download
