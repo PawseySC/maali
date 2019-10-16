@@ -1850,24 +1850,24 @@ maali - Pawsey Supercomputing Centre Build System
 usage: $0 -t toolname -v toolversion [-h] [OTHER OPTIONS]
 
 OPTIONS:
+   -h      show this message
    -t      tool name
    -v      tool version
-   -h      show this message
    -d      run in debug mode
+   -f      force download from github
+   -p      use the github project branch for cygnet files
    -c      maali configuration file
+   -a      activate this version as the default version
    -m      just create the module file
    -l      create LUA modules
-   -r      build with the specified compiler (and no others)
    -b      build the tool, but don't create a module file
-   -g      group build in /group/$MAALI_PROJECT/software/$MAALI_OS
-   -s      activate system build
-   -w      workstation build in $HOME/software/$MAALI_OS
-   -a      activate this version as the default version
-   -f      force download from github
+   -r      build with the specified compiler (and no others)
+   -n      NVIDIA mode; compile software with cuda support
+   -g      group build in $MAALI_ROOT_GROUP
+   -s      activate system build in $MAALI_ROOT_SYSTEM
+   -w      workstation build in $MAALI_ROOT_WORKST
    -u      unistall by hiding the module
    -x      expunge tool from history
-   -n      NVIDIA mode; compile software with cuda support
-   -p      use the project branch for cygnet files
 EOF
 }
 
@@ -1915,7 +1915,7 @@ MAALI_MODULE_PE_PKGCONFIG_LIBS=
 # to support TCL and LUA modules
 MAALI_MODULE_DEFAULT_FILENAME='.version'
 
-while getopts "ht:v:pdc:mr:bgswafuxnl" OPTION
+while getopts "ht:v:dfpc:amlbr:ngswux" OPTION
 do
      case $OPTION in
          h)
@@ -1931,11 +1931,23 @@ do
          d)
              DEBUG=1
              ;;
+         f)
+             MAALI_FORCE_DOWNLOAD_FROM_GITHUB=1
+             ;;
+         p)
+             MAALI_CYGNET_FILES_URL="${MAALI_CYGNET_FILES_ROOT}/$MAALI_PROJECT"
+             ;;
          c)
              MAALI_CONFIG=$OPTARG
              ;;
+         a)
+             MAALI_MAKE_VERSION_DEFAULT=1
+             ;;
          m)
              MAALI_REMODULE=1
+             ;;
+         l)
+             MAALI_LUA_MODULE=1
              ;;
          b)
              MAALI_BUILDONLY=1
@@ -1943,6 +1955,9 @@ do
          r)
              MAALI_REBUILD_COMPILER=$OPTARG
              MAALI_REBUILD=1
+             ;;
+         n)
+             MAALI_CUDA_BUILD=1
              ;;
          g)
              MAALI_ROOT="$MAALI_ROOT_GROUP"
@@ -1956,12 +1971,6 @@ do
          w)
              MAALI_ROOT="$MAALI_ROOT_WORKST"
              ;;
-         a)
-             MAALI_MAKE_VERSION_DEFAULT=1
-             ;;
-         f)
-             MAALI_FORCE_DOWNLOAD_FROM_GITHUB=1
-             ;;
          u)
              # simply hide the module file
              MAALI_UNINSTALL_HIDE=1
@@ -1970,15 +1979,6 @@ do
              ;;
          x)
              MAALI_UNINSTALL_REMOVE=1
-             ;;
-         n)
-             MAALI_CUDA_BUILD=1
-             ;;
-         l)
-             MAALI_LUA_MODULE=1
-             ;;
-         p)
-             MAALI_CYGNET_FILES_URL="${MAALI_CYGNET_FILES_ROOT}/$MAALI_PROJECT"
              ;;
          ?)
              usage
