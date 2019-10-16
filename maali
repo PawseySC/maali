@@ -2218,6 +2218,10 @@ if [ $MAALI_REBUILD ]; then
 
   MAALI_LOG_PREFIX=$MAALI_LOG_PREFIX"rebuild-"$MAALI_REBUILD_COMPILER_LOG"-"
 fi
+# just re-creating (or hiding) the module
+if [ $MAALI_REMODULE -eq 1 ]; then
+  MAALI_LOG_PREFIX=$MAALI_LOG_PREFIX"remodule-"
+fi
 
 # setup the module correctly environment 
 
