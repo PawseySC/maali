@@ -1847,7 +1847,7 @@ usage()
 cat << EOF
 maali - Pawsey Supercomputing Centre Build System
 
-usage: $0 -t toolname -v toolversion [-h] [OTHER OPTIONS]
+usage: $0 -t toolname -v toolversion [-d] [OTHER OPTIONS]
 
 OPTIONS:
    -h      show this message
