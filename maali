@@ -55,6 +55,7 @@ MAALI_CYGNET_FILES_ROOT=${MAALI_CYGNET_FILES_ROOT:-"https://raw.githubuserconten
 MAALI_CYGNET_FILES_URL="${MAALI_CYGNET_FILES_ROOT}/master"
 MAALI_CYGNET_DIR_NAME='cygnet_files'
 MAALI_CYGNET_BUILD_FILE_EXT='cyg'
+MAALI_CONFIG_FILE_EXT='config'
 
 MAALI_PROJECT_VAR=${MAALI_PROJECT_VAR:-"PAWSEY_PROJECT"}
 MAALI_PROJECT=${!MAALI_PROJECT_VAR}
@@ -1877,7 +1878,7 @@ MAALI_TOOL_NAME=
 MAALI_TOOL_VERSION=
 MAALI_PYTHON_VERSION=
 DEBUG=
-MAALI_CONFIG=
+MAALI_CONFIG=${MAALI_CONFIG:-""}
 MAALI_REBUILD=
 MAALI_REBUILD_COMPILER=
 MAALI_REMODULE=0
@@ -2082,14 +2083,14 @@ MAALI_PYTHON_FIRSTLETTER=`echo "$MAALI_TOOL_NAME_ORIG" | cut -b 1`
 
 if [ "$MAALI_CONFIG" != "" ]; then
   # allow us to override the config
-  if [ -f "$HOME/.maali/$MAALI_CONFIG.config" ]; then
-     . "$HOME/.maali/$MAALI_CONFIG.config"
+  if [ -f "$HOME/.maali/$MAALI_CONFIG.$MAALI_CONFIG_FILE_EXT" ]; then
+     . "$HOME/.maali/$MAALI_CONFIG.$MAALI_CONFIG_FILE_EXT"
 
 
      # use the name of our config file to create a different log file
      MAALI_LOG_PREFIX="$MAALI_CONFIG-"
   else
-    maali_die "Could not open ${HOME}/.maali/${MAALI_CONFIG}.config!";
+    maali_die "Could not open ${HOME}/.maali/${MAALI_CONFIG}.${MAALI_CONFIG_FILE_EXT}!";
   fi
 fi
 
