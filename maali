@@ -2003,11 +2003,6 @@ if [ -z $TMPDIR ]; then
   TMPDIR=/tmp
 fi
 
-# user and group builds derive the following through MAALI_ROOT
-MAALI_BUILD_DIR="$MAALI_ROOT/build"
-MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
-MAALI_SRC="$MAALI_ROOT/src"
-
 # Why can't SLES file the module command?
 if [ -f "/etc/SuSE-release" ]; then
   # but a Cray can?
@@ -2073,19 +2068,6 @@ MAALI_TOOL_MAJOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1`
 MAALI_TOOL_MAJOR_MINOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1,2`
 MAALI_TOOL_MINOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 2`
 
-# for use for make -j $MAALI_CORES
-if [ -z $PBS_NODEFILE ]; then
-  if [ -z $SLURM_JOB_CPUS_PER_NODE ]; then
-    # not running in PBS Pro or SLURM
-    MAALI_CORES=${MAALI_CORES:-1}
-  else
-    MAALI_CORES=${MAALI_CORES:-"$SLURM_JOB_CPUS_PER_NODE"}
-  fi
-else
-  # make sure you set mpiprocs
-  MAALI_CORES=${MAALI_CORES:-`wc -l $PBS_NODEFILE | cut -d ' ' -f 1`}
-fi
-
 MAALI_CMDLINE=$*
 
 # lowercase the name, but keep the original
@@ -2109,6 +2091,24 @@ if [ "$MAALI_CONFIG" != "" ]; then
     fi
   done
   IFS=$MAALI_IFS
+fi
+
+# these directory paths are derived through MAALI_ROOT
+MAALI_BUILD_DIR="$MAALI_ROOT/build"
+MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
+MAALI_SRC="$MAALI_ROOT/src"
+
+# for use for make -j $MAALI_CORES
+if [ -z $PBS_NODEFILE ]; then
+  if [ -z $SLURM_JOB_CPUS_PER_NODE ]; then
+    # not running in PBS Pro or SLURM
+    MAALI_CORES=${MAALI_CORES:-1}
+  else
+    MAALI_CORES=${MAALI_CORES:-"$SLURM_JOB_CPUS_PER_NODE"}
+  fi
+else
+  # make sure you set mpiprocs
+  MAALI_CORES=${MAALI_CORES:-`wc -l $PBS_NODEFILE | cut -d ' ' -f 1`}
 fi
 
 # system builds require MAALI_BUILDER_UID to be defined
