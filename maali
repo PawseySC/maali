@@ -51,25 +51,36 @@ fi
 ##############################################################################
 # these are global
 
-MAALI_CYGNET_FILES_URL=${MAALI_CYGNET_FILES_URL:-"https://raw.githubusercontent.com/PawseySC/maali-cygnet/master"}
+MAALI_CYGNET_FILES_ROOT=${MAALI_CYGNET_FILES_ROOT:-"https://raw.githubusercontent.com/PawseySC/maali-cygnet"}
+MAALI_CYGNET_FILES_URL="${MAALI_CYGNET_FILES_ROOT}/master"
 MAALI_CYGNET_DIR_NAME='cygnet_files'
 MAALI_CYGNET_BUILD_FILE_EXT='cyg'
+MAALI_CONFIG_FILE_EXT='config'
 
-MAALI_ROOT="$MYGROUP/software/$MAALI_OS"
+MAALI_PROJECT_VAR=${MAALI_PROJECT_VAR:-"PAWSEY_PROJECT"}
+MAALI_PROJECT=${!MAALI_PROJECT_VAR}
 MAALI_LOG_DIR="$HOME/.maali/$MAALI_OS/logs"
 MAALI_WGET_CMD="wget"
 
-MAALI_SUPPORTED_CRAY_PRGENVS="PrgEnv-gnu PrgEnv-intel PrgEnv-cray PrgEnv-pgi"
-MAALI_SUPPORTED_CPU_TARGETS="sandybridge ivybridge haswell broadwell cascadelake knl"
-MAALI_SUPPORTED_COMPILERS="gcc intel cce pgi clang" # This gets overwritten for python
-MAALI_SUPPORTED_MPI="openmpi intel-mpi cray-mpich openmpi-ucx openmpi-ucx-gpu"
+MAALI_ROOT_DEFAULT=${MAALI_ROOT_DEFAULT:-"$MYGROUP/software/$MAALI_OS"}
+MAALI_ROOT_GROUP=${MAALI_ROOT_GROUP:-"/group/$MAALI_PROJECT/software/$MAALI_OS"}
+MAALI_ROOT_WORKST=${MAALI_ROOT_WORKST:-"$HOME/software/$MAALI_OS"}
+MAALI_ROOT_SYSTEM=${MAALI_ROOT_SYSTEM:-"/pawsey/$MAALI_OS"}
+MAALI_ROOT="$MAALI_ROOT_DEFAULT"
+
+MAALI_SUPPORTED_CRAY_PRGENVS=${MAALI_SUPPORTED_CRAY_PRGENVS:-"PrgEnv-gnu PrgEnv-intel PrgEnv-cray PrgEnv-pgi"}
+MAALI_SUPPORTED_CPU_TARGETS=${MAALI_SUPPORTED_CPU_TARGETS:-"sandybridge ivybridge haswell broadwell cascadelake knl"}
+MAALI_SUPPORTED_COMPILERS=${MAALI_SUPPORTED_COMPILERS:-"gcc intel cce pgi clang"} # This gets overwritten for python
+MAALI_SUPPORTED_MPI=${MAALI_SUPPORTED_MPI:-"openmpi intel-mpi cray-mpich openmpi-ucx openmpi-ucx-gpu"}
 
 ##############################################################################
 
 function maali_pre_build {
   # do any patching before compilation here.
 
-  cd "$MAALI_TOOL_BUILD_DIR"
+  if [ -d "$MAALI_TOOL_BUILD_DIR" ] ; then
+    cd "$MAALI_TOOL_BUILD_DIR"
+  fi
   #maali_run "patch bla bla bla"
 }
 
@@ -78,7 +89,9 @@ function maali_pre_build {
 function maali_post_build {
   # do any work after the installation
 
-  cd "$MAALI_TOOL_BUILD_DIR"
+  if [ -d "$MAALI_TOOL_BUILD_DIR" ] ; then
+    cd "$MAALI_TOOL_BUILD_DIR"
+  fi
   #maali_run "patch bla bla bla"
 }
 
@@ -306,13 +319,13 @@ function maali_makedir {
 
       mkdir $MAALI_MKDIR_FLAGS "$MAALI_DIR_PATH"
 
-      if [ "$PAWSEY_PROJECT" != "" ]; then
+      if [ "$MAALI_PROJECT" != "" ]; then
         if [[ ! "$MAALI_DIR_PATH" =~ "/home" ]]; then
           if [[ "$MAALI_TOOL_LOG" != "" ]] && [[ -f "$MAALI_TOOL_LOG" ]]; then
-            echo "-- Changing group ownership to $PAWSEY_PROJECT and setting sticky bit" >> "$MAALI_TOOL_LOG"
+            echo "-- Changing group ownership to $MAALI_PROJECT and setting sticky bit" >> "$MAALI_TOOL_LOG"
           fi
 
-          chgrp $PAWSEY_PROJECT "$MAALI_DIR_PATH"
+          chgrp $MAALI_PROJECT "$MAALI_DIR_PATH"
           chmod g+s "$MAALI_DIR_PATH"
         fi
       fi
@@ -1673,6 +1686,17 @@ EOF
 
 ##############################################################################
 
+function maali_post_module {
+  # trick or treat on the module file here
+
+  if [ -d "$MAALI_TOOL_MODULE_DIR" ] ; then
+    cd "$MAALI_TOOL_MODULE_DIR"
+  fi
+  #maali_run "bla bla bla"
+}
+
+##############################################################################
+
 function maali_python_build {
 
   MAALI_PYTHON_MAJOR_VERSION=`echo "$MAALI_PYTHON_VERSION" | cut -d '.' -f 1`
@@ -1785,7 +1809,7 @@ function maali_unpack {
     fi
 
     if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
-      if [ "$PAWSEY_PROJECT" != "" ]; then
+      if [ "$MAALI_PROJECT" != "" ]; then
         # this is only needed for /group
         find $MAALI_TOOL_BUILD_DIR -type d -exec chmod g+s {} \;
       fi
@@ -1839,27 +1863,26 @@ usage()
 cat << EOF
 maali - Pawsey Supercomputing Centre Build System
 
-usage: $0 -t toolname -v toolversion [-h] [OTHER OPTIONS]
+usage: $0 -t toolname -v toolversion [-d] [OTHER OPTIONS]
 
 OPTIONS:
+   -h      show this message
    -t      tool name
    -v      tool version
-   -h      show this message
    -d      run in debug mode
-   -c      maali configuration file
-   -m      just create the module file
-   -l      create LUA modules
-   -r      build with the specified compiler (and no others)
-   -b      build the tool, but don't create a module file
-   -g      group build in /group/$PAWSEY_PROJECT/software/$MAALI_OS
-   -s      activate system build
-   -w      workstation build in $HOME/software/$MAALI_OS
-   -a      activate this version as the default version
    -f      force download from github
+   -p      use the github project branch for cygnet files
+   -c      maali configuration file
+   -a      activate this version as the default version
+   -m      just create the module file
+   -b      build the tool, but don't create a module file
+   -r      build with the specified compiler (and no others)
+   -n      NVIDIA mode; compile software with cuda support
+   -g      group build in $MAALI_ROOT_GROUP
+   -s      activate system build in $MAALI_ROOT_SYSTEM
+   -w      workstation build in $MAALI_ROOT_WORKST
    -u      unistall by hiding the module
    -x      expunge tool from history
-   -n      NVIDIA mode; compile software with cuda support
-   -p      use the project branch for cygnet files
 EOF
 }
 
@@ -1870,7 +1893,7 @@ MAALI_TOOL_NAME=
 MAALI_TOOL_VERSION=
 MAALI_PYTHON_VERSION=
 DEBUG=
-MAALI_CONFIG=
+MAALI_CONFIG=${MAALI_CONFIG:-""}
 MAALI_REBUILD=
 MAALI_REBUILD_COMPILER=
 MAALI_REMODULE=0
@@ -1907,7 +1930,7 @@ MAALI_MODULE_PE_PKGCONFIG_LIBS=
 # to support TCL and LUA modules
 MAALI_MODULE_DEFAULT_FILENAME='.version'
 
-while getopts "ht:v:pdc:mr:bgswafuxnl" OPTION
+while getopts "ht:v:dfpc:ambr:ngswux" OPTION
 do
      case $OPTION in
          h)
@@ -1923,8 +1946,17 @@ do
          d)
              DEBUG=1
              ;;
+         f)
+             MAALI_FORCE_DOWNLOAD_FROM_GITHUB=1
+             ;;
+         p)
+             MAALI_CYGNET_FILES_URL="${MAALI_CYGNET_FILES_ROOT}/$MAALI_PROJECT"
+             ;;
          c)
              MAALI_CONFIG=$OPTARG
+             ;;
+         a)
+             MAALI_MAKE_VERSION_DEFAULT=1
              ;;
          m)
              MAALI_REMODULE=1
@@ -1936,23 +1968,20 @@ do
              MAALI_REBUILD_COMPILER=$OPTARG
              MAALI_REBUILD=1
              ;;
+         n)
+             MAALI_CUDA_BUILD=1
+             ;;
          g)
-             MAALI_ROOT="/group/$PAWSEY_PROJECT/software/$MAALI_OS"
+             MAALI_ROOT="$MAALI_ROOT_GROUP"
              MAALI_GROUP_BUILD="YES"
              MAALI_MKDIR_FLAGS=${MAALI_MKDIR_FLAGS:-"--mode=a=rwx,g=rwxs,o="}
              ;;
          s)
              MAALI_SYSTEM_BUILD="YES"
-             MAALI_ROOT="/pawsey/$MAALI_OS"
+             MAALI_ROOT="$MAALI_ROOT_SYSTEM"
              ;;
          w)
-             MAALI_ROOT="$HOME/software/$MAALI_OS"
-             ;;
-         a)
-             MAALI_MAKE_VERSION_DEFAULT=1
-             ;;
-         f)
-             MAALI_FORCE_DOWNLOAD_FROM_GITHUB=1
+             MAALI_ROOT="$MAALI_ROOT_WORKST"
              ;;
          u)
              # simply hide the module file
@@ -1962,15 +1991,6 @@ do
              ;;
          x)
              MAALI_UNINSTALL_REMOVE=1
-             ;;
-         n)
-             MAALI_CUDA_BUILD=1
-             ;;
-         l)
-             MAALI_LUA_MODULE=1
-             ;;
-         p)
-             MAALI_CYGNET_FILES_URL="https://raw.githubusercontent.com/PawseySC/maali-cygnet/$PAWSEY_PROJECT"
              ;;
          ?)
              usage
@@ -1982,11 +2002,6 @@ done
 if [ -z $TMPDIR ]; then
   TMPDIR=/tmp
 fi
-
-# user and group builds derive the following through MAALI_ROOT
-MAALI_BUILD_DIR="$MAALI_ROOT/build"
-MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
-MAALI_SRC="$MAALI_ROOT/src"
 
 # Why can't SLES file the module command?
 if [ -f "/etc/SuSE-release" ]; then
@@ -2053,19 +2068,6 @@ MAALI_TOOL_MAJOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1`
 MAALI_TOOL_MAJOR_MINOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1,2`
 MAALI_TOOL_MINOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 2`
 
-# for use for make -j $MAALI_CORES
-if [ -z $PBS_NODEFILE ]; then
-  if [ -z $SLURM_JOB_CPUS_PER_NODE ]; then
-    # not running in PBS Pro or SLURM
-    MAALI_CORES=${MAALI_CORES:-1}
-  else
-    MAALI_CORES=${MAALI_CORES:-"$SLURM_JOB_CPUS_PER_NODE"}
-  fi
-else
-  # make sure you set mpiprocs
-  MAALI_CORES=${MAALI_CORES:-`wc -l $PBS_NODEFILE | cut -d ' ' -f 1`}
-fi
-
 MAALI_CMDLINE=$*
 
 # lowercase the name, but keep the original
@@ -2077,16 +2079,36 @@ MAALI_TOOL_NAME_UPPERCASE=$(echo "$MAALI_TOOL_NAME" | tr '[:lower:]' '[:upper:]'
 MAALI_PYTHON_FIRSTLETTER=`echo "$MAALI_TOOL_NAME_ORIG" | cut -b 1`
 
 if [ "$MAALI_CONFIG" != "" ]; then
+  # now supporting a comma-separated list of config files!
+  MAALI_IFS=$IFS
+  IFS=','
+  for MAALI_CONFIG_FILE in $MAALI_CONFIG ; do
   # allow us to override the config
-  if [ -f "$HOME/.maali/$MAALI_CONFIG.config" ]; then
-     . "$HOME/.maali/$MAALI_CONFIG.config"
+    if [ -f "$HOME/.maali/$MAALI_CONFIG_FILE.$MAALI_CONFIG_FILE_EXT" ]; then
+       . "$HOME/.maali/$MAALI_CONFIG_FILE.$MAALI_CONFIG_FILE_EXT"
+    else
+      maali_die "Could not open ${HOME}/.maali/${MAALI_CONFIG_FILE}.${MAALI_CONFIG_FILE_EXT}!";
+    fi
+  done
+  IFS=$MAALI_IFS
+fi
 
+# these directory paths are derived through MAALI_ROOT
+MAALI_BUILD_DIR="$MAALI_ROOT/build"
+MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
+MAALI_SRC="$MAALI_ROOT/src"
 
-     # use the name of our config file to create a different log file
-     MAALI_LOG_PREFIX="$MAALI_CONFIG-"
+# for use for make -j $MAALI_CORES
+if [ -z $PBS_NODEFILE ]; then
+  if [ -z $SLURM_JOB_CPUS_PER_NODE ]; then
+    # not running in PBS Pro or SLURM
+    MAALI_CORES=${MAALI_CORES:-1}
   else
-    maali_die "Could not open ${HOME}/.maali/${MAALI_CONFIG}.config!";
+    MAALI_CORES=${MAALI_CORES:-"$SLURM_JOB_CPUS_PER_NODE"}
   fi
+else
+  # make sure you set mpiprocs
+  MAALI_CORES=${MAALI_CORES:-`wc -l $PBS_NODEFILE | cut -d ' ' -f 1`}
 fi
 
 # system builds require MAALI_BUILDER_UID to be defined
@@ -2213,6 +2235,10 @@ if [ $MAALI_REBUILD ]; then
 
   MAALI_LOG_PREFIX=$MAALI_LOG_PREFIX"rebuild-"$MAALI_REBUILD_COMPILER_LOG"-"
 fi
+# just re-creating (or hiding) the module
+if [ $MAALI_REMODULE -eq 1 ]; then
+  MAALI_LOG_PREFIX=$MAALI_LOG_PREFIX"remodule-"
+fi
 
 # setup the module correctly environment 
 
@@ -2247,7 +2273,7 @@ MAALI_FOUND_CYGNET=0
 
 if [ $MAALI_FORCE_DOWNLOAD_FROM_GITHUB -eq 0 ]; then
   # three search paths
-  MAALI_FILES_DIR="$HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME $HOME/.maali/$MAALI_CYGNET_DIR_NAME $MAALI_FILES $MAALI_DIR/$MAALI_CYGNET_DIR_NAME ."
+  MAALI_FILES_DIR=". $MAALI_FILES $HOME/.maali/$MAALI_OS/$MAALI_CYGNET_DIR_NAME $HOME/.maali/$MAALI_CYGNET_DIR_NAME $MAALI_DIR/$MAALI_CYGNET_DIR_NAME"
   for MAALI_FILES_PATH in $MAALI_FILES_DIR; do
 
     if [ $DEBUG ]; then
@@ -2502,6 +2528,29 @@ if [[ $MAALI_REMODULE -eq 1 ]] || [[ $MAALI_UNINSTALL_REMOVE -eq 1 ]] ; then
     echo "uninstalling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
   else
     echo "just re-creating the module file"
+
+    removefile "$MAALI_TOOL_LOG"
+
+    log "$MAALI_TOOL_NAME $MAALI_TOOL_VERSION is being re-moduled by $MAALI_BUILDER_BUILD_CN"
+
+    log "Command line: $MAALI_CMD_LINE"
+
+    # keeping copy of cygnet file
+    removefile "$MAALI_TOOL_LOG.$MAALI_CYGNET_BUILD_FILE_EXT"
+    cat $MAALI_CYGNET_FILEPATH > $MAALI_TOOL_LOG.$MAALI_CYGNET_BUILD_FILE_EXT
+    # .. and of config files
+    removefile "$MAALI_TOOL_LOG.$MAALI_CONFIG_FILE_EXT"
+    if [ "$MAALI_CONFIG" != "" ]; then
+      MAALI_IFS=$IFS
+      IFS=','
+      for MAALI_CONFIG_FILE in $MAALI_CONFIG ; do
+        echo "$HOME/.maali/$MAALI_CONFIG_FILE.$MAALI_CONFIG_FILE_EXT" >> $MAALI_TOOL_LOG.$MAALI_CONFIG_FILE_EXT
+        echo "" >> $MAALI_TOOL_LOG.$MAALI_CONFIG_FILE_EXT
+        cat $HOME/.maali/$MAALI_CONFIG_FILE.$MAALI_CONFIG_FILE_EXT >> $MAALI_TOOL_LOG.$MAALI_CONFIG_FILE_EXT
+        echo "#####################################################################" >> $MAALI_TOOL_LOG.$MAALI_CONFIG_FILE_EXT
+      done
+      IFS=$MAALI_IFS
+    fi
   fi
 else
   removefile "$MAALI_TOOL_LOG"
@@ -2509,6 +2558,23 @@ else
   log "$MAALI_TOOL_NAME $MAALI_TOOL_VERSION is being built by $MAALI_BUILDER_BUILD_CN"
 
   log "Command line: $MAALI_CMD_LINE"
+
+  # keeping copy of cygnet file
+  removefile "$MAALI_TOOL_LOG.$MAALI_CYGNET_BUILD_FILE_EXT"
+  cat $MAALI_CYGNET_FILEPATH > $MAALI_TOOL_LOG.$MAALI_CYGNET_BUILD_FILE_EXT
+  # .. and of config files
+  removefile "$MAALI_TOOL_LOG.$MAALI_CONFIG_FILE_EXT"
+  if [ "$MAALI_CONFIG" != "" ]; then
+    MAALI_IFS=$IFS
+    IFS=','
+    for MAALI_CONFIG_FILE in $MAALI_CONFIG ; do
+      echo "$HOME/.maali/$MAALI_CONFIG_FILE.$MAALI_CONFIG_FILE_EXT" >> $MAALI_TOOL_LOG.$MAALI_CONFIG_FILE_EXT
+      echo "" >> $MAALI_TOOL_LOG.$MAALI_CONFIG_FILE_EXT
+      cat $HOME/.maali/$MAALI_CONFIG_FILE.$MAALI_CONFIG_FILE_EXT >> $MAALI_TOOL_LOG.$MAALI_CONFIG_FILE_EXT
+      echo "#####################################################################" >> $MAALI_TOOL_LOG.$MAALI_CONFIG_FILE_EXT
+    done
+    IFS=$MAALI_IFS
+  fi
 
   echo "downloading the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
   maali_download
@@ -2950,6 +3016,7 @@ else
     else
       maali_module
     fi
+    maali_post_module
 
     # make this version the default if there is no other
     if [ ! -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" -o $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then

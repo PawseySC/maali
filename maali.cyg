@@ -41,7 +41,6 @@ function maali_build {
 
   maali_run "mkdir $MAALI_INSTALL_DIR/bin"
   maali_run "install -m 755 maali $MAALI_INSTALL_DIR/bin"
-  maali_run "install -m 755 ibs2maali $MAALI_INSTALL_DIR/bin"
 
   # set the version number
   sed -i -e 's/MAALI_VERSION="tip"/MAALI_VERSION="'$MAALI_TOOL_VERSION'"/g' $MAALI_INSTALL_DIR/bin/maali
