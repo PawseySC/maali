@@ -1686,6 +1686,17 @@ EOF
 
 ##############################################################################
 
+function maali_post_module {
+  # trick or treat on the module file here
+
+  if [ -d "$MAALI_TOOL_MODULE_DIR" ] ; then
+    cd "$MAALI_TOOL_MODULE_DIR"
+  fi
+  #maali_run "bla bla bla"
+}
+
+##############################################################################
+
 function maali_python_build {
 
   MAALI_PYTHON_MAJOR_VERSION=`echo "$MAALI_PYTHON_VERSION" | cut -d '.' -f 1`
@@ -3005,6 +3016,7 @@ else
     else
       maali_module
     fi
+    maali_post_module
 
     # make this version the default if there is no other
     if [ ! -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" -o $MAALI_MAKE_VERSION_DEFAULT -eq 1 ]; then
