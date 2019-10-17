@@ -1,6 +1,5 @@
 # maali
-## Pawsey Supercomputing Centre Build System
-
+## A build system by the Pawsey Supercomputing Centre
 
 You should be able to install *maali* by using:
 ```
@@ -10,12 +9,14 @@ MAALI_MODULE_SET_MAALI_DEFAULT_COMPILERS='gcc/4.8.5' ./maali -t maali -v 1.7
 ```
 where `gcc/4.8.5` is an available modulefile for GCC 4.8.5.
 
+
 Richer sample installation scripts can be found in `pawsey_install/`.
 For instance, for a personal installation of maali on Magnus use:
 ```
 pawsey_install/magnus.sh 1.7
 ```
 Pawsey staff add the flag `-s` to perform a system installation.
+
 
 To install a package, use something like:
 ```
