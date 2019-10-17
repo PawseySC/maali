@@ -78,7 +78,9 @@ MAALI_SUPPORTED_MPI=${MAALI_SUPPORTED_MPI:-"openmpi intel-mpi cray-mpich openmpi
 function maali_pre_build {
   # do any patching before compilation here.
 
-  cd "$MAALI_TOOL_BUILD_DIR"
+  if [ -d "$MAALI_TOOL_BUILD_DIR" ] ; then
+    cd "$MAALI_TOOL_BUILD_DIR"
+  fi
   #maali_run "patch bla bla bla"
 }
 
@@ -87,7 +89,9 @@ function maali_pre_build {
 function maali_post_build {
   # do any work after the installation
 
-  cd "$MAALI_TOOL_BUILD_DIR"
+  if [ -d "$MAALI_TOOL_BUILD_DIR" ] ; then
+    cd "$MAALI_TOOL_BUILD_DIR"
+  fi
   #maali_run "patch bla bla bla"
 }
 
