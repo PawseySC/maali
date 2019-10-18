@@ -16,6 +16,6 @@ if [ $# -lt 1 ] ; then
   exit
 fi
 
-./maali -t maali -v "$@" -d -a
+./maali -t maali -v "$@"
 
 exit
