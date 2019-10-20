@@ -2660,127 +2660,127 @@ if [ $MAALI_REMODULE -eq 0 ]; then
 
       fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
   
-  # need to build for every PrgENV that we support
-  for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
-  
-    if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
-      # load the Cray Programming Environment
-
-      # need to set MAALI_TOOL_COMPILERS to the compilers which match the PrgEnv
-      MAALI_CRAY_PRGENV_NAME=`echo "$MAALI_CRAY_PRGENV" | cut -d '/' -f 1`
-
-      case "$MAALI_CRAY_PRGENV_NAME" in
-        "PrgEnv-gnu")
-          MAALI_CRAY_COMPILER_MATCH="gcc" ;;
-        "PrgEnv-intel")
-          MAALI_CRAY_COMPILER_MATCH="intel" ;;
-        "PrgEnv-cray")
-          MAALI_CRAY_COMPILER_MATCH="cce" ;;
-        "PrgEnv-pgi")
-          MAALI_CRAY_COMPILER_MATCH="pgi" ;;
-        *)
-          maali_die "Unknown Cray Programming Environment ${MAALI_CRAY_PRGENV}" ;;
-      esac
-
-      MAALI_TOOL_COMPILERS=""
-
-      for MAALI_CRAY_TOOL_COMPILER in $MAALI_CRAY_TOOL_COMPILERS; do
-        MAALI_CRAY_TOOL_COMPILER_NAME=`echo "$MAALI_CRAY_TOOL_COMPILER" | cut -d '/' -f 1`
-        if [ "$MAALI_CRAY_TOOL_COMPILER_NAME" == "$MAALI_CRAY_COMPILER_MATCH" ]; then
-          MAALI_TOOL_COMPILERS="${MAALI_TOOL_COMPILERS:+$MAALI_TOOL_COMPILERS }$MAALI_CRAY_TOOL_COMPILER"
-        fi
-      done
-
-      # defaults for the Cray environment
-      export CC=cc
-      export CXX=CC
-      export FC=ftn
-      export CRAYPE_LINK_TYPE=dynamic
-
-      if [ $DEBUG ]; then
-        echo "MAALI_TOOL_COMPILERS set to $MAALI_TOOL_COMPILERS"
-      fi
-      if [ "$MAALI_TOOL_COMPILERS" == "" ]; then
-        maali_die "Have no MAALI_TOOL_COMPILERS set"
-      fi
-
-      if [ $DEBUG ]; then
-        echo " .. before module load \$MAALI_CRAY_PRGENV"
-        module list
-      fi # if [ $DEBUG ]; then
-      maali_load_module "$MAALI_CRAY_PRGENV"
-      if [ $DEBUG ]; then
-        echo " .. after module load \$MAALI_CRAY_PRGENV"
-        module list
-      fi # if [ $DEBUG ]; then
-  
-    fi # if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
-  
-    # need to build for every compiler that we support
-    for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
-  
-      if [ "$MAALI_COMPILER" != "binary" ]; then
-        # "binary" installs are not versioned
-        MAALI_SLASH_COUNT=`echo $(echo $MAALI_COMPILER | wc -c) - $(echo $MAALI_COMPILER | tr -d '/' | wc -c) | bc`
-        if [ $MAALI_SLASH_COUNT != 1 ]; then
-          maali_die "${MAALI_COMPILER} should contain a single '/' (but contains ${MAALI_SLASH_COUNT})"
-        fi # if [ $MAALI_SLASH_COUNT != 1 ]; then; then
-      fi # if [ "$MAALI_COMPILER" != "binary" ]; then
-  
-      if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
-        echo "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-        log "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-      fi
-  
-      if [ $MAALI_PYTHON_TOOL ]; then
-        MAALI_PYTHON_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
-        MAALI_PYTHON_LIB_VERSION=`echo "$MAALI_PYTHON_VERSION" | cut -d '.' -f 1,2`
-      else
-        MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
-        MAALI_COMPILER_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
-      fi # if [ $MAALI_PYTHON_TOOL ]; then
-  
-      # don't need to load compiler if we are using the "binary" compiler
-      if [ "$MAALI_COMPILER" != "binary" ]; then
-  
-        # load the module for the compiler we want to use
-        if [ $DEBUG ]; then
-          echo " .. before module load \$MAALI_COMPILER"
-          module list
-        fi # if [ $DEBUG ]; then
-
-        if [ $MAALI_CRAY -eq 1 ]; then
-          # check to see if the PrgEnv loaded the wrong compiler
-          MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep -v "^PrgEnv" | grep "^$MAALI_COMPILER_NAME" | wc -l`
-          
-          if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
-            module unload $MAALI_COMPILER_NAME
-          fi # if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
-        fi # if [ $MAALI_CRAY -eq 1 ]; then
-  
-        maali_load_module "$MAALI_COMPILER"
-  
-        if [ $DEBUG ]; then
-          echo " .. after module load \$MAALI_COMPILER"
-          module list
-        fi
-      fi # if [ "$MAALI_COMPILER" != "binary" ]; then
-
-        # Cray has this as inner load
-        if [ "$MAALI_CPU_TARGET" != "na" ] && [ $MAALI_CRAY -eq 1 ]; then
-
+      # need to build for every PrgENV that we support
+      for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
+      
+        if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+          # load the Cray Programming Environment
+    
+          # need to set MAALI_TOOL_COMPILERS to the compilers which match the PrgEnv
+          MAALI_CRAY_PRGENV_NAME=`echo "$MAALI_CRAY_PRGENV" | cut -d '/' -f 1`
+    
+          case "$MAALI_CRAY_PRGENV_NAME" in
+            "PrgEnv-gnu")
+              MAALI_CRAY_COMPILER_MATCH="gcc" ;;
+            "PrgEnv-intel")
+              MAALI_CRAY_COMPILER_MATCH="intel" ;;
+            "PrgEnv-cray")
+              MAALI_CRAY_COMPILER_MATCH="cce" ;;
+            "PrgEnv-pgi")
+              MAALI_CRAY_COMPILER_MATCH="pgi" ;;
+            *)
+              maali_die "Unknown Cray Programming Environment ${MAALI_CRAY_PRGENV}" ;;
+          esac
+    
+          MAALI_TOOL_COMPILERS=""
+    
+          for MAALI_CRAY_TOOL_COMPILER in $MAALI_CRAY_TOOL_COMPILERS; do
+            MAALI_CRAY_TOOL_COMPILER_NAME=`echo "$MAALI_CRAY_TOOL_COMPILER" | cut -d '/' -f 1`
+            if [ "$MAALI_CRAY_TOOL_COMPILER_NAME" == "$MAALI_CRAY_COMPILER_MATCH" ]; then
+              MAALI_TOOL_COMPILERS="${MAALI_TOOL_COMPILERS:+$MAALI_TOOL_COMPILERS }$MAALI_CRAY_TOOL_COMPILER"
+            fi
+          done
+    
+          # defaults for the Cray environment
+          export CC=cc
+          export CXX=CC
+          export FC=ftn
+          export CRAYPE_LINK_TYPE=dynamic
+    
           if [ $DEBUG ]; then
-            echo " .. before module load \$MAALI_CPU_TARGET"
+            echo "MAALI_TOOL_COMPILERS set to $MAALI_TOOL_COMPILERS"
+          fi
+          if [ "$MAALI_TOOL_COMPILERS" == "" ]; then
+            maali_die "Have no MAALI_TOOL_COMPILERS set"
+          fi
+    
+          if [ $DEBUG ]; then
+            echo " .. before module load \$MAALI_CRAY_PRGENV"
             module list
           fi # if [ $DEBUG ]; then
-
-          maali_load_module "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET"
-
+          maali_load_module "$MAALI_CRAY_PRGENV"
           if [ $DEBUG ]; then
-            echo " .. after module load \$MAALI_CPU_TARGET"
+            echo " .. after module load \$MAALI_CRAY_PRGENV"
             module list
-          fi # 
-        fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
+          fi # if [ $DEBUG ]; then
+      
+        fi # if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+      
+        # need to build for every compiler that we support
+        for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
+      
+          if [ "$MAALI_COMPILER" != "binary" ]; then
+            # "binary" installs are not versioned
+            MAALI_SLASH_COUNT=`echo $(echo $MAALI_COMPILER | wc -c) - $(echo $MAALI_COMPILER | tr -d '/' | wc -c) | bc`
+            if [ $MAALI_SLASH_COUNT != 1 ]; then
+              maali_die "${MAALI_COMPILER} should contain a single '/' (but contains ${MAALI_SLASH_COUNT})"
+            fi # if [ $MAALI_SLASH_COUNT != 1 ]; then; then
+          fi # if [ "$MAALI_COMPILER" != "binary" ]; then
+      
+          if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
+            echo "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+            log "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+          fi
+      
+          if [ $MAALI_PYTHON_TOOL ]; then
+            MAALI_PYTHON_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
+            MAALI_PYTHON_LIB_VERSION=`echo "$MAALI_PYTHON_VERSION" | cut -d '.' -f 1,2`
+          else
+            MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
+            MAALI_COMPILER_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
+          fi # if [ $MAALI_PYTHON_TOOL ]; then
+      
+          # don't need to load compiler if we are using the "binary" compiler
+          if [ "$MAALI_COMPILER" != "binary" ]; then
+      
+            # load the module for the compiler we want to use
+            if [ $DEBUG ]; then
+              echo " .. before module load \$MAALI_COMPILER"
+              module list
+            fi # if [ $DEBUG ]; then
+    
+            if [ $MAALI_CRAY -eq 1 ]; then
+              # check to see if the PrgEnv loaded the wrong compiler
+              MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep -v "^PrgEnv" | grep "^$MAALI_COMPILER_NAME" | wc -l`
+              
+              if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
+                module unload $MAALI_COMPILER_NAME
+              fi # if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
+            fi # if [ $MAALI_CRAY -eq 1 ]; then
+      
+            maali_load_module "$MAALI_COMPILER"
+      
+            if [ $DEBUG ]; then
+              echo " .. after module load \$MAALI_COMPILER"
+              module list
+            fi
+          fi # if [ "$MAALI_COMPILER" != "binary" ]; then
+
+          # Cray has this as inner load
+          if [ "$MAALI_CPU_TARGET" != "na" ] && [ $MAALI_CRAY -eq 1 ]; then
+  
+            if [ $DEBUG ]; then
+              echo " .. before module load \$MAALI_CPU_TARGET"
+              module list
+            fi # if [ $DEBUG ]; then
+  
+            maali_load_module "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET"
+  
+            if [ $DEBUG ]; then
+              echo " .. after module load \$MAALI_CPU_TARGET"
+              module list
+            fi # 
+          fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
 
           # Cray has this as inner load
           if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ] && [ $MAALI_CRAY -eq 1 ]; then
@@ -2956,26 +2956,26 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             module unload "$MAALI_TOOL_CUDA_COMPILER"
           fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
 
-        # Cray has this as inner unload
-        if [ "$MAALI_CPU_TARGET" != "na" ] && [ $MAALI_CRAY -eq 1 ]; then
-          module unload "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET"
-        fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
+          # Cray has this as inner unload
+          if [ "$MAALI_CPU_TARGET" != "na" ] && [ $MAALI_CRAY -eq 1 ]; then
+            module unload "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET"
+          fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
   
-      if [ "$MAALI_COMPILER" != "binary" ]; then
-        # don't need to unload the "binary" compiler
-  
-        # make sure we unload the modules
-        module unload $MAALI_COMPILER
-      fi
-  
-    done # compiler
-  
-    if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
-      # unload the Cray Programming Environment
-      module unload $MAALI_CRAY_PRGENV
-    fi
-  
-  done # for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
+          if [ "$MAALI_COMPILER" != "binary" ]; then
+            # don't need to unload the "binary" compiler
+      
+            # make sure we unload the modules
+            module unload $MAALI_COMPILER
+          fi
+      
+        done # compiler
+      
+        if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
+          # unload the Cray Programming Environment
+          module unload $MAALI_CRAY_PRGENV
+        fi
+      
+      done # for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
 
       # Non-Cray has this as outer unload
       if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ] && [ $MAALI_CRAY -eq 0 ]; then
