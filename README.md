@@ -1,6 +1,10 @@
 # maali
 ## A build system by the Pawsey Supercomputing Centre
 
+Prerequisite: *maali* assumes that modules are available in your system, via either 
+[Environment Modules](https://modules.readthedocs.io/en/latest/) 
+or [Lmod](https://lmod.readthedocs.io/en/latest/).
+
 You should be able to install *maali* on your workstation by using:
 ```
 git clone https://github.com/PawseySC/maali
@@ -11,7 +15,7 @@ where `gcc/4.8.5` is an available modulefile for GCC 4.8.5.
 
 
 Richer sample installation scripts can be found in `pawsey-install/`.
-For instance, for a personal installation of maali on Magnus use:
+For instance, for a personal installation of *maali* on Magnus use:
 ```
 pawsey-install/magnus.sh 1.7
 ```
