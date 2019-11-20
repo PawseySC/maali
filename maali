@@ -2250,7 +2250,9 @@ for MAALI_MODULE in $MAALI_LOADEDMODULES; do
   MAALI_MODULE_NAME=`echo $MAALI_MODULE | cut -d '/' -f 1`
 
   if [ "$MAALI_MODULE_NAME" != "maali" ]; then
-    module unload $MAALI_MODULE
+    if [[ $MAALI_CRAY -eq 0 ]] || [[ "$MAALI_MODULE_NAME" != "module" ]]; then # Don't unload the "module" module on a Cray
+      module unload $MAALI_MODULE
+    fi
   fi
 done
 
