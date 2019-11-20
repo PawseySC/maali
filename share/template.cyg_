@@ -1,0 +1,52 @@
+##############################################################################
+# maali cygnet file for TEMPLATE-TOOL
+##############################################################################
+
+# Package description
+
+read -r -d '' MAALI_MODULE_WHATIS << EOF
+
+TEMPLATE-TOOL
+
+This is ..
+Website ..
+
+EOF
+
+
+# Crays only : Programming Environment
+#MAALI_TOOL_CRAY_PRGENV="$MAALI_DEFAULT_CRAY_PRGENVS"
+
+# Compiler and target CPU architecture
+MAALI_TOOL_COMPILERS="$MAALI_DEFAULT_COMPILERS"
+MAALI_TOOL_CPU_TARGET="$MAALI_DEFAULT_CPU_TARGET"
+
+# URL to download source
+MAALI_URL="https://<..>"
+# Local filename for downloaded source file
+MAALI_DST="$MAALI_SRC/$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.tar.gz"
+# Directory obtained when unzipping source file (name must match the actual content of the source file)
+MAALI_TOOL_BUILD_DIR="$MAALI_BUILD_DIR/<..>"
+
+# Runtime module dependencies
+MAALI_TOOL_PREREQ=""
+# Build-only module dependencies
+MAALI_TOOL_BUILD_PREREQ=""
+
+# Type of tool
+MAALI_TOOL_TYPE="tools"
+
+# Variables to be defined in the modulefile
+MAALI_MODULE_SET_PATH=1
+MAALI_MODULE_SET_LD_LIBRARY_PATH=1
+MAALI_MODULE_SET_<..>=<..>
+##############################################################################
+# Functions to be redefined
+
+function maali_build {
+
+<..>
+
+}
+
+##############################################################################

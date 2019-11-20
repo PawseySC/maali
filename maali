@@ -1858,6 +1858,20 @@ function removefile {
 
 ##############################################################################
 
+template()
+{
+cp -p $MAALI_MAALI_HOME/share/template.cyg_ ./template.cyg
+if [ $? -eq 0 ] ; then
+  echo "Created cygnet file template.cyg in local directory"
+  exit 0
+else
+  echo "Failed to create cygnet file template.cyg in local directory"
+  exit 1
+fi
+}
+
+##############################################################################
+
 usage()
 {
 cat << EOF
@@ -1867,6 +1881,7 @@ usage: $0 -t toolname -v toolversion [-d] [OTHER OPTIONS]
 
 OPTIONS:
    -h      show this message
+   -y      create template cygnet file and exit
    -t      tool name
    -v      tool version
    -d      run in debug mode
@@ -1930,12 +1945,15 @@ MAALI_MODULE_PE_PKGCONFIG_LIBS=
 # to support TCL and LUA modules
 MAALI_MODULE_DEFAULT_FILENAME='.version'
 
-while getopts "ht:v:dfpc:ambr:ngswux" OPTION
+while getopts "hyt:v:dfpc:ambr:ngswux" OPTION
 do
      case $OPTION in
          h)
              usage
              exit 0
+             ;;
+         y)
+             template
              ;;
          t)
              MAALI_TOOL_NAME=$OPTARG
