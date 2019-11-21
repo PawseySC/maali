@@ -1953,6 +1953,7 @@ OPTIONS:
    -m      just create the module file
    -b      build the tool, but don't create a module file
    -r      build with the specified compiler (and no others) [ ]
+   -e      build for the specified CPU target (and no others) [ ]
    -n      NVIDIA mode; compile software with cuda support
    -g      group build in $MAALI_ROOT_GROUP
    -s      activate system build in $MAALI_ROOT_SYSTEM
@@ -1970,8 +1971,10 @@ MAALI_TOOL_VERSION=
 MAALI_PYTHON_VERSION=
 DEBUG=
 MAALI_CONFIG=${MAALI_CONFIG:-""}
-MAALI_REBUILD=
-MAALI_REBUILD_COMPILER=
+MAALI_COMPILER_REBUILD=
+MAALI_COMPILER_REBUILD_NAME=
+MAALI_CPU_REBUILD=
+MAALI_CPU_REBUILD_NAME=
 MAALI_REMODULE=0
 MAALI_BUILDONLY=
 MAALI_SYSTEM_BUILD=NO
@@ -2006,7 +2009,7 @@ MAALI_MODULE_PE_PKGCONFIG_LIBS=
 # to support TCL and LUA modules
 MAALI_MODULE_DEFAULT_FILENAME='.version'
 
-while getopts "hyt:v:dfpc:ambr:ngswux" OPTION
+while getopts "hyt:v:dfpc:ambr:e:ngswux" OPTION
 do
      case $OPTION in
          h)
@@ -2044,8 +2047,12 @@ do
              MAALI_BUILDONLY=1
              ;;
          r)
-             MAALI_REBUILD_COMPILER=$OPTARG
-             MAALI_REBUILD=1
+             MAALI_COMPILER_REBUILD_NAME=$OPTARG
+             MAALI_COMPILER_REBUILD=1
+             ;;
+         e)
+             MAALI_CPU_REBUILD_NAME=$OPTARG
+             MAALI_CPU_REBUILD=1
              ;;
          n)
              MAALI_CUDA_BUILD=1
@@ -2309,10 +2316,15 @@ if [ "$MAALI_DEFAULT_CUDAMPI_COMPILERS" != "" ]; then
 fi
 
 # we are running a rebuild - is this redundant?
-if [ $MAALI_REBUILD ]; then
-  MAALI_REBUILD_COMPILER_LOG=`echo $MAALI_REBUILD_COMPILER | sed -e 's!/!-!g'`
+if [ $MAALI_COMPILER_REBUILD ]; then
+  MAALI_COMPILER_REBUILD_LOG=`echo $MAALI_COMPILER_REBUILD_NAME | sed -e 's!/!-!g'`
 
-  MAALI_LOG_PREFIX=$MAALI_LOG_PREFIX"rebuild-"$MAALI_REBUILD_COMPILER_LOG"-"
+  MAALI_LOG_PREFIX=$MAALI_LOG_PREFIX"rebuild-"$MAALI_COMPILER_REBUILD_LOG"-"
+fi
+if [ $MAALI_CPU_REBUILD ]; then
+  MAALI_CPU_REBUILD_LOG=`echo $MAALI_CPU_REBUILD_NAME | sed -e 's!/!-!g'`
+
+  MAALI_LOG_PREFIX=$MAALI_LOG_PREFIX"rebuild-"$MAALI_CPU_REBUILD_LOG"-"
 fi
 # just re-creating (or hiding) the module
 if [ $MAALI_REMODULE -eq 1 ]; then
@@ -2460,8 +2472,8 @@ for MAALI_SYSTEM_PACKAGES_NAME in $MAALI_SYSTEM_PACKAGES_PREREQ; do
 done
 
 # we are running a rebuild - so we override the compiler
-if [ $MAALI_REBUILD ]; then
-  MAALI_TOOL_COMPILERS=$MAALI_REBUILD_COMPILER
+if [ $MAALI_COMPILER_REBUILD ]; then
+  MAALI_TOOL_COMPILERS=$MAALI_COMPILER_REBUILD_NAME
   echo ".. setting MAALI_TOOL_COMPILERS to $MAALI_TOOL_COMPILERS"
 fi
 
@@ -2516,6 +2528,12 @@ else
   fi
   MAALI_TOOL_CPU_TARGET=${MAALI_TOOL_CPU_TARGET:-"$MAALI_DEFAULT_CPU_TARGET"}
 fi
+# rebuild for specified CPU target
+if [ $MAALI_CPU_REBUILD ]; then
+  MAALI_TOOL_CPU_TARGET=$MAALI_CPU_REBUILD_NAME
+  echo ".. setting MAALI_TOOL_CPU_TARGET to $MAALI_TOOL_CPU_TARGET"
+fi
+
 if [ "$MAALI_TOOL_CPU_TARGET" == "" ]; then
   maali_die "MAALI_TOOL_CPU_TARGET is not set, and this is not a binary, python or system gcc install"
 fi
