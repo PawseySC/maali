@@ -1882,21 +1882,21 @@ usage: $0 -t toolname -v toolversion [-d] [OTHER OPTIONS]
 OPTIONS:
    -h      show this message
    -y      create template cygnet file and exit
-   -t      tool name
-   -v      tool version
+   -t      tool name [ ]
+   -v      tool version [ ]
    -d      run in debug mode
    -f      force download from github
-   -p      use the github project branch for cygnet files
-   -c      maali configuration file
+   -p      for cygnet files, use the github project branch $MAALI_PROJECT
+   -c      maali configuration file [ ]
    -a      activate this version as the default version
    -m      just create the module file
    -b      build the tool, but don't create a module file
-   -r      build with the specified compiler (and no others)
+   -r      build with the specified compiler (and no others) [ ]
    -n      NVIDIA mode; compile software with cuda support
    -g      group build in $MAALI_ROOT_GROUP
    -s      activate system build in $MAALI_ROOT_SYSTEM
    -w      workstation build in $MAALI_ROOT_WORKST
-   -u      unistall by hiding the module
+   -u      uninstall by hiding the module
    -x      expunge tool from history
 EOF
 }
