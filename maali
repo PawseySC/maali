@@ -1942,7 +1942,7 @@ usage: $0 -t toolname -v toolversion [-d] [OTHER OPTIONS]
 
 OPTIONS:
    -h      show this message
-   -y      create template cygnet file and exit
+   -y      create template cYgnet file and exit
    -t      tool name [ ]
    -v      tool version [ ]
    -d      run in debug mode
