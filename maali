@@ -754,9 +754,9 @@ EOF
     MAALI_TOOL_MPI_COMPILERS_NAMES=`echo $MAALI_TOOL_MPI_COMPILERS | xargs -n1 | cut -d '/' -f 1 | sort -u | xargs`
     for mpiname in $MAALI_TOOL_MPI_COMPILERS_NAMES ; do
       if [ -z "$checkstring" ] ; then
-        checkstring="  if {! [is-loaded \"$mpiname\"]"
+        checkstring="  if {! [is-loaded $mpiname]"
       else
-        checkstring+=" &&  ! [is-loaded \"$mpiname\"]"
+        checkstring+=" &&  ! [is-loaded $mpiname]"
       fi
     done
     checkstring+="} {"
