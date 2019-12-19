@@ -9,6 +9,9 @@ export MAALI_MODULE_SET_MAALI_DEFAULT_CUDA_COMPILERS="cuda/8.0"
 export MAALI_MODULE_SET_MAALI_DEFAULT_PYTHON='python/2.7.14 python/3.6.3'
 export MAALI_MODULE_SET_MAALI_LUA_MODULE=1
 export MAALI_LUA_MODULE=1
+export MAALI_MODULE_SET_MAALI_DOT_DIR='os.getenv\(\"MYGROUP\"\)..\"/.maali\"'
+export MAALI_MODULE_QUOTES_MAALI_DOT_DIR=off
+export MAALI_DOT_DIR="$MYGROUP/.maali"
 
 if [ $# -lt 1 ] ; then
   echo "Please provide at least the maali version as an argument. Exiting now."
