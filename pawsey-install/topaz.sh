@@ -12,6 +12,7 @@ export MAALI_MODULE_SET_MAALI_LUA_MODULE=1
 export MAALI_LUA_MODULE=1
 export MAALI_MODULE_SET_MAALI_DOT_DIR='os.getenv\(\"MYGROUP\"\)..\"/.maali\"'
 export MAALI_MODULE_QUOTES_MAALI_DOT_DIR=off
+export MAALI_DOT_DIR="$MYGROUP/.maali"
 
 if [ $# -lt 1 ] ; then
   echo "Please provide at least the maali version as an argument. Exiting now."
