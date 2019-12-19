@@ -2409,13 +2409,13 @@ fi
 if [ $MAALI_FOUND_CYGNET -eq 0 ]; then
   # try and download it from github
 
-  # make sure the drectory is there
-  if [ ! -d "$MAALI_DOT_DIR/$MAALI_OS/$MAALI_CYGNET_DIR_NAME" ]; then
-    maali_makedir "$MAALI_DOT_DIR/$MAALI_OS/$MAALI_CYGNET_DIR_NAME"
-  fi
-
-  MAALI_CYGNET_FILEPATH="$MAALI_DOT_DIR/$MAALI_OS/$MAALI_CYGNET_DIR_NAME/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
   MAALI_FILES_PATH="$MAALI_DOT_DIR/$MAALI_OS/$MAALI_CYGNET_DIR_NAME"
+  MAALI_CYGNET_FILEPATH="$MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_CYGNET_BUILD_FILE_EXT"
+
+  # make sure the drectory is there
+  if [ ! -d "$MAALI_FILES_PATH" ]; then
+    maali_makedir "$MAALI_FILES_PATH"
+  fi
 
   echo "Downloading cygnet file from $MAALI_CYGNET_FILES_URL to $MAALI_CYGNET_FILEPATH"
 
