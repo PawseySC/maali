@@ -9,6 +9,8 @@ export MAALI_MODULE_SET_MAALI_DEFAULT_CUDA_COMPILERS="cudatoolkit/8.0.61_2.4.3-6
 export MAALI_MODULE_SET_MAALI_DEFAULT_PYTHON="python/2.7.14 python/3.6.3"
 export MAALI_MODULE_SET_MAALI_REQUIRED_SYSTEM_MODULES="modules/3.2.10.6 craype/2.5.13 craype-network-aries"
 export MAALI_MODULE_LIST_MAALI_REQUIRED_SYSTEM_MODULES="off"
+export MAALI_MODULE_SET_MAALI_DOT_DIR='\$env\(MYGROUP\)/.maali'
+export MAALI_MODULE_QUOTES_MAALI_DOT_DIR=off
 
 if [ $# -lt 1 ] ; then
   echo "Please provide at least the maali version as an argument. Exiting now."
