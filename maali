@@ -2434,6 +2434,13 @@ if [ $? -ne 0 ]; then
     maali_die "failed to source ${MAALI_CYGNET_FILEPATH} exiting"
 fi
 
+#Check if the tool was named correctly on the command line.  Mostly an issue for a case-sensitive build
+if [ -n "${MAALI_TOOL_REAL_NAME}" ]; then
+  if [ "${MAALI_TOOL_REAL_NAME}" != "${MAALI_TOOL_NAME_ORIG}" ]; then
+    maali_die "Tool name specified incorrectly, should be ${MAALI_TOOL_REAL_NAME}"
+  fi
+fi
+
 MAALI_TOOL_CUDA_COMPILERS=${MAALI_TOOL_CUDA_COMPILERS:-"na"}
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
   if [ "$MAALI_TOOL_CUDA_COMPILERS" == "na" ]; then
