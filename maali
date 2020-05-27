@@ -1989,6 +1989,7 @@ MAALI_UNINSTALL_HIDE=0
 MAALI_UNINSTALL_REMOVE=0
 MAALI_SYSTEM_CYGNET_FILE=0
 MAALI_CUDA_BUILD=0
+MAALI_CUDA_BUILD_ONLY=0 # Set to 1 in the cygnet file to deny non-CUDA builds
 MAALI_CUDA_SUFFIX=${MAALI_CUDA_SUFFIX:-"-gpu"}
 MAALI_LUA_MODULE=${MAALI_LUA_MODULE:-0}
 MAALI_PYTHON3_SKIP=0
@@ -2448,6 +2449,12 @@ if [ $MAALI_CUDA_BUILD -eq 1 ]; then
   fi
 else
   MAALI_TOOL_CUDA_COMPILERS="na"
+fi
+
+if [ "${MAALI_CUDA_BUILD}" -eq 0 ]; then
+  if [ "${MAALI_CUDA_BUILD_ONLY}" -eq 1 ]; then
+    maali_die "This cygnet file only supports a CUDA build.  Specify -n on the maali command line"
+  fi
 fi
 
 MAALI_TOOL_COMPILERS=${MAALI_TOOL_COMPILERS:-"$MAALI_DEFAULT_COMPILERS"}
