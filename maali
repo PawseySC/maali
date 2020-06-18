@@ -2185,10 +2185,10 @@ if [ "$MAALI_CONFIG" != "" ]; then
   IFS=$MAALI_IFS
 fi
 
-# these directory paths are derived through MAALI_ROOT
-MAALI_BUILD_DIR="$MAALI_ROOT/build"
-MAALI_MODULE_DIR="$MAALI_ROOT/modulefiles"
-MAALI_SRC="$MAALI_ROOT/src"
+# these directory paths are derived through MAALI_ROOT if not defined externally
+MAALI_BUILD_DIR=${MAALI_BUILD_DIR:-"$MAALI_ROOT/build"}
+MAALI_MODULE_DIR=${MAALI_MODULE_DIR:-"$MAALI_ROOT/modulefiles"}
+MAALI_SRC=${MAALI_SRC:-"$MAALI_ROOT/src"}
 
 # for use for make -j $MAALI_CORES
 if [ -z $PBS_NODEFILE ]; then
