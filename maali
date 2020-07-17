@@ -98,10 +98,16 @@ function maali_post_build {
   if [ -d "$MAALI_TOOL_BUILD_DIR" ] ; then
     cd "$MAALI_TOOL_BUILD_DIR"
   fi
+
+  # store the build date
+  MAALI_MODULE_WHATIS+="Version: ${MAALI_TOOL_VERSION} \n"
+
   # store the build date
   MAALI_MODULE_WHATIS+="Build date: $(date) \n"
+
   # store the git hash if source taken from repository
-  if [ -z ${MAALI_GIT_DOWNLOAD_FILE} ]; then
+  # ideally would extract version from git repo too
+  if [ ${MAALI_GIT_SRC} -eq 1 ]; then
       cd "${MAALI_TOOL_BUILD_DIR}"
       MAALI_MODULE_WHATIS+="Git Hash : $(git rev-parse HEAD) \n"
   fi
@@ -145,6 +151,8 @@ function maali_cmake_build {
 ##############################################################################
 
 function maali_download {
+
+  # download source via wget
 
   i=0;
   for MAALI_TMP_URL in $MAALI_URL ; do
@@ -203,56 +211,13 @@ function maali_download {
       fi
     fi
   done
-}
-
-##############################################################################
-
-function maali_git_download {
-
-  #download cygnet files or patches from PawseySC repo
-
-  MAALI_GIT_DOWNLOAD_DIR="$1"
-  MAALI_GIT_DOWNLOAD_FILE="$2"
-
-  MAALI_GIT_DOWNLOAD_FILEPATH="$MAALI_GIT_DOWNLOAD_DIR/$MAALI_GIT_DOWNLOAD_FILE"
-
-  if [ -f "$MAALI_GIT_DOWNLOAD_FILEPATH" ]; then
-    mv ${MAALI_GIT_DOWNLOAD_FILEPATH} ${MAALI_GIT_DOWNLOAD_FILEPATH}~
-  fi
-
-  if [ ! $DEBUG ]; then
-    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"$MAALI_WGET_EXTRA"} -q"
-  fi
-
-  # github requires --no-check-certificate
-  if [[ "$MAALI_WGET_EXTRA" != *"--no-check-certificate"* ]]; then
-    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"$MAALI_WGET_EXTRA"} --no-check-certificate"
-  fi
-
-  $MAALI_WGET_CMD $MAALI_WGET_EXTRA -O "$MAALI_GIT_DOWNLOAD_FILEPATH" "$MAALI_CYGNET_FILES_URL/$MAALI_CLUSTER/$MAALI_GIT_DOWNLOAD_FILE"
-
-  if [ $DEBUG ]; then
-    echo "Checking the size of $MAALI_GIT_DOWNLOAD_FILEPATH"
-  fi
-
-  MAALI_GIT_DOWNLOAD_FILESIZE=$(stat -c%s "$MAALI_GIT_DOWNLOAD_FILEPATH")
-  if [ $MAALI_GIT_DOWNLOAD_FILESIZE -eq 0 ]; then
-    rm -f $MAALI_GIT_DOWNLOAD_FILEPATH
-    maali_die "Can't find config file for $MAALI_TOOL_NAME and could not download from github"
-  fi
-
-  if [ $DEBUG ]; then
-    if [ -f "${MAALI_GIT_DOWNLOAD_FILEPATH}~" ]; then
-      echo "differences between ${MAALI_GIT_DOWNLOAD_FILEPATH} and ${MAALI_GIT_DOWNLOAD_FILEPATH}~"
-      diff ${MAALI_GIT_DOWNLOAD_FILEPATH} ${MAALI_GIT_DOWNLOAD_FILEPATH}~
-    fi
-  fi
 
 }
 
 ##############################################################################
 
 function maali_download_git_source {
+
   # download src from git
 
   i=0;
@@ -290,6 +255,54 @@ function maali_download_git_source {
       fi
     fi
   done
+
+  #update flag to indicate git source
+  MAALI_GIT_SRC=1
+
+}
+
+##############################################################################
+
+function maali_git_download {
+
+  # download cygnet files or patches from PawseySC repo
+
+  MAALI_GIT_DOWNLOAD_DIR="$1"
+  MAALI_GIT_DOWNLOAD_FILE="$2"
+
+  MAALI_GIT_DOWNLOAD_FILEPATH="$MAALI_GIT_DOWNLOAD_DIR/$MAALI_GIT_DOWNLOAD_FILE"
+
+  if [ -f "$MAALI_GIT_DOWNLOAD_FILEPATH" ]; then
+    mv ${MAALI_GIT_DOWNLOAD_FILEPATH} ${MAALI_GIT_DOWNLOAD_FILEPATH}~
+  fi
+
+  if [ ! $DEBUG ]; then
+    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"$MAALI_WGET_EXTRA"} -q"
+  fi
+
+  # github requires --no-check-certificate
+  if [[ "$MAALI_WGET_EXTRA" != *"--no-check-certificate"* ]]; then
+    MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"$MAALI_WGET_EXTRA"} --no-check-certificate"
+  fi
+
+  $MAALI_WGET_CMD $MAALI_WGET_EXTRA -O "$MAALI_GIT_DOWNLOAD_FILEPATH" "$MAALI_CYGNET_FILES_URL/$MAALI_CLUSTER/$MAALI_GIT_DOWNLOAD_FILE"
+
+  if [ $DEBUG ]; then
+    echo "Checking the size of $MAALI_GIT_DOWNLOAD_FILEPATH"
+  fi
+
+  MAALI_GIT_DOWNLOAD_FILESIZE=$(stat -c%s "$MAALI_GIT_DOWNLOAD_FILEPATH")
+  if [ $MAALI_GIT_DOWNLOAD_FILESIZE -eq 0 ]; then
+    rm -f $MAALI_GIT_DOWNLOAD_FILEPATH
+    maali_die "Can't find config file for $MAALI_TOOL_NAME and could not download from github"
+  fi
+
+  if [ $DEBUG ]; then
+    if [ -f "${MAALI_GIT_DOWNLOAD_FILEPATH}~" ]; then
+      echo "differences between ${MAALI_GIT_DOWNLOAD_FILEPATH} and ${MAALI_GIT_DOWNLOAD_FILEPATH}~"
+      diff ${MAALI_GIT_DOWNLOAD_FILEPATH} ${MAALI_GIT_DOWNLOAD_FILEPATH}~
+    fi
+  fi
 
 }
 
