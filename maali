@@ -370,8 +370,27 @@ function maali_makedir {
   # want to do through directories
   IFS='/'
 
+  # need to parse MAALI_DIR so that there are no repeated /
+  last_string=""
+  MAALI_OLD_DIR_PATH=$1
+  echo "before parsing ${MAALI_DIR_PATH} 0 ${MAALI_OLD_DIR_PATH}"
   for MAALI_DIR in $1
   do
+    if [ "${MAALI_DIR}" == "" ]; then
+      if [ "$last_string" == "" ]; then
+        last_string="/"
+        MAALI_DIR_PATH=$last_string
+      fi
+    else
+      last_string=$MAALI_DIR
+      MAALI_DIR_PATH=$MAALI_DIR_PATH"/"$MAALI_DIR
+    fi
+  done
+  echo "after parsing $MAALI_DIR_PATH $MAALI_OLD_DIR_PATH"
+
+  for MAALI_DIR in $MAALI_OLD_DIR_PATH
+  do
+    echo "${MAALI_DIR}0"
     if [ "$MAALI_DIR" == "" ]; then
       MAALI_DIR_PATH="/"
     else
@@ -381,6 +400,7 @@ function maali_makedir {
         MAALI_DIR_PATH="$MAALI_DIR_PATH/$MAALI_DIR"
       fi
     fi
+    echo "FJFJ "${MAALI_DIR_PATH}
 
     if [ ! -d "$MAALI_DIR_PATH" ]; then
       if [[ "$MAALI_TOOL_LOG" != "" ]] && [[ -f "$MAALI_TOOL_LOG" ]]; then
