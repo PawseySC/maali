@@ -1971,14 +1971,20 @@ function maali_unpack_git_src {
 
   for MAALI_INDIVIDUAL_DST in $MAALI_DST; do
 
-    if [ ! -f "$MAALI_INDIVIDUAL_DST" ]; then
-      maali_die "$MAALI_INDIVIDUAL_DST does not exist"
+    if [ ! -d "$MAALI_INDIVIDUAL_DST" ]; then
+      maali_die "$MAALI_INDIVIDUAL_DST directory does not exist"
+    fi
+
+    if [ $MAALI_UNPACK_MKDIR ]; then
+      maali_makedir "$MAALI_TOOL_BUILD_DIR"
+      cd "$MAALI_TOOL_BUILD_DIR"
     fi
 
     # mv the git repo here
     mv ${MAALI_INDIVIDUAL_DST} ./
 
-    # what is this meant to do?
+    # if directory exists and the project is defined then find
+    # the directories and change the permission 
     if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
       if [ "$MAALI_PROJECT" != "" ]; then
         # this is only needed for /group
