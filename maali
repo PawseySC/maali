@@ -2157,7 +2157,7 @@ MAALI_MODULE_PE_PKGCONFIG_LIBS=
 # to support TCL and LUA modules
 MAALI_MODULE_DEFAULT_FILENAME='.version'
 
-while getopts "hy:tv:dfpckG:ambr:e:ngswl:ux" OPTION
+while getopts "hyt:v:dfpck:Gambr:e:ngswl:ux" OPTION
 do
      case $OPTION in
          h)
