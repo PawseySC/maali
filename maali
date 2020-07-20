@@ -100,16 +100,16 @@ function maali_post_build {
   fi
 
   # store the build date
-  MAALI_MODULE_WHATIS+="Version: ${MAALI_TOOL_VERSION} \n"
+  MAALI_MODULE_WHATIS+="<Local Version: ${MAALI_TOOL_VERSION}> "
 
   # store the build date
-  MAALI_MODULE_WHATIS+="Build date: $(date) \n"
+  MAALI_MODULE_WHATIS+="<Build Date: $(date)> "
 
   # store the git hash if source taken from repository
   # ideally would extract version from git repo too
   if [ ${MAALI_GIT_SRC} -eq 1 ]; then
       cd "${MAALI_TOOL_BUILD_DIR}"
-      MAALI_MODULE_WHATIS+="Git Hash : $(git rev-parse HEAD) \n"
+      MAALI_MODULE_WHATIS+="<Git Hash : $(git rev-parse HEAD)>"
   fi
 }
 
@@ -540,7 +540,7 @@ EOF
     else
       if [ "$MAALI_TOOL_COMPILERS" != "binary" ]; then
         for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
-          echo "Compiled with $MAALI_COMPILER" >> $MAALI_TOOL_MODULE
+          echo  "Compiled with $MAALI_COMPILER" >> $MAALI_TOOL_MODULE
         done
       fi
 
@@ -968,9 +968,11 @@ EOF
     if [ "${!MAALI_MODULE_VARIABLE}" != "" ]; then
       case $MAALI_MODULE_VARIABLE_NAME in
         PATH)
+          # set the executable path
           MAALI_MODULE_VARIABLE_DIR="bin"
           ;;
         PYTHONPATH)
+          # set the python path
           MAALI_MODULE_VARIABLE_DIR="\$env(MAALI_PYTHON_LIBDIR)/python\$env(MAALI_PYTHON_LIB_VERSION)/site-packages"
           ;;
         PERLLIB)
@@ -978,51 +980,65 @@ EOF
           MAALI_MODULE_VARIABLE_DIR="lib/perl5/site_perl/5.10.1"
           ;;
         INTEL_PATH)
+           # set intel specific path
           ;;
         R_LIBS)
+          # set r-cran path
           ;;
         LD_LIBRARY_PATH | CRAY_LD_LIBRARY_PATH | INTEL_LIB_PATH )
+          # set run time library paths
           MAALI_MODULE_VARIABLE_DIR="lib"
           ;;
         LD_LIBRARY_PATH_APPEND)
+          # append to the library path
           MAALI_MODULE_VARIABLE_NAME='LD_LIBRARY_PATH'
           MAALI_MODULE_VARIABLE_TCL="append-path"
           MAALI_MODULE_VARIABLE_DIR="lib"
           ;;
         LIBRARY_PATH)
+          # set linking library path
           MAALI_MODULE_VARIABLE_DIR="lib"
           ;;
         CPATH | C_INCLUDE_PATH | CPLUS_INCLUDE_PATH | FPATH | FCPATH | INCLUDE_PATH | INTEL_INC_PATH )
+          # set c, fortran paths
           MAALI_MODULE_VARIABLE_DIR="include"
           ;;
         PKG_CONFIG_PATH | PKGCONFIG )
+        # set package config path
           MAALI_MODULE_VARIABLE_DIR="lib/pkgconfig"
           ;;
         CMAKE_MODULE_PATH )
+          # set cmake paths
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
           ;;
         MANPATH)
+          # set man path
           MAALI_MODULE_VARIABLE_DIR="share/man"
           ;;
         LUA_CPATH)
+          # set lmod related c variables
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
           MAALI_MODULE_VARIABLE_DIR="lib/lua/${MAALI_LUA_LIB_VERSION}/?.so"
           MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
           ;;
         LUA_CPATH_APPEND)
+          # append lmod related c variables
           MAALI_MODULE_VARIABLE_NAME='LUA_CPATH'
           MAALI_MODULE_VARIABLE_TCL="append-path"
           ;;
         LUA_PATH)
+          # set lmod related path
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
           MAALI_MODULE_VARIABLE_DIR="share/lua/${MAALI_LUA_LIB_VERSION}/init.lua;;"
           MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
           ;;
         LUA_PATH_APPEND)
+          # append to   lmod related path
           MAALI_MODULE_VARIABLE_NAME='LUA_PATH'
           MAALI_MODULE_VARIABLE_TCL="append-path"
           ;;
         MPI_NAME)
+          # set mpi related paths
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
           MAALI_MODULE_VARIABLE_TCL="setenv"
           MAALI_MODULE_VARIABLE_PREPEND=""
@@ -1984,7 +2000,7 @@ function maali_unpack_git_src {
     mv ${MAALI_INDIVIDUAL_DST} ./
 
     # if directory exists and the project is defined then find
-    # the directories and change the permission 
+    # the directories and change the permission
     if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
       if [ "$MAALI_PROJECT" != "" ]; then
         # this is only needed for /group
@@ -2061,11 +2077,12 @@ OPTIONS:
    -y      create template cYgnet file and exit
    -t      tool name [ ]
    -v      tool version [ ]
-   -d      run in debug mode
 
+   -d      run in debug mode
    -f      force cygnet download from github
    -p      for cygnet files, use the github project branch located here $MAALI_PROJECT
    -k      search for cygnet files in [ ]
+   -G      download source using git
 
    -c      maali configuration file [ ]
 
@@ -2140,7 +2157,7 @@ MAALI_MODULE_PE_PKGCONFIG_LIBS=
 # to support TCL and LUA modules
 MAALI_MODULE_DEFAULT_FILENAME='.version'
 
-while getopts "hyt:v:dfpck:ambr:e:ngswl:ux" OPTION
+while getopts "hy:tv:dfpckG:ambr:e:ngswl:ux" OPTION
 do
      case $OPTION in
          h)
@@ -2158,6 +2175,9 @@ do
              ;;
          d)
              DEBUG=1
+             ;;
+         G)
+             MAALI_GIT_SRC=1
              ;;
          f)
              MAALI_FORCE_DOWNLOAD_FROM_GITHUB=1
@@ -2848,6 +2868,7 @@ else
   # download source. If cygnet file contains MAALI_GIT_SRC then do git clone
   echo "downloading the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
   if [ $MAALI_GIT_SRC -eq 1 ]; then
+    module load git
     maali_download_git_source
   else
     maali_download
