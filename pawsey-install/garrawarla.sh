@@ -19,7 +19,7 @@ export MAALI_CLUSTER="${PAWSEY_CLUSTER}_${PAWSEY_OS}"
 export MAALI_MODULE_SET_MAALI_ROOT_DEFAULT='\"/astro/\"..os.getenv\(\"PAWSEY_PROJECT\"\)..\"/\"..os.getenv\(\"USER\"\)..\"/software/\"..os.getenv\(\"MAALI_CLUSTER\"\)'
 export MAALI_MODULE_QUOTES_MAALI_ROOT_DEFAULT=off
 export MAALI_ROOT_DEFAULT="/astro/$PAWSEY_PROJECT/$USER/software/$MAALI_CLUSTER"
-export MAALI_MODULE_SET_MAALI_ROOT_GROUP='\"/astro/\"..os.getenv\(\"PAWSEY_PROJECT\"\)..\"/\"..\"/software/\"..os.getenv\(\"MAALI_CLUSTER\"\)'
+export MAALI_MODULE_SET_MAALI_ROOT_GROUP='\"/astro/\"..os.getenv\(\"PAWSEY_PROJECT\"\)..\"/software/\"..os.getenv\(\"MAALI_CLUSTER\"\)'
 export MAALI_MODULE_QUOTES_MAALI_ROOT_GROUP=off
 export MAALI_ROOT_GROUP="/astro/$PAWSEY_PROJECT/software/$MAALI_CLUSTER"
 
