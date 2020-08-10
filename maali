@@ -67,6 +67,7 @@ MAALI_PROJECT_VAR=${MAALI_PROJECT_VAR:-"PAWSEY_PROJECT"}
 MAALI_PROJECT=${!MAALI_PROJECT_VAR}
 MAALI_WGET_CMD="wget"
 MAALI_GIT_CMD="git clone"
+MAALI_GIT_SRC=0
 
 MAALI_ROOT_DEFAULT=${MAALI_ROOT_DEFAULT:-"$MYGROUP/software/$MAALI_CLUSTER"}
 MAALI_ROOT_GROUP=${MAALI_ROOT_GROUP:-"/group/$MAALI_PROJECT/software/$MAALI_CLUSTER"}
@@ -2805,10 +2806,11 @@ fi
 
 # make sure we have a directory to log
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
-  MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME${MAALI_CUDA_SUFFIX}-$MAALI_TOOL_VERSION.log"
+  MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME${MAALI_CUDA_SUFFIX}-$MAALI_TOOL_VERSION$MAALI_TOOL_SUFFIX.log"
 else
-  MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.log"
+  MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION$MAALI_TOOL_SUFFIX.log"
 fi
+
 
 if [[ $MAALI_REMODULE -eq 1 ]] || [[ $MAALI_UNINSTALL_REMOVE -eq 1 ]] ; then
   if [[ $MAALI_UNINSTALL_HIDE -eq 1 ]] || [[ $MAALI_UNINSTALL_REMOVE -eq 1 ]]; then
@@ -3143,7 +3145,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               echo " .. removing old build directory $MAALI_TOOL_BUILD_DIR"
             fi
             removedir "$MAALI_TOOL_BUILD_DIR"
-            if [ $MAALI_GIT_SRC -eq 1]; then
+            if [ $MAALI_GIT_SRC -eq 1 ]; then
               maali_makedir "$MAALI_TOOL_BUILD_DIR"
             fi
 
@@ -3174,10 +3176,11 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_CUDA_COMPILER"
             MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_NAME"
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="${MAALI_CUDA_SUFFIX}"
+            MAALI_INSTALL_TOOLDIR+="${MAALI_TOOL_SUFFIX}"
 
             if [ $MAALI_SYSTEM_CYGNET_FILE -ne 1 ]; then
               # system-intel sets this, others may as well
-              MAALI_INSTALL_DIR="$MAALI_INSTALL_TOOLDIR/$MAALI_TOOL_VERSION"
+              MAALI_INSTALL_DIR="$MAALI_INSTALL_TOOLDIR/$MAALI_TOOL_VERSION$MAALI_TOOL_SUFFIX"
             fi
 
             # remove the previously installed version
