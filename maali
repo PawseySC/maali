@@ -3142,6 +3142,9 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               echo " .. removing old build directory $MAALI_TOOL_BUILD_DIR"
             fi
             removedir "$MAALI_TOOL_BUILD_DIR"
+            if [ $MAALI_GIT_SRC -eq 1]; then
+              maali_makedir "$MAALI_TOOL_BUILD_DIR"
+            fi
 
             if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
               if [ $MAALI_R_TOOL ]; then
