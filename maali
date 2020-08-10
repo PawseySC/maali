@@ -23,7 +23,7 @@ if [ -f "/etc/opt/cray/release/CLEinfo" ]; then
   MAALI_PRE_CPU_TARGET="craype-"
 elif [ -f "/etc/opt/cray/release/cle-release" ]; then
   # We are a Cray
-  MAALI_OS_VERSION=`grep RELEASE /etc/opt/cray/release/cle-release | cut -d '=' -f 2 | sed -e 's/\.//g' | tr [:upper:] [:lower:]`
+  MAALI_OS_VERSION=`grep RELEASE /etc/opt/cray/release/cle-release | cut -d '=' -f 2 | sed -e 's/\.//g' | tr '[:upper:]' '[:lower:]'`
 
   MAALI_OS="cle$MAALI_OS_VERSION"
 
@@ -2323,6 +2323,7 @@ fi
 MAALI_TOOL_MAJOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1`
 MAALI_TOOL_MAJOR_MINOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 1,2`
 MAALI_TOOL_MINOR_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 2`
+MAALI_TOOL_BUG_VERSION=`echo "$MAALI_TOOL_VERSION" | cut -d '.' -f 3`
 
 MAALI_CMDLINE=$*
 
