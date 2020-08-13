@@ -2082,7 +2082,7 @@ OPTIONS:
 
    -d      run in debug mode
    -f      force cygnet download from github
-   -p      for cygnet files, use the github project branch located here $MAALI_PROJECT
+   -p      for cygnet files, use the github project branch defined by your $MAALI_PROJECT_VAR, that is $MAALI_PROJECT
    -k      search for cygnet files in [ ]
    -G      download source using git
 
@@ -2104,7 +2104,7 @@ OPTIONS:
    -u      uninstall by hiding the module
    -x      expunge tool from history
 
-Note for builds, a log file will be produced in the choosen directory under .maali/logs/
+Note for builds, a log file will be produced in the chosen directory under .maali/logs/
 
 EOF
 }
@@ -2114,6 +2114,7 @@ EOF
 
 MAALI_TOOL_NAME=
 MAALI_TOOL_VERSION=
+MAALI_TOOL_BUILD_OPTIONS_SUFFIX=""
 MAALI_PYTHON_VERSION=
 DEBUG=
 MAALI_CONFIG=${MAALI_CONFIG:-""}
@@ -3147,6 +3148,9 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             fi
             removedir "$MAALI_TOOL_BUILD_DIR"
             if [ $MAALI_GIT_SRC -eq 1 ]; then
+              if [ $DEBUG ]; then
+                echo " .. git source, recreating empty build directory $MAALI_TOOL_BUILD_DIR"
+              fi
               maali_makedir "$MAALI_TOOL_BUILD_DIR"
             fi
 
