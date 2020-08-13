@@ -3181,7 +3181,6 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_CUDA_COMPILER"
             MAALI_INSTALL_TOOLDIR+="/$MAALI_TOOL_NAME"
             [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_INSTALL_TOOLDIR+="${MAALI_CUDA_SUFFIX}"
-            MAALI_INSTALL_TOOLDIR+="${MAALI_TOOL_BUILD_OPTIONS_SUFFIX}"
 
             if [ $MAALI_SYSTEM_CYGNET_FILE -ne 1 ]; then
               # system-intel sets this, others may as well
