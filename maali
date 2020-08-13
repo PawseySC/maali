@@ -2869,7 +2869,6 @@ else
   # download source. If cygnet file contains MAALI_TOOL_GIT_SRC then do git clone
   echo "downloading the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
   if [ $MAALI_TOOL_GIT_SRC -eq 1 ]; then
-    module load git
     maali_download_git_source
   else
     maali_download
