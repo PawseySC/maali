@@ -2080,7 +2080,6 @@ OPTIONS:
    -f      force cygnet download from github
    -p      for cygnet files, use the github project branch defined by your $MAALI_PROJECT_VAR, that is $MAALI_PROJECT
    -k      search for cygnet files in [ ]
-   -G      download source using git
 
    -c      maali configuration file [ ]
 
@@ -2156,7 +2155,7 @@ MAALI_MODULE_PE_PKGCONFIG_LIBS=
 # to support TCL and LUA modules
 MAALI_MODULE_DEFAULT_FILENAME='.version'
 
-while getopts "hyt:v:dfpck:Gambr:e:ngswl:ux" OPTION
+while getopts "hyt:v:dfpck:ambr:e:ngswl:ux" OPTION
 do
      case $OPTION in
          h)
@@ -2174,9 +2173,6 @@ do
              ;;
          d)
              DEBUG=1
-             ;;
-         G)
-             MAALI_TOOL_GIT_SRC=1
              ;;
          f)
              MAALI_FORCE_DOWNLOAD_FROM_GITHUB=1
