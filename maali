@@ -99,19 +99,29 @@ function maali_post_build {
     cd "$MAALI_TOOL_BUILD_DIR"
   fi
 
-  # store the build date
-  MAALI_MODULE_WHATIS+="<Local Version: ${MAALI_TOOL_VERSION}> "
-  MAALI_MODULE_WHATIS+="<Config Options: ${MAALI_TOOL_CONFIG}> "
-
-  # store the build date
-  MAALI_MODULE_WHATIS+="<Build Date: $(date)> "
+  # store the build information
+  read -r -d '' MAALI_MODULE_WHATIS << EOF
+  $MAALI_MODULE_WHATIS
+  <Local Version: ${MAALI_TOOL_VERSION}>
+EOF
+  read -r -d '' MAALI_MODULE_WHATIS << EOF
+  $MAALI_MODULE_WHATIS
+  <Config Options: ${MAALI_TOOL_CONFIGURE}>
+EOF
+  read -r -d '' MAALI_MODULE_WHATIS << EOF
+  $MAALI_MODULE_WHATIS
+  <Build Data: $(date)>
+EOF
 
   # store the git hash if source taken from repository
   # ideally would extract version from git repo too
   if [ ${MAALI_TOOL_GIT_SRC} -eq 1 ]; then
       cd "${MAALI_TOOL_BUILD_DIR}"
-      MAALI_MODULE_WHATIS+="<Git Hash : $(git rev-parse HEAD)>"
-  fi
+      read -r -d '' MAALI_MODULE_WHATIS << EOF
+    $MAALI_MODULE_WHATIS
+    <Git Hash : $(git rev-parse HEAD)>
+EOF
+
 }
 
 ##############################################################################
