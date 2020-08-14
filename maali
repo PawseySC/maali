@@ -121,7 +121,7 @@ EOF
     $MAALI_MODULE_WHATIS
     <Git Hash : $(git rev-parse HEAD)>
 EOF
-
+  fi 
 }
 
 ##############################################################################
