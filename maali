@@ -2021,6 +2021,37 @@ function maali_unpack_git_src {
 
 ##############################################################################
 
+function maali_list_build_options {
+    if [ ${#MAALI_TOOL_BUILD_OPTIONS_AVAIL[@]} -gt 0 ]; then
+        echo "Cygnet specifies following allowed options structured in option1=val1:val2:val3"
+        for i in ${MAALI_TOOL_BUILD_OPTIONS_AVAIL[@]}
+        do
+            optname=(${i//=/ })
+            echo "Option name ${optname[0]}"
+            optvals=(${optname[1]//:/ })
+            echo "Allowed values ${optvals[@]}"
+        done
+    else
+        echo "No extra build options"
+    fi
+}
+
+##############################################################################
+
+function maali_parse_build_options {
+    tempx=${MAALI_TOOL_BUILD_OPTIONS}
+    MAALI_TOOL_BUILD_OPTIONS=(${tempx//,/ })
+}
+
+##############################################################################
+
+function maali_set_build_options {
+   # override the function in cygnet file 
+   echo "setting build options"
+}
+
+##############################################################################
+
 function maali_die {
   log "$1"
   echo
@@ -2116,26 +2147,6 @@ Note for builds, a log file will be produced in the chosen directory under .maal
 EOF
 }
 
-maali_list_build_options()
-{
-    if [ ${#MAALI_TOOL_BUILD_OPTIONS_AVAIL[@]} -gt 0 ]; then
-        echo "Cygnet specifies following allowed options structured in option1=val1:val2:val3"
-        for i in ${MAALI_TOOL_BUILD_OPTIONS_AVAIL[@]}
-        do
-            optname=(${i//=/ })
-            echo "Option name ${optname[0]}"
-            optvals=(${optname[1]//:/ })
-            echo "Allowed values ${optvals[@]}"
-        done
-    else
-        echo "No extra build options"
-    fi
-}
-
-maali_parse_build_options()
-{
-    MAALI_TOOL_BUILD_OPTIONS=(${MAALI_TOOL_BUILD_OPTIONS//,/ })
-}
 
 ##############################################################################
 # from http://rsalveti.wordpress.com/2007/04/03/bash-parsing-arguments-with-getopts/
@@ -2166,8 +2177,9 @@ MAALI_LUA_MODULE=${MAALI_LUA_MODULE:-0}
 MAALI_PYTHON3_SKIP=0
 MAALI_LOCAL_INSTALL=0
 MAALI_TOOL_GIT_SRC=0
-MAALI_LIST_BUILD_OPTIONS=0
 MAALI_TOOL_BUILD_OPTIONS_AVAIL=()
+MAALI_TOOL_BUILD_OPTIONS=()
+MAALI_TOOL_LIST_BUILD_OPTIONS=0
 
 # for auto-building module files
 MAALI_MODULE_SET_PATH=
@@ -2241,11 +2253,12 @@ do
              MAALI_CUDA_BUILD=1
              ;;
          B)
-             MAALI_BUILD_OPTIONS_LIST=$OPTARG
+             MAALI_TOOL_BUILD_OPTIONS=$OPTARG
+	     echo $MAALI_BUILD_OPTIONS_LIST
              maali_parse_build_options
              ;;
          L)
-             MAALI_LIST_BUILD_OPTIONS=1
+             MAALI_TOOL_LIST_BUILD_OPTIONS=1
              ;;
          g)
              MAALI_ROOT="$MAALI_ROOT_GROUP"
@@ -2640,7 +2653,7 @@ if [ $? -ne 0 ]; then
     maali_die "failed to source ${MAALI_CYGNET_FILEPATH} exiting"
 fi
 
-if [ $MAALI_LIST_BUILD_OPTIONS -eq 1 ]; then
+if [ $MAALI_TOOL_LIST_BUILD_OPTIONS -eq 1 ]; then
     maali_list_build_options
     maali_die "existing as requested maali list build options."
 fi
