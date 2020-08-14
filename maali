@@ -106,7 +106,7 @@ function maali_post_build {
 EOF
   read -r -d '' MAALI_MODULE_WHATIS << EOF
   $MAALI_MODULE_WHATIS
-  <Config Options: ${MAALI_TOOL_CONFIGURE}>
+  <Config Options: ${MAALI_TOOL_CONFIGURE_EVAL}>
 EOF
   read -r -d '' MAALI_MODULE_WHATIS << EOF
   $MAALI_MODULE_WHATIS
