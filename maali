@@ -58,6 +58,7 @@ MAALI_LOG_DIR="$MAALI_DOT_DIR/$MAALI_CLUSTER/logs"
 
 MAALI_CYGNET_FILES_ROOT=${MAALI_CYGNET_FILES_ROOT:-"https://raw.githubusercontent.com/PawseySC/maali-cygnet"}
 MAALI_CYGNET_FILES_URL="${MAALI_CYGNET_FILES_ROOT}/master"
+MAALI_CYGNET_LOCAL_DIR="."
 MAALI_CYGNET_DIR_NAME='cygnet_files'
 MAALI_CYGNET_BUILD_FILE_EXT='cyg'
 MAALI_CONFIG_FILE_EXT='config'
@@ -65,6 +66,7 @@ MAALI_CONFIG_FILE_EXT='config'
 MAALI_PROJECT_VAR=${MAALI_PROJECT_VAR:-"PAWSEY_PROJECT"}
 MAALI_PROJECT=${!MAALI_PROJECT_VAR}
 MAALI_WGET_CMD="wget"
+MAALI_GIT_CMD="git clone"
 
 MAALI_ROOT_DEFAULT=${MAALI_ROOT_DEFAULT:-"$MYGROUP/software/$MAALI_CLUSTER"}
 MAALI_ROOT_GROUP=${MAALI_ROOT_GROUP:-"/group/$MAALI_PROJECT/software/$MAALI_CLUSTER"}
@@ -96,7 +98,30 @@ function maali_post_build {
   if [ -d "$MAALI_TOOL_BUILD_DIR" ] ; then
     cd "$MAALI_TOOL_BUILD_DIR"
   fi
-  #maali_run "patch bla bla bla"
+
+  # store the build information
+  read -r -d '' MAALI_MODULE_WHATIS << EOF
+  $MAALI_MODULE_WHATIS
+  <Local Version: ${MAALI_TOOL_VERSION}>
+EOF
+  read -r -d '' MAALI_MODULE_WHATIS << EOF
+  $MAALI_MODULE_WHATIS
+  <Config Options: ${MAALI_TOOL_CONFIGURE}>
+EOF
+  read -r -d '' MAALI_MODULE_WHATIS << EOF
+  $MAALI_MODULE_WHATIS
+  <Build Data: $(date)>
+EOF
+
+  # store the git hash if source taken from repository
+  # ideally would extract version from git repo too
+  if [ ${MAALI_TOOL_GIT_SRC} -eq 1 ]; then
+      cd "${MAALI_TOOL_BUILD_DIR}"
+      read -r -d '' MAALI_MODULE_WHATIS << EOF
+    $MAALI_MODULE_WHATIS
+    <Git Hash : $(git rev-parse HEAD)>
+EOF
+  fi 
 }
 
 ##############################################################################
@@ -137,6 +162,8 @@ function maali_cmake_build {
 ##############################################################################
 
 function maali_download {
+
+  # download source via wget
 
   i=0;
   for MAALI_TMP_URL in $MAALI_URL ; do
@@ -195,34 +222,58 @@ function maali_download {
       fi
     fi
   done
+
 }
 
 ##############################################################################
 
-function maali_genpkgconfig {
-  maali_makedir "$MAALI_INSTALL_DIR/lib/pkgconfig"
-  for indx in `seq 0 ${#MAALI_MODULE_PE_PKGCONFIG_NAME[*]}`
+function maali_download_git_source {
+
+  # download src from git
+
+  i=0;
+  for MAALI_TMP_URL in $MAALI_URL ; do
+     MAALI_URL_ARRAY[$i]=$MAALI_TMP_URL
+    (( i++ ))
+  done
+
+  i=0;
+  for MAALI_TMP_DST in $MAALI_DST ; do
+     MAALI_DST_ARRAY[$i]=$MAALI_TMP_DST
+    (( i++ ))
+  done
+
+  size=${#MAALI_URL_ARRAY[@]}
+  for (( i=0; i<$size; i++ ))
   do
-    if [ ! -f "$MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc" ]; then
-      cat <<EOF > $MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc
-Name: $MAALI_TOOL_NAME
-Description: $MAALI_TOOL_NAME's library ${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}
-Version: $MAALI_TOOL_VERSION
+    MAALI_TMP_URL=${MAALI_URL_ARRAY[$i]}
+    MAALI_TMP_DST=${MAALI_DST_ARRAY[$i]}
 
-prefix=$MAALI_INSTALL_DIR
-includedir=\${prefix}/include
-libdir=\${prefix}/lib
+    if [ $DEBUG ]; then
+      echo " .. need to download $MAALI_TMP_URL to $MAALI_TMP_DST"
+    fi
 
-Cflags: -I\${includedir} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_CFLAGS[$indx]}`
-LIBS: -L\${libdir} -l${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_LIBS[$indx]}`
-EOF
+    if [ ! -f "$MAALI_TMP_DST" ]; then
+        if [ $DEBUG ]; then
+          echo " .. can't find $MAALI_TMP_DST so will run '$MAALI_GIT_CMD $MAALI_TMP_URL $MAALI_TMP_DST'"
+        fi
+      cd $MAALI_SRC
+
+      $MAALI_GIT_CMD $MAALI_TMP_URL $MAALI_TMP_DST
+    else
+      if [ $DEBUG ]; then
+        echo " .. $MAALI_TMP_DST exists so will not git clone $MAALI_TMP_URL"
+      fi
     fi
   done
+
 }
 
 ##############################################################################
 
 function maali_git_download {
+
+  # download cygnet files or patches from PawseySC repo
 
   MAALI_GIT_DOWNLOAD_DIR="$1"
   MAALI_GIT_DOWNLOAD_FILE="$2"
@@ -237,7 +288,7 @@ function maali_git_download {
     MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"$MAALI_WGET_EXTRA"} -q"
   fi
 
-  # github.org requires --no-check-certificate
+  # github requires --no-check-certificate
   if [[ "$MAALI_WGET_EXTRA" != *"--no-check-certificate"* ]]; then
     MAALI_WGET_EXTRA="${MAALI_WGET_EXTRA:+"$MAALI_WGET_EXTRA"} --no-check-certificate"
   fi
@@ -261,6 +312,29 @@ function maali_git_download {
     fi
   fi
 
+}
+
+##############################################################################
+
+function maali_genpkgconfig {
+  maali_makedir "$MAALI_INSTALL_DIR/lib/pkgconfig"
+  for indx in `seq 0 ${#MAALI_MODULE_PE_PKGCONFIG_NAME[*]}`
+  do
+    if [ ! -f "$MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc" ]; then
+      cat <<EOF > $MAALI_INSTALL_DIR/lib/pkgconfig/${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}.pc
+Name: $MAALI_TOOL_NAME
+Description: $MAALI_TOOL_NAME's library ${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]}
+Version: $MAALI_TOOL_VERSION
+
+prefix=$MAALI_INSTALL_DIR
+includedir=\${prefix}/include
+libdir=\${prefix}/lib
+
+Cflags: -I\${includedir} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_CFLAGS[$indx]}`
+LIBS: -L\${libdir} -l${MAALI_MODULE_PE_PKGCONFIG_NAME[$indx]} `eval echo ${MAALI_MODULE_PE_PKGCONFIG_LIBS[$indx]}`
+EOF
+    fi
+  done
 }
 
 ##############################################################################
@@ -304,7 +378,16 @@ function maali_makedir {
   # want to do through directories
   IFS='/'
 
+  # need to parse MAALI_DIR so that there are no repeated /
+  MAALI_PARSED_DIR_PATH=""
   for MAALI_DIR in $1
+  do
+    if [ ! "${MAALI_DIR}" == "" ]; then
+      MAALI_PARSED_DIR_PATH=$MAALI_PARSED_DIR_PATH"/"$MAALI_DIR
+    fi
+  done
+
+  for MAALI_DIR in $MAALI_PARSED_DIR_PATH
   do
     if [ "$MAALI_DIR" == "" ]; then
       MAALI_DIR_PATH="/"
@@ -465,7 +548,7 @@ EOF
     else
       if [ "$MAALI_TOOL_COMPILERS" != "binary" ]; then
         for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
-          echo "Compiled with $MAALI_COMPILER" >> $MAALI_TOOL_MODULE
+          echo  "Compiled with $MAALI_COMPILER" >> $MAALI_TOOL_MODULE
         done
       fi
 
@@ -893,9 +976,11 @@ EOF
     if [ "${!MAALI_MODULE_VARIABLE}" != "" ]; then
       case $MAALI_MODULE_VARIABLE_NAME in
         PATH)
+          # set the executable path
           MAALI_MODULE_VARIABLE_DIR="bin"
           ;;
         PYTHONPATH)
+          # set the python path
           MAALI_MODULE_VARIABLE_DIR="\$env(MAALI_PYTHON_LIBDIR)/python\$env(MAALI_PYTHON_LIB_VERSION)/site-packages"
           ;;
         PERLLIB)
@@ -903,51 +988,65 @@ EOF
           MAALI_MODULE_VARIABLE_DIR="lib/perl5/site_perl/5.10.1"
           ;;
         INTEL_PATH)
+           # set intel specific path
           ;;
         R_LIBS)
+          # set r-cran path
           ;;
         LD_LIBRARY_PATH | CRAY_LD_LIBRARY_PATH | INTEL_LIB_PATH )
+          # set run time library paths
           MAALI_MODULE_VARIABLE_DIR="lib"
           ;;
         LD_LIBRARY_PATH_APPEND)
+          # append to the library path
           MAALI_MODULE_VARIABLE_NAME='LD_LIBRARY_PATH'
           MAALI_MODULE_VARIABLE_TCL="append-path"
           MAALI_MODULE_VARIABLE_DIR="lib"
           ;;
         LIBRARY_PATH)
+          # set linking library path
           MAALI_MODULE_VARIABLE_DIR="lib"
           ;;
         CPATH | C_INCLUDE_PATH | CPLUS_INCLUDE_PATH | FPATH | FCPATH | INCLUDE_PATH | INTEL_INC_PATH )
+          # set c, fortran paths
           MAALI_MODULE_VARIABLE_DIR="include"
           ;;
         PKG_CONFIG_PATH | PKGCONFIG )
+        # set package config path
           MAALI_MODULE_VARIABLE_DIR="lib/pkgconfig"
           ;;
         CMAKE_MODULE_PATH )
+          # set cmake paths
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
           ;;
         MANPATH)
+          # set man path
           MAALI_MODULE_VARIABLE_DIR="share/man"
           ;;
         LUA_CPATH)
+          # set lmod related c variables
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
           MAALI_MODULE_VARIABLE_DIR="lib/lua/${MAALI_LUA_LIB_VERSION}/?.so"
           MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
           ;;
         LUA_CPATH_APPEND)
+          # append lmod related c variables
           MAALI_MODULE_VARIABLE_NAME='LUA_CPATH'
           MAALI_MODULE_VARIABLE_TCL="append-path"
           ;;
         LUA_PATH)
+          # set lmod related path
           MAALI_LUA_LIB_VERSION=$(lua -e "print(_VERSION)" | cut -d' ' -f2)
           MAALI_MODULE_VARIABLE_DIR="share/lua/${MAALI_LUA_LIB_VERSION}/init.lua;;"
           MAALI_MODULE_VARIABLE_TCL='prepend-path --delim=\;'
           ;;
         LUA_PATH_APPEND)
+          # append to   lmod related path
           MAALI_MODULE_VARIABLE_NAME='LUA_PATH'
           MAALI_MODULE_VARIABLE_TCL="append-path"
           ;;
         MPI_NAME)
+          # set mpi related paths
           MAALI_MODULE_VARIABLE_DIR=${!MAALI_MODULE_VARIABLE}
           MAALI_MODULE_VARIABLE_TCL="setenv"
           MAALI_MODULE_VARIABLE_PREPEND=""
@@ -1827,6 +1926,9 @@ function maali_r_build {
 ##############################################################################
 
 function maali_unpack {
+
+  # unpack the tarball
+
   cd $MAALI_BUILD_DIR
 
   for MAALI_INDIVIDUAL_DST in $MAALI_DST; do
@@ -1873,6 +1975,40 @@ function maali_unpack {
       maali_die "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please please lodge a ticket at https://github/PawseySC/maali."
     fi
 
+    if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
+      if [ "$MAALI_PROJECT" != "" ]; then
+        # this is only needed for /group
+        find $MAALI_TOOL_BUILD_DIR -type d -exec chmod g+s {} \;
+      fi
+    fi
+
+  done
+}
+
+##############################################################################
+
+function maali_unpack_git_src {
+
+  # unpack the tarball
+
+  cd $MAALI_BUILD_DIR
+
+  for MAALI_INDIVIDUAL_DST in $MAALI_DST; do
+
+    if [ ! -d "$MAALI_INDIVIDUAL_DST" ]; then
+      maali_die "$MAALI_INDIVIDUAL_DST directory does not exist"
+    fi
+
+    if [ $MAALI_UNPACK_MKDIR ]; then
+      maali_makedir "$MAALI_TOOL_BUILD_DIR"
+      cd "$MAALI_TOOL_BUILD_DIR"
+    fi
+
+    # mv the git repo here
+    mv ${MAALI_INDIVIDUAL_DST} ./
+
+    # if directory exists and the project is defined then find
+    # the directories and change the permission
     if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
       if [ "$MAALI_PROJECT" != "" ]; then
         # this is only needed for /group
@@ -1949,21 +2085,32 @@ OPTIONS:
    -y      create template cYgnet file and exit
    -t      tool name [ ]
    -v      tool version [ ]
+
    -d      run in debug mode
-   -f      force download from github
-   -p      for cygnet files, use the github project branch $MAALI_PROJECT
+   -f      force cygnet download from github
+   -p      for cygnet files, use the github project branch defined by your $MAALI_PROJECT_VAR, that is $MAALI_PROJECT
+   -k      search for cygnet files in [ ]
+
    -c      maali configuration file [ ]
+
    -a      activate this version as the default version
    -m      just create the module file
    -b      build the tool, but don't create a module file
+
    -r      build with the specified compiler (and no others) [ ]
    -e      build for the specified CPU target (and no others) [ ]
    -n      NVIDIA mode; compile software with cuda support
-   -g      group build in $MAALI_ROOT_GROUP
-   -s      activate system build in $MAALI_ROOT_SYSTEM
-   -w      workstation build in $MAALI_ROOT_WORKST
+
+   -g      group build in directory defined by env variable MAALI_ROOT_GROUP, currently $MAALI_ROOT_GROUP
+   -s      activate system build in directory defined by env variable MAALI_ROOT_SYSTEM, currently $MAALI_ROOT_SYSTEM
+   -w      workstation build in directory defined by env variable MAALI_ROOT_WORKST, currently $MAALI_ROOT_WORKST
+   -l      build locally in [ ]
+
    -u      uninstall by hiding the module
    -x      expunge tool from history
+
+Note for builds, a log file will be produced in the chosen directory under .maali/logs/
+
 EOF
 }
 
@@ -1972,6 +2119,7 @@ EOF
 
 MAALI_TOOL_NAME=
 MAALI_TOOL_VERSION=
+MAALI_TOOL_BUILD_OPTIONS_SUFFIX=""
 MAALI_PYTHON_VERSION=
 DEBUG=
 MAALI_CONFIG=${MAALI_CONFIG:-""}
@@ -1993,6 +2141,9 @@ MAALI_CUDA_BUILD_ONLY=0 # Set to 1 in the cygnet file to deny non-CUDA builds
 MAALI_CUDA_SUFFIX=${MAALI_CUDA_SUFFIX:-"-gpu"}
 MAALI_LUA_MODULE=${MAALI_LUA_MODULE:-0}
 MAALI_PYTHON3_SKIP=0
+MAALI_LOCAL_INSTALL=0
+MAALI_TOOL_GIT_SRC=0
+
 
 # for auto-building module files
 MAALI_MODULE_SET_PATH=
@@ -2014,7 +2165,7 @@ MAALI_MODULE_PE_PKGCONFIG_LIBS=
 # to support TCL and LUA modules
 MAALI_MODULE_DEFAULT_FILENAME='.version'
 
-while getopts "hyt:v:dfpc:ambr:e:ngswux" OPTION
+while getopts "hyt:v:dfpk:c:ambr:e:ngswl:ux" OPTION
 do
      case $OPTION in
          h)
@@ -2038,6 +2189,9 @@ do
              ;;
          p)
              MAALI_CYGNET_FILES_URL="${MAALI_CYGNET_FILES_ROOT}/$MAALI_PROJECT"
+             ;;
+         k)
+             MAALI_CYGNET_LOCAL_DIR=$OPTARG
              ;;
          c)
              MAALI_CONFIG=$OPTARG
@@ -2074,6 +2228,10 @@ do
          w)
              MAALI_ROOT="$MAALI_ROOT_WORKST"
              ;;
+         l)
+             MAALI_ROOT=$OPTARG
+             MAALI_LOCAL_INSTALL=1
+             ;;
          u)
              # simply hide the module file
              MAALI_UNINSTALL_HIDE=1
@@ -2089,6 +2247,18 @@ do
              ;;
      esac
 done
+
+if [ $MAALI_LOCAL_INSTALL ]; then
+  echo "Local install requested via -l in "${MAALI_ROOT}
+  if [ ! -d $MAALI_ROOT ]; then
+    usage
+    maali_die "Install directory provided does not exist"
+  fi
+fi
+
+# update the log dir to the active maali root
+MAALI_DOT_DIR="${MAALI_ROOT}/.maali"
+MAALI_LOG_DIR="$MAALI_DOT_DIR/$MAALI_CLUSTER/logs"
 
 if [ -z $TMPDIR ]; then
   TMPDIR=/tmp
@@ -2369,11 +2539,14 @@ maali_makedir "$MAALI_BUILD_DIR"
 maali_makedir "$MAALI_LOG_DIR"
 
 # need to inherit some other file here to set compiler, etc
+
+# NEW COMMENT PJE: this seems more like finding the cygnet file
+
 MAALI_FOUND_CYGNET=0
 
 if [ $MAALI_FORCE_DOWNLOAD_FROM_GITHUB -eq 0 ]; then
   # three search paths
-  MAALI_FILES_DIR=". $MAALI_FILES $MAALI_DOT_DIR/$MAALI_CLUSTER/$MAALI_CYGNET_DIR_NAME $MAALI_DOT_DIR/$MAALI_CYGNET_DIR_NAME $MAALI_DIR/$MAALI_CYGNET_DIR_NAME"
+  MAALI_FILES_DIR="$MAALI_CYGNET_LOCAL_DIR $MAALI_FILES $MAALI_DOT_DIR/$MAALI_CLUSTER/$MAALI_CYGNET_DIR_NAME $MAALI_DOT_DIR/$MAALI_CYGNET_DIR_NAME $MAALI_DIR/$MAALI_CYGNET_DIR_NAME"
   for MAALI_FILES_PATH in $MAALI_FILES_DIR; do
 
     if [ $DEBUG ]; then
@@ -2637,10 +2810,11 @@ fi
 
 # make sure we have a directory to log
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
-  MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME${MAALI_CUDA_SUFFIX}-$MAALI_TOOL_VERSION.log"
+  MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME${MAALI_CUDA_SUFFIX}-$MAALI_TOOL_VERSION$MAALI_TOOL_BUILD_OPTIONS_SUFFIX.log"
 else
-  MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION.log"
+  MAALI_TOOL_LOG="$MAALI_LOG_DIR/$MAALI_LOG_PREFIX$MAALI_TOOL_NAME-$MAALI_TOOL_VERSION$MAALI_TOOL_BUILD_OPTIONS_SUFFIX.log"
 fi
+
 
 if [[ $MAALI_REMODULE -eq 1 ]] || [[ $MAALI_UNINSTALL_REMOVE -eq 1 ]] ; then
   if [[ $MAALI_UNINSTALL_HIDE -eq 1 ]] || [[ $MAALI_UNINSTALL_REMOVE -eq 1 ]]; then
@@ -2697,8 +2871,14 @@ else
     IFS=$MAALI_IFS
   fi
 
+
+  # download source. If cygnet file contains MAALI_TOOL_GIT_SRC then do git clone
   echo "downloading the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
-  maali_download
+  if [ $MAALI_TOOL_GIT_SRC -eq 1 ]; then
+    maali_download_git_source
+  else
+    maali_download
+  fi
 fi
 
 MAALI_COMPILER_NUMBER=`echo "$MAALI_TOOL_COMPILERS" | wc -w`
@@ -2780,16 +2960,16 @@ if [ $MAALI_REMODULE -eq 0 ]; then
         fi # if [ $DEBUG ]; then
 
       fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
-  
+
       # need to build for every PrgENV that we support
       for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
-      
+
         if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
           # load the Cray Programming Environment
-    
+
           # need to set MAALI_TOOL_COMPILERS to the compilers which match the PrgEnv
           MAALI_CRAY_PRGENV_NAME=`echo "$MAALI_CRAY_PRGENV" | cut -d '/' -f 1`
-    
+
           case "$MAALI_CRAY_PRGENV_NAME" in
             "PrgEnv-gnu")
               MAALI_CRAY_COMPILER_MATCH="gcc" ;;
@@ -2802,29 +2982,29 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             *)
               maali_die "Unknown Cray Programming Environment ${MAALI_CRAY_PRGENV}" ;;
           esac
-    
+
           MAALI_TOOL_COMPILERS=""
-    
+
           for MAALI_CRAY_TOOL_COMPILER in $MAALI_CRAY_TOOL_COMPILERS; do
             MAALI_CRAY_TOOL_COMPILER_NAME=`echo "$MAALI_CRAY_TOOL_COMPILER" | cut -d '/' -f 1`
             if [ "$MAALI_CRAY_TOOL_COMPILER_NAME" == "$MAALI_CRAY_COMPILER_MATCH" ]; then
               MAALI_TOOL_COMPILERS="${MAALI_TOOL_COMPILERS:+$MAALI_TOOL_COMPILERS }$MAALI_CRAY_TOOL_COMPILER"
             fi
           done
-    
+
           # defaults for the Cray environment
           export CC=cc
           export CXX=CC
           export FC=ftn
           export CRAYPE_LINK_TYPE=dynamic
-    
+
           if [ $DEBUG ]; then
             echo "MAALI_TOOL_COMPILERS set to $MAALI_TOOL_COMPILERS"
           fi
           if [ "$MAALI_TOOL_COMPILERS" == "" ]; then
             maali_die "Have no MAALI_TOOL_COMPILERS set"
           fi
-    
+
           if [ $DEBUG ]; then
             echo " .. before module load \$MAALI_CRAY_PRGENV"
             module list
@@ -2834,12 +3014,12 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             echo " .. after module load \$MAALI_CRAY_PRGENV"
             module list
           fi # if [ $DEBUG ]; then
-      
+
         fi # if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
-      
+
         # need to build for every compiler that we support
         for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
-      
+
           if [ "$MAALI_COMPILER" != "binary" ]; then
             # "binary" installs are not versioned
             MAALI_SLASH_COUNT=`echo $(echo $MAALI_COMPILER | wc -c) - $(echo $MAALI_COMPILER | tr -d '/' | wc -c) | bc`
@@ -2847,12 +3027,12 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               maali_die "${MAALI_COMPILER} should contain a single '/' (but contains ${MAALI_SLASH_COUNT})"
             fi # if [ $MAALI_SLASH_COUNT != 1 ]; then; then
           fi # if [ "$MAALI_COMPILER" != "binary" ]; then
-      
+
           if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
             echo "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
             log "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
           fi
-      
+
           if [ $MAALI_PYTHON_TOOL ]; then
             MAALI_PYTHON_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
             MAALI_PYTHON_LIB_VERSION=`echo "$MAALI_PYTHON_VERSION" | cut -d '.' -f 1,2`
@@ -2860,27 +3040,27 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             MAALI_COMPILER_NAME=`echo "$MAALI_COMPILER" | cut -d '/' -f 1`
             MAALI_COMPILER_VERSION=`echo "$MAALI_COMPILER" | cut -d '/' -f 2`
           fi # if [ $MAALI_PYTHON_TOOL ]; then
-      
+
           # don't need to load compiler if we are using the "binary" compiler
           if [ "$MAALI_COMPILER" != "binary" ]; then
-      
+
             # load the module for the compiler we want to use
             if [ $DEBUG ]; then
               echo " .. before module load \$MAALI_COMPILER"
               module list
             fi # if [ $DEBUG ]; then
-    
+
             if [ $MAALI_CRAY -eq 1 ]; then
               # check to see if the PrgEnv loaded the wrong compiler
               MAALI_LOADED_CRAY_COMPILER=`module list -t 2>&1 | grep -v "^PrgEnv" | grep "^$MAALI_COMPILER_NAME" | wc -l`
-              
+
               if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
                 module unload $MAALI_COMPILER_NAME
               fi # if [ $MAALI_LOADED_CRAY_COMPILER -eq 1 ]; then
             fi # if [ $MAALI_CRAY -eq 1 ]; then
-      
+
             maali_load_module "$MAALI_COMPILER"
-      
+
             if [ $DEBUG ]; then
               echo " .. after module load \$MAALI_COMPILER"
               module list
@@ -2889,14 +3069,14 @@ if [ $MAALI_REMODULE -eq 0 ]; then
 
           # Cray has this as inner load
           if [ "$MAALI_CPU_TARGET" != "na" ] && [ $MAALI_CRAY -eq 1 ]; then
-  
+
             if [ $DEBUG ]; then
               echo " .. before module load \$MAALI_CPU_TARGET"
               module list
             fi # if [ $DEBUG ]; then
-  
+
             maali_load_module "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET"
-  
+
             if [ $DEBUG ]; then
               echo " .. after module load \$MAALI_CPU_TARGET"
               module list
@@ -2918,7 +3098,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             fi # if [ $DEBUG ]; then
 
           fi # if [ "$MAALI_TOOL_CUDA_COMPILER" != "na" ]; then
-  
+
           for MAALI_TOOL_MPI_COMPILER in $MAALI_TOOL_MPI_COMPILERS; do
 
             if [ "$MAALI_TOOL_MPI_COMPILER" != "na" ]; then
@@ -2950,7 +3130,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
 
               maali_load_module "$MAALI_PREREQ_MODULE"
             done # for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
-  
+
             echo " .. check for build only modules"
             for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
               # turn on MAALI_CMAKE_TOOL
@@ -2962,19 +3142,29 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               fi # if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
               maali_load_module "$MAALI_BUILD_PREREQ_MODULE"
             done # for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
-  
+
             # remove a stale tool build directory
             if [ $DEBUG ]; then
               echo " .. removing old build directory $MAALI_TOOL_BUILD_DIR"
             fi
             removedir "$MAALI_TOOL_BUILD_DIR"
-  
+            if [ $MAALI_TOOL_GIT_SRC -eq 1 ]; then
+              if [ $DEBUG ]; then
+                echo " .. git source, recreating empty build directory $MAALI_TOOL_BUILD_DIR"
+              fi
+              maali_makedir "$MAALI_TOOL_BUILD_DIR"
+            fi
+
             if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
               if [ $MAALI_R_TOOL ]; then
                 echo "  .. R tools install from source code"
               else
                 echo "  .. unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
-                maali_unpack
+                if [ ${MAALI_TOOL_GIT_SRC} -eq 1 ]; then
+                  maali_unpack_git_src
+                else
+                  maali_unpack
+                fi
               fi # if [ $MAALI_R_TOOL ]; then
             fi
 
@@ -2995,7 +3185,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
 
             if [ $MAALI_SYSTEM_CYGNET_FILE -ne 1 ]; then
               # system-intel sets this, others may as well
-              MAALI_INSTALL_DIR="$MAALI_INSTALL_TOOLDIR/$MAALI_TOOL_VERSION"
+              MAALI_INSTALL_DIR="$MAALI_INSTALL_TOOLDIR/$MAALI_TOOL_VERSION$MAALI_TOOL_BUILD_OPTIONS_SUFFIX"
             fi
 
             # remove the previously installed version
@@ -3007,7 +3197,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
               # create a fresh directory
               maali_makedir "$MAALI_INSTALL_DIR"
-  
+
               if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
                 if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
                   maali_run "chmod 750 $MAALI_INSTALL_TOOLDIR"
@@ -3016,7 +3206,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
                   maali_run "chgrp $MAALI_MODULE_RESTRICT_GROUP $MAALI_INSTALL_DIR"
                 fi
               fi
-  
+
               echo "  .. performing pre-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
               maali_pre_build
 
@@ -3030,7 +3220,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               else
                 maali_build
               fi
-  
+
               echo "  .. performing post-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
               maali_post_build
 
@@ -3041,14 +3231,14 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               if [ "${MAALI_MODULE_PE_PKGCONFIG_NAME[*]}" ]; then
                 maali_genpkgconfig
               fi
-  
+
               if [ ! $DEBUG ]; then
                 echo " .. removing build directory $MAALI_TOOL_BUILD_DIR"
                 removedir "$MAALI_TOOL_BUILD_DIR"
               fi
 
             fi # if [ ! $MAALI_UNINSTALL_REMOVE ] then
-  
+
             # unload build pre-requisite modules
             MAALI_TOOL_BUILD_PREREQ_REV=`echo $MAALI_TOOL_BUILD_PREREQ | tac -s' '`
             for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ_REV; do
@@ -3081,21 +3271,21 @@ if [ $MAALI_REMODULE -eq 0 ]; then
           if [ "$MAALI_CPU_TARGET" != "na" ] && [ $MAALI_CRAY -eq 1 ]; then
             module unload "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET"
           fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
-  
+
           if [ "$MAALI_COMPILER" != "binary" ]; then
             # don't need to unload the "binary" compiler
-      
+
             # make sure we unload the modules
             module unload $MAALI_COMPILER
           fi
-      
+
         done # compiler
-      
+
         if [ "$MAALI_CRAY_PRGENV" != "na" ]; then
           # unload the Cray Programming Environment
           module unload $MAALI_CRAY_PRGENV
         fi
-      
+
       done # for MAALI_CRAY_PRGENV in $MAALI_TOOL_CRAY_PRGENV; do
 
       # Non-Cray has this as outer unload
@@ -3141,7 +3331,7 @@ if [ $MAALI_BUILDONLY ]; then
 else
 
   # make the module
-  MAALI_TOOL_MODULE="$MAALI_TOOL_MODULE_DIR/$MAALI_TOOL_VERSION"
+  MAALI_TOOL_MODULE="$MAALI_TOOL_MODULE_DIR/$MAALI_TOOL_VERSION$MAALI_TOOL_BUILD_OPTIONS_SUFFIX"
   if [ $MAALI_LUA_MODULE -eq 1 ]; then
     MAALI_TOOL_MODULE="${MAALI_TOOL_MODULE}.lua"
 ### the default filename for LMOD is .modulerc
