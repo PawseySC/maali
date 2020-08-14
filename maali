@@ -2166,6 +2166,7 @@ MAALI_LUA_MODULE=${MAALI_LUA_MODULE:-0}
 MAALI_PYTHON3_SKIP=0
 MAALI_LOCAL_INSTALL=0
 MAALI_TOOL_GIT_SRC=0
+MAALI_LIST_BUILD_OPTIONS=0
 MAALI_TOOL_BUILD_OPTIONS_AVAIL=()
 
 # for auto-building module files
@@ -2244,8 +2245,7 @@ do
              maali_parse_build_options
              ;;
          L)
-             maali_list_build_options
-             exit
+             MAALI_LIST_BUILD_OPTIONS=1
              ;;
          g)
              MAALI_ROOT="$MAALI_ROOT_GROUP"
@@ -2639,6 +2639,12 @@ fi
 if [ $? -ne 0 ]; then
     maali_die "failed to source ${MAALI_CYGNET_FILEPATH} exiting"
 fi
+
+if [ $MAALI_LIST_BUILD_OPTIONS -eq 1 ]; then
+    maali_list_build_options
+    maali_di "existing as requested maali list build options."
+fi
+
 
 #Check if the tool was named correctly on the command line.  Mostly an issue for a case-sensitive build
 if [ -n "${MAALI_TOOL_REAL_NAME}" ]; then
