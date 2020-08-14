@@ -2642,7 +2642,7 @@ fi
 
 if [ $MAALI_LIST_BUILD_OPTIONS -eq 1 ]; then
     maali_list_build_options
-    maali_di "existing as requested maali list build options."
+    maali_die "existing as requested maali list build options."
 fi
 
 
