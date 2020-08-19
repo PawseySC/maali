@@ -121,7 +121,7 @@ EOF
     $MAALI_MODULE_WHATIS
     <Git Hash : $(git rev-parse HEAD)>
 EOF
-  fi 
+  fi
 }
 
 ##############################################################################
@@ -477,7 +477,7 @@ function maali_module {
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="/cuda/\$env(CUDA_VER)"
   MAALI_APP_HOME+="/$MAALI_TOOL_NAME"
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="${MAALI_CUDA_SUFFIX}"
-  MAALI_APP_HOME+="/$MAALI_TOOL_VERSION"
+  MAALI_APP_HOME+="/$MAALI_TOOL_VERSION$MAALI_TOOL_BUILD_OPTIONS_SUFFIX"
 
   # Clobber MAALI_APP_HOME if MAALI_INSTALL_DIR set in cygnet file.
   if [ $MAALI_SYSTEM_CYGNET_FILE -eq 1 ]; then
@@ -498,6 +498,7 @@ proc ModulesHelp { } {
 }
 set sys     [uname sysname]
 set version $MAALI_TOOL_VERSION
+set build_options $MAALI_TOOL_BUILD_OPTIONS
 EOF
 
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
@@ -1216,7 +1217,7 @@ function maali_module_lua {
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+='"/cuda/"..os.getenv("CUDA_VER")..'
   MAALI_APP_HOME+='"/'$MAALI_TOOL_NAME
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="${MAALI_CUDA_SUFFIX}"
-  MAALI_APP_HOME+="/$MAALI_TOOL_VERSION"
+  MAALI_APP_HOME+="/$MAALI_TOOL_VERSION$MAALI_TOOL_BUILD_OPTIONS_SUFFIX"
 
   # Clobber MAALI_APP_HOME if MAALI_INSTALL_DIR set in cygnet file.
   if [ $MAALI_SYSTEM_CYGNET_FILE -eq 1 ]; then
@@ -1227,6 +1228,7 @@ function maali_module_lua {
   cat <<EOF >$MAALI_TOOL_MODULE
 help("Sets up the paths you need to use $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION")
 local version = '$MAALI_TOOL_VERSION'
+local build options = '$MAALI_TOOL_BUILD_OPTIONS'
 EOF
 
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
@@ -2021,6 +2023,37 @@ function maali_unpack_git_src {
 
 ##############################################################################
 
+function maali_list_build_options {
+    if [ ${#MAALI_TOOL_BUILD_OPTIONS_AVAIL[@]} -gt 0 ]; then
+        echo "Cygnet specifies following allowed options structured in option1=val1:val2:val3"
+        for i in ${MAALI_TOOL_BUILD_OPTIONS_AVAIL[@]}
+        do
+            optname=(${i//=/ })
+            echo "Option name ${optname[0]}"
+            optvals=(${optname[1]//:/ })
+            echo "Allowed values ${optvals[@]}"
+        done
+    else
+        echo "No extra build options"
+    fi
+}
+
+##############################################################################
+
+function maali_parse_build_options {
+    tempx=${MAALI_TOOL_BUILD_OPTIONS}
+    MAALI_TOOL_BUILD_OPTIONS=(${tempx//,/ })
+}
+
+##############################################################################
+
+function maali_set_build_options {
+   # override the function in cygnet file
+   echo "setting build options"
+}
+
+##############################################################################
+
 function maali_die {
   log "$1"
   echo
@@ -2100,6 +2133,8 @@ OPTIONS:
    -r      build with the specified compiler (and no others) [ ]
    -e      build for the specified CPU target (and no others) [ ]
    -n      NVIDIA mode; compile software with cuda support
+   -B      build with comma separated list of build options [ ]
+   -L      list available build options
 
    -g      group build in directory defined by env variable MAALI_ROOT_GROUP, currently $MAALI_ROOT_GROUP
    -s      activate system build in directory defined by env variable MAALI_ROOT_SYSTEM, currently $MAALI_ROOT_SYSTEM
@@ -2113,6 +2148,7 @@ Note for builds, a log file will be produced in the chosen directory under .maal
 
 EOF
 }
+
 
 ##############################################################################
 # from http://rsalveti.wordpress.com/2007/04/03/bash-parsing-arguments-with-getopts/
@@ -2143,7 +2179,9 @@ MAALI_LUA_MODULE=${MAALI_LUA_MODULE:-0}
 MAALI_PYTHON3_SKIP=0
 MAALI_LOCAL_INSTALL=0
 MAALI_TOOL_GIT_SRC=0
-
+MAALI_TOOL_BUILD_OPTIONS_AVAIL=()
+MAALI_TOOL_BUILD_OPTIONS=()
+MAALI_TOOL_LIST_BUILD_OPTIONS=0
 
 # for auto-building module files
 MAALI_MODULE_SET_PATH=
@@ -2165,7 +2203,7 @@ MAALI_MODULE_PE_PKGCONFIG_LIBS=
 # to support TCL and LUA modules
 MAALI_MODULE_DEFAULT_FILENAME='.version'
 
-while getopts "hyt:v:dfpk:c:ambr:e:ngswl:ux" OPTION
+while getopts "hyt:v:dfpk:c:ambr:e:nB:Lgswl:ux" OPTION
 do
      case $OPTION in
          h)
@@ -2215,6 +2253,13 @@ do
              ;;
          n)
              MAALI_CUDA_BUILD=1
+             ;;
+         B)
+             MAALI_TOOL_BUILD_OPTIONS=$OPTARG
+             maali_parse_build_options
+             ;;
+         L)
+             MAALI_TOOL_LIST_BUILD_OPTIONS=1
              ;;
          g)
              MAALI_ROOT="$MAALI_ROOT_GROUP"
@@ -2608,6 +2653,12 @@ fi
 if [ $? -ne 0 ]; then
     maali_die "failed to source ${MAALI_CYGNET_FILEPATH} exiting"
 fi
+
+if [ $MAALI_TOOL_LIST_BUILD_OPTIONS -eq 1 ]; then
+    maali_list_build_options
+    maali_die "existing as requested maali list build options."
+fi
+
 
 #Check if the tool was named correctly on the command line.  Mostly an issue for a case-sensitive build
 if [ -n "${MAALI_TOOL_REAL_NAME}" ]; then
