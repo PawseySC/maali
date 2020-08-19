@@ -477,7 +477,7 @@ function maali_module {
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="/cuda/\$env(CUDA_VER)"
   MAALI_APP_HOME+="/$MAALI_TOOL_NAME"
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="${MAALI_CUDA_SUFFIX}"
-  MAALI_APP_HOME+="/$MAALI_TOOL_VERSION"
+  MAALI_APP_HOME+="/$MAALI_TOOL_VERSION$MAALI_TOOL_BUILD_OPTIONS_SUFFIX"
 
   # Clobber MAALI_APP_HOME if MAALI_INSTALL_DIR set in cygnet file.
   if [ $MAALI_SYSTEM_CYGNET_FILE -eq 1 ]; then
@@ -498,6 +498,7 @@ proc ModulesHelp { } {
 }
 set sys     [uname sysname]
 set version $MAALI_TOOL_VERSION
+set build_options $MAALI_TOOL_BUILD_OPTIONS
 EOF
 
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
@@ -1216,7 +1217,7 @@ function maali_module_lua {
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+='"/cuda/"..os.getenv("CUDA_VER")..'
   MAALI_APP_HOME+='"/'$MAALI_TOOL_NAME
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="${MAALI_CUDA_SUFFIX}"
-  MAALI_APP_HOME+="/$MAALI_TOOL_VERSION"
+  MAALI_APP_HOME+="/$MAALI_TOOL_VERSION$MAALI_TOOL_BUILD_OPTIONS_SUFFIX"
 
   # Clobber MAALI_APP_HOME if MAALI_INSTALL_DIR set in cygnet file.
   if [ $MAALI_SYSTEM_CYGNET_FILE -eq 1 ]; then
@@ -1227,6 +1228,7 @@ function maali_module_lua {
   cat <<EOF >$MAALI_TOOL_MODULE
 help("Sets up the paths you need to use $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION")
 local version = '$MAALI_TOOL_VERSION'
+local build options = '$MAALI_TOOL_BUILD_OPTIONS'
 EOF
 
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
@@ -2046,7 +2048,7 @@ function maali_parse_build_options {
 ##############################################################################
 
 function maali_set_build_options {
-   # override the function in cygnet file 
+   # override the function in cygnet file
    echo "setting build options"
 }
 
@@ -2254,7 +2256,6 @@ do
              ;;
          B)
              MAALI_TOOL_BUILD_OPTIONS=$OPTARG
-	     echo $MAALI_BUILD_OPTIONS_LIST
              maali_parse_build_options
              ;;
          L)
