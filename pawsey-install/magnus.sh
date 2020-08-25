@@ -12,6 +12,7 @@ export MAALI_MODULE_LIST_MAALI_REQUIRED_SYSTEM_MODULES="off"
 export MAALI_MODULE_SET_MAALI_DOT_DIR='\$env\(MYGROUP\)/.maali'
 export MAALI_MODULE_QUOTES_MAALI_DOT_DIR=off
 export MAALI_DOT_DIR="$MYGROUP/.maali"
+export MAALI_MODULE_SET_MAALI_PYTHON_DEFAULT_LOAD=1
 
 if [ $# -lt 1 ] ; then
   echo "Please provide at least the maali version as an argument. Exiting now."
