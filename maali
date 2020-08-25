@@ -1232,7 +1232,7 @@ function maali_module_lua {
   cat <<EOF >$MAALI_TOOL_MODULE
 help("Sets up the paths you need to use $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION")
 local version = '$MAALI_TOOL_VERSION'
-local build options = '$MAALI_TOOL_BUILD_OPTIONS'
+local build_options = '$MAALI_TOOL_BUILD_OPTIONS'
 EOF
 
 if [ $MAALI_CUDA_BUILD -eq 1 ]; then
@@ -3428,7 +3428,9 @@ else
 
     # make sure we have a module directory
     maali_makedir "$MAALI_TOOL_MODULE_DIR"
-
+    if [ -z $MAALI_TOOL_BUILD_OPTIONS ]; then
+        MAALI_TOOL_BUILD_OPTIONS="default"
+    fi
     if [ -f "$MAALI_TOOL_MODULE" ]; then
       cp $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
     fi
