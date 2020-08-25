@@ -878,7 +878,8 @@ EOF
 if { [ module-info mode load ] } {
   if {! [is-loaded python] } {
     # this allows us support multiple python versions, but have a sensible default
-    module load python/$MAALI_TOOL_DEFAULT_PYTHON
+    puts stderr "Cannot load $tool - a Python interpreter module must be loaded first."
+    exit 1;
   }
 }
 EOF
@@ -1592,7 +1593,7 @@ EOF
 
 if (mode() == "load") then
   if (isloaded("python") ~= true) then
-    load("python/$MAALI_TOOL_DEFAULT_PYTHON")
+    LmodError("Cannot load " .. tool .. " - a Python interpreter module must be loaded first.")
   end
 end
 EOF
