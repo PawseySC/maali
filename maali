@@ -873,12 +873,16 @@ EOF
   fi
 
   if [ $MAALI_PYTHON_TOOL ]; then
+    if [ $MAALI_PYTHON_DEFAULT_LOAD ]; then
+        MAALI_PYTHON_DEFAULT_LOAD_ACTION="puts stderr \"Cannot load $tool - a Python interpreter module must be loaded first.\";exit 1;"
+    else
+        MAALI_PYTHON_DEFAULT_LOAD_ACTION="module load python/$MAALI_TOOL_DEFAULT_PYTHON"
+    fi
     cat <<EOF >> $MAALI_TOOL_MODULE
-
 if { [ module-info mode load ] } {
   if {! [is-loaded python] } {
     # this allows us support multiple python versions, but have a sensible default
-    module load python/$MAALI_TOOL_DEFAULT_PYTHON
+    $MAALI_PYTHON_DEFAULT_LOAD_ACTION
   }
 }
 EOF
@@ -1588,11 +1592,16 @@ EOF
   fi
 
   if [ $MAALI_PYTHON_TOOL ]; then
+    if [ $MAALI_PYTHON_DEFAULT_LOAD ]; then
+        MAALI_PYTHON_DEFAULT_LOAD_ACTION="LmodError(\"Cannot load \" .. tool .. \" - a Python interpreter module must be loaded first.\")"
+    else
+        MAALI_PYTHON_DEFAULT_LOAD_ACTION="load(\"python/$MAALI_TOOL_DEFAULT_PYTHON\")"
+    fi
     cat <<EOF >> $MAALI_TOOL_MODULE
 
 if (mode() == "load") then
   if (isloaded("python") ~= true) then
-    load("python/$MAALI_TOOL_DEFAULT_PYTHON")
+    $MAALI_PYTHON_DEFAULT_LOAD_ACTION
   end
 end
 EOF
@@ -2167,6 +2176,7 @@ MAALI_REMODULE=0
 MAALI_BUILDONLY=
 MAALI_SYSTEM_BUILD=NO
 MAALI_CMAKE_PATH=".."
+MAALI_PYTHON_DEFAULT_LOAD=${MAALI_PYTHON_DEFAULT_LOAD:-0}
 MAALI_MAKE_VERSION_DEFAULT=0
 MAALI_FORCE_DOWNLOAD_FROM_GITHUB=0
 MAALI_UNINSTALL_HIDE=0
