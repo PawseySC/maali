@@ -2307,7 +2307,8 @@ if [ $MAALI_LOCAL_INSTALL ]; then
   echo "Local install requested via -l in "${MAALI_ROOT}
   if [ ! -d $MAALI_ROOT ]; then
     usage
-    maali_die "Install directory provided does not exist"
+    maali_die "Install directory provided does not exist: $MAALI_ROOT
+To proceed with the installation, create it with:   \"mkdir -p $MAALI_ROOT\""
   fi
 fi
 
