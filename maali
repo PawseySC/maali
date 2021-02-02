@@ -2066,7 +2066,7 @@ function maali_set_build_options {
 function maali_die {
   log "$1"
   echo
-  echo "$1"
+  printf "\033[0;31m$1\033[0m\n"
   exit 1
 }
 
