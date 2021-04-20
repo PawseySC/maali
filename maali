@@ -3366,6 +3366,17 @@ if [ $MAALI_REMODULE -eq 0 ]; then
 
   done # for MAALI_CPU_TARGET in $MAALI_TOOL_CPU_TARGET; do
 
+  if [ $DEBUG ]; then
+    if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
+      if [ "$MAALI_MODULE_RESTRICT_GROUP" != "" ]; then
+        if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
+          maali_run "chmod -R o-rwx $MAALI_TOOL_BUILD_DIR"
+          maali_run "chgrp -R $MAALI_MODULE_RESTRICT_GROUP $MAALI_TOOL_BUILD_DIR"
+        fi
+      fi
+    fi
+  fi
+
 fi # if [ ! $MAALI_REMODULE ]; then
 
 # Reset MAALI_TOOL_COMPILERS
