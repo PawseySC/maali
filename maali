@@ -45,7 +45,7 @@ elif [ -f "/etc/redhat-release" ]; then
 
   MAALI_OS="rhel$MAALI_OS_VERSION"
 else
-  maali_die "Your Operating System is not support by maali, please lodge a ticket at https://github/PawseySC/maali"
+  maali_die "Your Operating System is not supported by maali, please lodge a ticket at https://github/PawseySC/maali"
 fi
 
 ##############################################################################
@@ -206,12 +206,12 @@ function maali_download {
     MAALI_TMP_DST=${MAALI_DST_ARRAY[$i]}
 
     if [ $DEBUG ]; then
-      echo " .. need to download $MAALI_TMP_URL to $MAALI_TMP_DST"
+      echo " .. Need to download $MAALI_TMP_URL to $MAALI_TMP_DST"
     fi
 
     if [ ! -f "$MAALI_TMP_DST" ]; then
         if [ $DEBUG ]; then
-          echo " .. can't find $MAALI_TMP_DST so will run '$MAALI_WGET_CMD $MAALI_WGET_EXTRA -O $MAALI_TMP_DST $MAALI_TMP_URL'"
+          echo " .. Can't find $MAALI_TMP_DST so will run '$MAALI_WGET_CMD $MAALI_WGET_EXTRA -O $MAALI_TMP_DST $MAALI_TMP_URL'"
         fi
       cd $MAALI_SRC
 
@@ -250,12 +250,12 @@ function maali_download_git_source {
     MAALI_TMP_DST=${MAALI_DST_ARRAY[$i]}
 
     if [ $DEBUG ]; then
-      echo " .. need to download $MAALI_TMP_URL to $MAALI_TMP_DST"
+      echo " .. Need to download $MAALI_TMP_URL to $MAALI_TMP_DST"
     fi
 
     if [ ! -f "$MAALI_TMP_DST" ]; then
         if [ $DEBUG ]; then
-          echo " .. can't find $MAALI_TMP_DST so will run '$MAALI_GIT_CMD $MAALI_TMP_URL $MAALI_TMP_DST'"
+          echo " .. Can't find $MAALI_TMP_DST so will run '$MAALI_GIT_CMD $MAALI_TMP_URL $MAALI_TMP_DST'"
         fi
       cd $MAALI_SRC
 
@@ -307,7 +307,7 @@ function maali_git_download {
 
   if [ $DEBUG ]; then
     if [ -f "${MAALI_GIT_DOWNLOAD_FILEPATH}~" ]; then
-      echo "differences between ${MAALI_GIT_DOWNLOAD_FILEPATH} and ${MAALI_GIT_DOWNLOAD_FILEPATH}~"
+      echo "Differences between ${MAALI_GIT_DOWNLOAD_FILEPATH} and ${MAALI_GIT_DOWNLOAD_FILEPATH}~"
       diff ${MAALI_GIT_DOWNLOAD_FILEPATH} ${MAALI_GIT_DOWNLOAD_FILEPATH}~
     fi
   fi
@@ -341,7 +341,7 @@ EOF
 
 function maali_load_module {
 
-  echo "  .. loading $1"
+  echo "  .. Loading $1"
   if [ $DEBUG ]; then
     echo "Trying to load $1"
   fi
@@ -356,7 +356,7 @@ function maali_load_module {
     cat $MAALI_TMP_FILE
     rm -f $MAALI_TMP_FILE
     if [ $MAALI_MODULE_CONFLICT_CHECK -eq 1 ]; then
-      echo "  .. modulefile $1 conflicts with an already loaded module"
+      echo "  .. Modulefile $1 conflicts with an already loaded module"
       exit
     fi
 
@@ -1161,7 +1161,7 @@ EOF
 
   if [ $DEBUG ]; then
     if [ -f "$MAALI_TOOL_MODULE~" ]; then
-      echo "differences between $MAALI_TOOL_MODULE and $MAALI_TOOL_MODULE~"
+      echo "Differences between $MAALI_TOOL_MODULE and $MAALI_TOOL_MODULE~"
       diff $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
     fi
   fi
@@ -1852,7 +1852,7 @@ EOF
 
   if [ $DEBUG ]; then
     if [ -f "$MAALI_TOOL_MODULE~" ]; then
-      echo "differences between $MAALI_TOOL_MODULE and $MAALI_TOOL_MODULE~"
+      echo "Differences between $MAALI_TOOL_MODULE and $MAALI_TOOL_MODULE~"
       diff $MAALI_TOOL_MODULE $MAALI_TOOL_MODULE~
     fi
   fi
@@ -1920,7 +1920,7 @@ function maali_run {
   fi
 
   if [ $MAALI_EXIT_STATUS -ne 0 ]; then
-    echo "failed to run $@, exiting"
+    echo "Failed to run $@, exiting"
     exit $MAALI_EXIT_STATUS
   fi
 }
@@ -1983,7 +1983,7 @@ function maali_unpack {
     elif [ "$MAALI_TYPE" = "ASCII C program text" ]; then
       cp "$MAALI_INDIVIDUAL_DST" "$MAALI_TOOL_BUILD_DIR"
     else
-      maali_die "MAALI $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please please lodge a ticket at https://github/PawseySC/maali."
+      maali_die "Maali $MAALI_VERSION does not support decompressing $MAALI_TYPE. Please please lodge a ticket at https://github/PawseySC/maali."
     fi
 
     if [ -d "$MAALI_TOOL_BUILD_DIR" ]; then
@@ -2058,7 +2058,7 @@ function maali_parse_build_options {
 
 function maali_set_build_options {
    # override the function in cygnet file
-   echo "setting build options"
+   echo "Setting build options"
 }
 
 ##############################################################################
@@ -2118,7 +2118,7 @@ fi
 usage()
 {
 cat << EOF
-maali - Pawsey Supercomputing Centre Build System
+Maali - Pawsey Supercomputing Centre Build System
 
 usage: $0 -t toolname -v toolversion [-d] [OTHER OPTIONS]
 
@@ -2662,12 +2662,12 @@ fi
 # source the cygnet file
 . $MAALI_CYGNET_FILEPATH
 if [ $? -ne 0 ]; then
-    maali_die "failed to source ${MAALI_CYGNET_FILEPATH} exiting"
+    maali_die "Failed to source ${MAALI_CYGNET_FILEPATH} exiting"
 fi
 
 if [ $MAALI_TOOL_LIST_BUILD_OPTIONS -eq 1 ]; then
     maali_list_build_options
-    maali_die "existing as requested maali list build options."
+    maali_die "Existing as requested maali list build options."
 fi
 
 
@@ -2712,7 +2712,7 @@ for MAALI_PATCH_NUMBER in $MAALI_TOOL_PATCHES; do
   else
 
     if [ $DEBUG ]; then
-      echo ".. found $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_PATCH_NUMBER.patch"
+      echo ".. Found $MAALI_FILES_PATH/$MAALI_TOOL_NAME.$MAALI_PATCH_NUMBER.patch"
     fi
 
   fi
@@ -2729,7 +2729,7 @@ done
 # we are running a rebuild - so we override the compiler
 if [ $MAALI_COMPILER_REBUILD ]; then
   MAALI_TOOL_COMPILERS=$MAALI_COMPILER_REBUILD_NAME
-  echo ".. setting MAALI_TOOL_COMPILERS to $MAALI_TOOL_COMPILERS"
+  echo ".. Setting MAALI_TOOL_COMPILERS to $MAALI_TOOL_COMPILERS"
 fi
 
 if [ "$MAALI_TOOL_COMPILERS" == "" ]; then
@@ -2742,10 +2742,10 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
 
   # make the -p redundant
   if [ "$MAALI_COMPILER_NAME" == "python" ]; then
-    echo ".. detected python compiler, setting MAALI_PYTHON_TOOL"
+    echo ".. Detected python compiler, setting MAALI_PYTHON_TOOL"
     MAALI_PYTHON_TOOL=1
     if [ -z $MAALI_TOOL_TYPE ]; then
-      echo "  .. and MAALI_TOOL_TYPE to python"
+      echo "  .. And MAALI_TOOL_TYPE to python"
       MAALI_TOOL_TYPE="python"
     fi
 
@@ -2755,7 +2755,7 @@ for MAALI_COMPILER in $MAALI_TOOL_COMPILERS; do
 
     break
   elif [ "$MAALI_COMPILER_NAME" == "r" ]; then
-    echo ".. detected R, setting MAALI_R_TOOL and MAALI_TOOL_TYPE to r"
+    echo ".. Detected R, setting MAALI_R_TOOL and MAALI_TOOL_TYPE to r"
     MAALI_R_TOOL=1
     MAALI_TOOL_TYPE="r"
 
@@ -2786,7 +2786,7 @@ fi
 # rebuild for specified CPU target
 if [ $MAALI_CPU_REBUILD ]; then
   MAALI_TOOL_CPU_TARGET=$MAALI_CPU_REBUILD_NAME
-  echo ".. setting MAALI_TOOL_CPU_TARGET to $MAALI_TOOL_CPU_TARGET"
+  echo ".. Setting MAALI_TOOL_CPU_TARGET to $MAALI_TOOL_CPU_TARGET"
 fi
 
 if [ "$MAALI_TOOL_CPU_TARGET" == "" ]; then
@@ -2880,9 +2880,9 @@ fi
 
 if [[ $MAALI_REMODULE -eq 1 ]] || [[ $MAALI_UNINSTALL_REMOVE -eq 1 ]] ; then
   if [[ $MAALI_UNINSTALL_HIDE -eq 1 ]] || [[ $MAALI_UNINSTALL_REMOVE -eq 1 ]]; then
-    echo "uninstalling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
+    echo "Uninstalling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
   else
-    echo "just re-creating the module file"
+    echo "Just re-creating the module file"
 
     removefile "$MAALI_TOOL_LOG"
 
@@ -2935,7 +2935,7 @@ else
 
 
   # download source. If cygnet file contains MAALI_TOOL_GIT_SRC then do git clone
-  echo "downloading the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
+  echo "Downloading the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
   if [ $MAALI_TOOL_GIT_SRC -eq 1 ]; then
     maali_download_git_source
   else
@@ -2951,7 +2951,7 @@ if [ "$MAALI_TOOL_CRAY_PRGENV" == "" ]; then
     exit
   else
     if [[ $DEBUG -eq 1 ]] && [[ $MAALI_CRAY -eq 1 ]]; then
-      echo " setting MAALI_TOOL_CRAY_PRGENV=\"na\""
+      echo "Setting MAALI_TOOL_CRAY_PRGENV=\"na\""
     fi
     MAALI_TOOL_CRAY_PRGENV="na"
   fi
@@ -2993,14 +2993,14 @@ if [ $MAALI_REMODULE -eq 0 ]; then
     if [ "$MAALI_CPU_TARGET" != "na" ] && [ $MAALI_CRAY -eq 0 ]; then
 
       if [ $DEBUG ]; then
-        echo " .. before module load \$MAALI_CPU_TARGET"
+        echo " .. Before module load \$MAALI_CPU_TARGET"
         module list
       fi # if [ $DEBUG ]; then
 
       maali_load_module "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET"
 
       if [ $DEBUG ]; then
-        echo " .. after module load \$MAALI_CPU_TARGET"
+        echo " .. After module load \$MAALI_CPU_TARGET"
         module list
       fi #
     fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
@@ -3012,12 +3012,12 @@ if [ $MAALI_REMODULE -eq 0 ]; then
         # load the CUDA environment
 
         if [ $DEBUG ]; then
-          echo " .. before module load \$MAALI_TOOL_CUDA_COMPILER"
+          echo " .. Before module load \$MAALI_TOOL_CUDA_COMPILER"
           module list
         fi # if [ $DEBUG ]; then
         maali_load_module "$MAALI_TOOL_CUDA_COMPILER"
         if [ $DEBUG ]; then
-          echo " .. after module load \$MAALI_TOOL_CUDA_COMPILER"
+          echo " .. After module load \$MAALI_TOOL_CUDA_COMPILER"
           module list
         fi # if [ $DEBUG ]; then
 
@@ -3068,12 +3068,12 @@ if [ $MAALI_REMODULE -eq 0 ]; then
           fi
 
           if [ $DEBUG ]; then
-            echo " .. before module load \$MAALI_CRAY_PRGENV"
+            echo " .. Before module load \$MAALI_CRAY_PRGENV"
             module list
           fi # if [ $DEBUG ]; then
           maali_load_module "$MAALI_CRAY_PRGENV"
           if [ $DEBUG ]; then
-            echo " .. after module load \$MAALI_CRAY_PRGENV"
+            echo " .. After module load \$MAALI_CRAY_PRGENV"
             module list
           fi # if [ $DEBUG ]; then
 
@@ -3091,8 +3091,8 @@ if [ $MAALI_REMODULE -eq 0 ]; then
           fi # if [ "$MAALI_COMPILER" != "binary" ]; then
 
           if [ $MAALI_UNINSTALL_REMOVE -eq 0 ]; then
-            echo "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
-            log "building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+            echo "Building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+            log "Building $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
           fi
 
           if [ $MAALI_PYTHON_TOOL ]; then
@@ -3108,7 +3108,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
 
             # load the module for the compiler we want to use
             if [ $DEBUG ]; then
-              echo " .. before module load \$MAALI_COMPILER"
+              echo " .. Before module load \$MAALI_COMPILER"
               module list
             fi # if [ $DEBUG ]; then
 
@@ -3124,7 +3124,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             maali_load_module "$MAALI_COMPILER"
 
             if [ $DEBUG ]; then
-              echo " .. after module load \$MAALI_COMPILER"
+              echo " .. After module load \$MAALI_COMPILER"
               module list
             fi
           fi # if [ "$MAALI_COMPILER" != "binary" ]; then
@@ -3133,14 +3133,14 @@ if [ $MAALI_REMODULE -eq 0 ]; then
           if [ "$MAALI_CPU_TARGET" != "na" ] && [ $MAALI_CRAY -eq 1 ]; then
 
             if [ $DEBUG ]; then
-              echo " .. before module load \$MAALI_CPU_TARGET"
+              echo " .. Before module load \$MAALI_CPU_TARGET"
               module list
             fi # if [ $DEBUG ]; then
 
             maali_load_module "$MAALI_PRE_CPU_TARGET$MAALI_CPU_TARGET"
 
             if [ $DEBUG ]; then
-              echo " .. after module load \$MAALI_CPU_TARGET"
+              echo " .. After module load \$MAALI_CPU_TARGET"
               module list
             fi #
           fi # if [ "$MAALI_CPU_TARGET" != "na" ]; then
@@ -3150,12 +3150,12 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             # load the CUDA environment
 
             if [ $DEBUG ]; then
-              echo " .. before module load \$MAALI_TOOL_CUDA_COMPILER"
+              echo " .. Before module load \$MAALI_TOOL_CUDA_COMPILER"
               module list
             fi # if [ $DEBUG ]; then
             maali_load_module "$MAALI_TOOL_CUDA_COMPILER"
             if [ $DEBUG ]; then
-              echo " .. after module load \$MAALI_TOOL_CUDA_COMPILER"
+              echo " .. After module load \$MAALI_TOOL_CUDA_COMPILER"
               module list
             fi # if [ $DEBUG ]; then
 
@@ -3167,12 +3167,12 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               # load the MPI environment
 
               if [ $DEBUG ]; then
-                echo " .. before module load \$MAALI_TOOL_MPI_COMPILER"
+                echo " .. Before module load \$MAALI_TOOL_MPI_COMPILER"
                 module list
               fi # if [ $DEBUG ]; then
               maali_load_module "$MAALI_TOOL_MPI_COMPILER"
               if [ $DEBUG ]; then
-                echo " .. after module load \$MAALI_TOOL_MPI_COMPILER"
+                echo " .. After module load \$MAALI_TOOL_MPI_COMPILER"
                 module list
               fi # if [ $DEBUG ]; then
 
@@ -3193,26 +3193,26 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               maali_load_module "$MAALI_PREREQ_MODULE"
             done # for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ; do
 
-            echo " .. check for build only modules"
+            echo " .. Checking for build only modules"
             for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
               # turn on MAALI_CMAKE_TOOL
               MAALI_BUILD_PREREQ_MODULE_NAME=`echo $MAALI_BUILD_PREREQ_MODULE | cut -d '/' -f 1`
               if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
                 # this is using cmake
                 MAALI_CMAKE_TOOL=1
-                echo " .. you are using cmake, will use maali_cmake_build to process"
+                echo " .. You are using cmake, will use maali_cmake_build to process"
               fi # if [ "$MAALI_BUILD_PREREQ_MODULE_NAME" == "cmake" ]; then
               maali_load_module "$MAALI_BUILD_PREREQ_MODULE"
             done # for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ; do
 
             # remove a stale tool build directory
             if [ $DEBUG ]; then
-              echo " .. removing old build directory $MAALI_TOOL_BUILD_DIR"
+              echo " .. Removing old build directory $MAALI_TOOL_BUILD_DIR"
             fi
             removedir "$MAALI_TOOL_BUILD_DIR"
             if [ $MAALI_TOOL_GIT_SRC -eq 1 ]; then
               if [ $DEBUG ]; then
-                echo " .. git source, recreating empty build directory $MAALI_TOOL_BUILD_DIR"
+                echo " .. Git source, recreating empty build directory $MAALI_TOOL_BUILD_DIR"
               fi
               maali_makedir "$MAALI_TOOL_BUILD_DIR"
             fi
@@ -3221,7 +3221,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               if [ $MAALI_R_TOOL ]; then
                 echo "  .. R tools install from source code"
               else
-                echo "  .. unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
+                echo "  .. Unpacking the source code for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION"
                 if [ ${MAALI_TOOL_GIT_SRC} -eq 1 ]; then
                   maali_unpack_git_src
                 else
@@ -3269,10 +3269,10 @@ if [ $MAALI_REMODULE -eq 0 ]; then
                 fi
               fi
 
-              echo "  .. performing pre-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+              echo "  .. Performing pre-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
               maali_pre_build
 
-              echo "  .. compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+              echo "  .. Compiling $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
               if [ $MAALI_PYTHON_TOOL ]; then
                 maali_python_build
               elif [ $MAALI_R_TOOL ]; then
@@ -3283,7 +3283,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
                 maali_build
               fi
 
-              echo "  .. performing post-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
+              echo "  .. Performing post-build for $MAALI_TOOL_NAME $MAALI_TOOL_VERSION with $MAALI_COMPILER"
               maali_post_build
 
               # deal with shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
@@ -3295,7 +3295,7 @@ if [ $MAALI_REMODULE -eq 0 ]; then
               fi
 
               if [ ! $DEBUG ]; then
-                echo " .. removing build directory $MAALI_TOOL_BUILD_DIR"
+                echo " .. Removing build directory $MAALI_TOOL_BUILD_DIR"
                 removedir "$MAALI_TOOL_BUILD_DIR"
               fi
 
@@ -3304,14 +3304,14 @@ if [ $MAALI_REMODULE -eq 0 ]; then
             # unload build pre-requisite modules
             MAALI_TOOL_BUILD_PREREQ_REV=`echo $MAALI_TOOL_BUILD_PREREQ | tac -s' '`
             for MAALI_BUILD_PREREQ_MODULE in $MAALI_TOOL_BUILD_PREREQ_REV; do
-              echo "  .. unloading $MAALI_BUILD_PREREQ_MODULE"
+              echo "  .. Unloading $MAALI_BUILD_PREREQ_MODULE"
               module unload "$MAALI_BUILD_PREREQ_MODULE"
             done
 
             # unload pre-requisite modules
             MAALI_TOOL_PREREQ_REV=`echo $MAALI_TOOL_PREREQ | tac -s' '`
             for MAALI_PREREQ_MODULE in $MAALI_TOOL_PREREQ_REV; do
-              echo "  .. unloading $MAALI_PREREQ_MODULE"
+              echo "  .. Unloading $MAALI_PREREQ_MODULE"
               module unload $MAALI_PREREQ_MODULE
             done
 
@@ -3388,19 +3388,19 @@ if [ $MAALI_UNINSTALL_REMOVE -eq 1 ]; then
 fi
 
 if [ $MAALI_REMODULE -eq 0 ]; then
-  echo "creating module in $MAALI_TOOL_MODULE_DIR"
+  echo "Creating module in $MAALI_TOOL_MODULE_DIR"
 else
   if [ $MAALI_UNINSTALL_REMOVE -eq 1 ]; then
-    echo "purging the module from $MAALI_TOOL_MODULE_DIR"
+    echo "Purging the module from $MAALI_TOOL_MODULE_DIR"
   elif [ $MAALI_UNINSTALL_HIDE -eq 1 ]; then
-    echo "hiding the module in $MAALI_TOOL_MODULE_DIR"
+    echo "Hiding the module in $MAALI_TOOL_MODULE_DIR"
   else
-    echo "creating module in $MAALI_TOOL_MODULE_DIR"
+    echo "Creating module in $MAALI_TOOL_MODULE_DIR"
   fi
 fi
 
 if [ $MAALI_BUILDONLY ]; then
-  echo "skipping module creation"
+  echo "Skipping module creation"
 else
 
   # make the module
@@ -3461,7 +3461,7 @@ else
         if [ -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" ]; then
           mv "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~"
           if [ $DEBUG ]; then
-            echo "backing up $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME"
+            echo "Backing up $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME"
           fi
         fi
       fi
@@ -3494,7 +3494,7 @@ EOF
 
       if [ $DEBUG ]; then
         if [ -f "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~" ]; then
-          echo "differences between $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME and $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~"
+          echo "Differences between $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME and $MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~"
           diff "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME" "$MAALI_TOOL_MODULE_DIR/$MAALI_MODULE_DEFAULT_FILENAME~"
         fi
       fi
@@ -3505,7 +3505,7 @@ EOF
 
 fi # if [ $MAALI_BUILDONLY ]; then
 
-echo "Complete - Built $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION with MAALI v$MAALI_VERSION"
+echo "Complete - Built $MAALI_TOOL_NAME version $MAALI_TOOL_VERSION with maali v$MAALI_VERSION"
 
 if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   # create a list of software that has been built
@@ -3516,11 +3516,11 @@ if [ "$MAALI_SYSTEM_BUILD" == "YES" ]; then
   MAALI_BUILD_DATE=`date +'%d %B %Y'`
 
   cat <<EOF >>"$MAALI_REBUILD_SRC/$MAALI_SYSTEM.rebuild_script"
-# $MAALI_BUILD_DATE with MAALI v$MAALI_VERSION - $MAALI_BUILDER_BUILD_CN
+# $MAALI_BUILD_DATE with maali v$MAALI_VERSION - $MAALI_BUILDER_BUILD_CN
 $0 $@ -x
 
 if [ \$? -ne 0 ]; then
-  echo "failed to run $0 $@, exiting"
+  echo "Failed to run $0 $@, exiting"
   exit 1
 fi
 
