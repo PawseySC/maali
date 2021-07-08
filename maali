@@ -474,7 +474,7 @@ function maali_module {
     [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+="/\$env(CRAY_CPU_TARGET)"
   fi
   if [[ $MAALI_CRAY -eq 1 ]] ;  then
-    [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+="/${MAALI_SYSTEM_DEFAULT_MPI_MODULE%/*}/\$env(CRAY_MPICH2_VER)"
+    [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+="/\$env(PE_MPICH_MODULE_NAME)/\$env(CRAY_MPICH2_VER)"
   else
     [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+="/\$env(MPI_NAME)/\$env(MPI_VER)"
   fi
@@ -1222,7 +1222,7 @@ function maali_module_lua {
     [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("CRAY_CPU_TARGET")..'
   fi
   if [[ $MAALI_CRAY -eq 1 ]] ;  then
-    [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+="\"/${MAALI_SYSTEM_DEFAULT_MPI_MODULE%/*}/\"..os.getenv(\"CRAY_MPICH2_VER\").."
+    [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("PE_MPICH_MODULE_NAME").."/"..os.getenv("CRAY_MPICH2_VER")..'
   else
     [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("MPI_NAME").."/"..os.getenv("MPI_VER")..'
   fi
