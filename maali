@@ -473,7 +473,11 @@ function maali_module {
   if [[ $MAALI_CRAY -eq 1 ]] ;  then
     [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+="/\$env(CRAY_CPU_TARGET)"
   fi
-  [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+="/\$env(MPI_NAME)/\$env(MPI_VER)"
+  if [[ $MAALI_CRAY -eq 1 ]] ;  then
+    [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+="/\$env(PE_MPICH_MODULE_NAME)/\$env(CRAY_MPICH2_VER)"
+  else
+    [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+="/\$env(MPI_NAME)/\$env(MPI_VER)"
+  fi
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="/cuda/\$env(CUDA_VER)"
   MAALI_APP_HOME+="/$MAALI_TOOL_NAME"
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="${MAALI_CUDA_SUFFIX}"
@@ -1217,7 +1221,11 @@ function maali_module_lua {
   if [[ $MAALI_CRAY -eq 1 ]] ;  then
     [ "$MAALI_TOOL_CPU_TARGET" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("CRAY_CPU_TARGET")..'
   fi
-  [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("MPI_NAME").."/"..os.getenv("MPI_VER")..'
+  if [[ $MAALI_CRAY -eq 1 ]] ;  then
+    [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("PE_MPICH_MODULE_NAME").."/"..os.getenv("CRAY_MPICH2_VER")..'
+  else
+    [ "$MAALI_TOOL_MPI_COMPILERS" != "na" ] && MAALI_APP_HOME+='"/"..os.getenv("MPI_NAME").."/"..os.getenv("MPI_VER")..'
+  fi
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+='"/cuda/"..os.getenv("CUDA_VER")..'
   MAALI_APP_HOME+='"/'$MAALI_TOOL_NAME
   [ $MAALI_CUDA_BUILD -eq 1 ] && MAALI_APP_HOME+="${MAALI_CUDA_SUFFIX}"
